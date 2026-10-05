@@ -547,7 +547,7 @@
         .modal-title { font-size: 16px; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 6px; }
         .btn-close { background: var(--accent-light); border: none; font-size: 14px; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; color: var(--text-muted); }
 
-        /* 🎬 3D / Product Video Popup Modal Styles (Medium Size centered popup) */
+        /* 🎬 3D / Product Image & Video Popup Modal Styles (Medium Size centered popup) */
         .model-3d-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -565,8 +565,8 @@
         .model-3d-container {
             background: var(--card-bg);
             width: 100%;
-            max-width: 340px;
-            max-height: 80vh;
+            max-width: 420px;
+            max-height: 85vh;
             border-radius: 20px;
             overflow: hidden;
             display: flex;
@@ -576,10 +576,11 @@
             position: relative;
             background-color: #000;
         }
-        .model-3d-container video {
+        .model-3d-container video,
+        .model-3d-container img {
             width: 100%;
             height: auto;
-            max-height: 80vh;
+            max-height: 85vh;
             object-fit: contain;
             display: block;
             margin: auto;
@@ -888,12 +889,12 @@
         </div>
     </div>
 
-    <!-- 🧊 Product/3D Video Popup Modal (With Sound / Controls enabled) -->
+    <!-- 🧊 Product/3D Video & Image Popup Modal (With Sound / Controls enabled) -->
     <div class="model-3d-overlay" id="videoPopupModal" onclick="handleModalClick(event, 'videoPopupModal')">
         <div class="model-3d-container">
             <button class="btn-close" onclick="closeModal('videoPopupModal')" style="position: absolute; top: 10px; right: 10px; z-index: 20; background: rgba(0,0,0,0.7); color: #fff; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
-            <!-- បន្ថែម controls ដើម្បីឱ្យអតិថិជនអាចបើក/បិទសំឡេង ឬអូសមើលបានតាមចិត្ត -->
-            <video id="popupVideoPlayer" autoplay loop controls playsinline webkit-playsinline preload="auto"></video>
+            <img id="popupImagePlayer" style="width: 100%; height: auto; max-height: 85vh; object-fit: contain; display: none; margin: auto;" alt="Product Preview">
+            <video id="popupVideoPlayer" autoplay loop controls playsinline webkit-playsinline preload="auto" style="display: none;"></video>
         </div>
     </div>
 
@@ -1273,30 +1274,54 @@
                 modal.classList.remove('active');
                 if (modalId === 'videoPopupModal') {
                     let videoPlayer = document.getElementById('popupVideoPlayer');
+                    let imagePlayer = document.getElementById('popupImagePlayer');
                     if (videoPlayer) {
                         videoPlayer.pause();
                         videoPlayer.removeAttribute('src');
                         videoPlayer.load();
+                        videoPlayer.style.display = 'none';
+                    }
+                    if (imagePlayer) {
+                        imagePlayer.removeAttribute('src');
+                        imagePlayer.style.display = 'none';
                     }
                 }
             }
         }
         function handleModalClick(event, modalId) { if (event.target.id === modalId) closeModal(modalId); }
 
-        // 🎬 Function បង្ហាញ Popup Video ព្រមទាំងបើកសំឡេង (Unmute) ស្របតាមការចុចរបស់អតិថិជន
-        function openProductVideoPopup(videoUrl) {
+        // 🎬 Function បង្ហាញ Popup រូបភាព/វីដេអូ/3D ទំហំធំល្មម
+        function openProductVideoPopup(mediaUrl) {
             let modal = document.getElementById('videoPopupModal');
             let videoPlayer = document.getElementById('popupVideoPlayer');
+            let imagePlayer = document.getElementById('popupImagePlayer');
             
-            if (videoPlayer && videoUrl) {
-                videoPlayer.muted = false; // បើកសំឡេង (Unmute)
-                videoPlayer.src = optimizeMediaUrl(videoUrl, true);
-                videoPlayer.load();
-                videoPlayer.play().catch(err => {
-                    console.log("Auto-play with sound blocked, trying muted:", err);
-                    videoPlayer.muted = true; // ប្រសិនបើ Browser រារាំង វានឹងលេងបែបអត់សំឡេងស្វ័យប្រវត្តិ
-                    videoPlayer.play();
-                });
+            if (!mediaUrl) return;
+
+            if (isImageUrl(mediaUrl)) {
+                if (videoPlayer) {
+                    videoPlayer.pause();
+                    videoPlayer.style.display = 'none';
+                }
+                if (imagePlayer) {
+                    imagePlayer.src = optimizeMediaUrl(mediaUrl, false);
+                    imagePlayer.style.display = 'block';
+                }
+            } else {
+                if (imagePlayer) {
+                    imagePlayer.style.display = 'none';
+                }
+                if (videoPlayer) {
+                    videoPlayer.style.display = 'block';
+                    videoPlayer.muted = false; // បើកសំឡេង (Unmute)
+                    videoPlayer.src = optimizeMediaUrl(mediaUrl, true);
+                    videoPlayer.load();
+                    videoPlayer.play().catch(err => {
+                        console.log("Auto-play with sound blocked, trying muted:", err);
+                        videoPlayer.muted = true; // ប្រសិនបើ Browser រារាំង វានឹងលេងបែបអត់សំឡេងស្វ័យប្រវត្តិ
+                        videoPlayer.play();
+                    });
+                }
             }
             
             if (modal) {
@@ -1530,6 +1555,7 @@
                 let imgBoxClickAction = '';
 
                 if (isImageUrl(mediaUrl)) {
+                    imgBoxClickAction = `onclick="openProductVideoPopup('${mediaUrl}')"`;
                     mediaHtml = `<img src="${optimizeMediaUrl(mediaUrl, false)}" alt="${displayTitle}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover;">`;
                 } else if (mediaUrl) {
                     imgBoxClickAction = `onclick="openProductVideoPopup('${mediaUrl}')"`;
