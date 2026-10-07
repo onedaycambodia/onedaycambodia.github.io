@@ -2,7 +2,7 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- 🔍 Google Search Console Verification (Must not be removed) -->
     <meta name="google-site-verification" content="NAnTCvmk4xykd3w-x0camKxW8av3_FmciznOqiZv4gQ" />
@@ -89,7 +89,7 @@
 
         img { max-width: 100%; }
 
-        /* 🛡️ Strict Icon Sizing Fix */
+        /* 🛡️ Updated Icon Sizing */
         nav img, 
         .modal-title img, 
         .btn-cart-view img, 
@@ -106,10 +106,10 @@
         .nav-icon-img,
         .modal-title-img,
         .dynamic-cart-icon {
-            max-width: 16px !important;
-            max-height: 16px !important;
-            width: 16px !important;
-            height: 16px !important;
+            max-width: 18px !important;
+            max-height: 18px !important;
+            width: 18px !important;
+            height: 18px !important;
             object-fit: contain !important;
             vertical-align: middle;
             display: inline-block;
@@ -126,7 +126,7 @@
             backdrop-filter: blur(12px); 
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border-color); 
-            padding: 8px 16px; 
+            padding: 10px 16px; 
             position: sticky; 
             top: 0; 
             z-index: 50; 
@@ -139,7 +139,7 @@
 
         /* 🎨 Logo Branding */
         .logo { 
-            font-size: 18px; 
+            font-size: 19px; 
             font-weight: 800; 
             letter-spacing: -0.5px; 
             line-height: 1;
@@ -151,19 +151,19 @@
         .logo .brand-one { color: var(--accent); }
         .logo .brand-day { color: var(--primary); transition: color 0.3s; }
         .logo .brand-dot { color: var(--accent); }
-        .logo-img { height: 26px !important; width: auto !important; max-width: 120px !important; object-fit: contain; display: none; }
+        .logo-img { height: 28px !important; width: auto !important; max-width: 120px !important; object-fit: contain; display: none; }
 
         .nav-right { display: flex; align-items: center; gap: 8px; }
 
-        /* ✨ Enhanced & Sleek Navigation Buttons */
+        /* ✨ Enhanced & Medium Navigation Buttons */
         .guide-top-btn { 
             background: var(--card-bg); 
             border: 1px solid var(--border-color); 
             color: var(--primary); 
-            padding: 0 12px; 
-            height: 34px;
-            border-radius: 17px; 
-            font-size: 11px; 
+            padding: 0 14px; 
+            height: 38px;
+            border-radius: 19px; 
+            font-size: 12px; 
             font-weight: 700; 
             font-family: var(--nav-font);
             cursor: pointer; 
@@ -184,8 +184,8 @@
             background: var(--card-bg); 
             border: 1px solid var(--border-color); 
             color: var(--primary); 
-            width: 34px; 
-            height: 34px; 
+            width: 38px; 
+            height: 38px; 
             border-radius: 50%; 
             cursor: pointer; 
             display: flex; 
@@ -202,16 +202,16 @@
 
         /* 🌐 Clean Flag-Only Language Selector */
         .lang-select-wrapper { position: relative; display: flex; align-items: center; }
-        .lang-flag-img { position: absolute; left: 9px; width: 16px !important; height: 12px !important; pointer-events: none; z-index: 2; object-fit: cover !important; border-radius: 2px; box-shadow: 0 0 1px rgba(0,0,0,0.3); }
+        .lang-flag-img { position: absolute; left: 10px; width: 18px !important; height: 13px !important; pointer-events: none; z-index: 2; object-fit: cover !important; border-radius: 2px; box-shadow: 0 0 1px rgba(0,0,0,0.3); }
 
         .lang-select { 
             background: var(--card-bg); 
             border: 1px solid var(--border-color); 
             color: transparent; 
-            width: 52px;
-            padding: 0 6px 0 28px; 
-            height: 34px;
-            border-radius: 17px; 
+            width: 56px;
+            padding: 0 6px 0 30px; 
+            height: 38px;
+            border-radius: 19px; 
             font-size: 0px; 
             cursor: pointer; 
             outline: none; 
@@ -220,7 +220,7 @@
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%230284c7%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 8px center;
-            background-size: 7px auto;
+            background-size: 8px auto;
             box-shadow: 0 2px 6px rgba(0,0,0,0.02);
             transition: all 0.2s ease;
         }
@@ -230,7 +230,7 @@
         .lang-select option {
             color: var(--primary);
             background: var(--card-bg);
-            font-size: 12px;
+            font-size: 13px;
             font-family: var(--nav-font);
         }
 
@@ -242,9 +242,9 @@
             background: rgba(15, 23, 42, 0.85);
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 20px;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 800;
             cursor: pointer;
             z-index: 12;
@@ -293,10 +293,10 @@
         .cover-dot.active { width: 16px; border-radius: 4px; background: var(--accent); }
 
         .cover-info { text-align: center; padding: 4px 14px 12px; background: var(--card-bg); }
-        .sub-title { font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 2px; }
-        .main-title { font-size: 16px; font-weight: 900; text-transform: uppercase; color: var(--primary); }
+        .sub-title { font-size: 11px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 2px; }
+        .main-title { font-size: 17px; font-weight: 900; text-transform: uppercase; color: var(--primary); }
 
-        /* 🎨 DESIGN STYLE 1: Modern Minimal (Clean & Soft) */
+        /* 🎨 DESIGN STYLE 1: Modern Minimal */
         .menu-wrapper { 
             padding: 10px 16px 16px; 
             max-width: 1200px; 
@@ -306,7 +306,6 @@
             transition: background 0.3s;
         }
 
-        /* 🚹 Gender Selector Style 1 (Pill Tabs with soft shadow) */
         .categories { 
             display: grid; 
             grid-template-columns: repeat(2, 1fr); 
@@ -321,7 +320,7 @@
             border: 1.5px solid var(--border-color); 
             padding: 12px 0; 
             border-radius: 30px; 
-            font-size: 14px; 
+            font-size: 15px; 
             font-weight: 700; 
             font-family: var(--nav-font); 
             color: var(--text-muted); 
@@ -335,8 +334,8 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
         .cat-btn svg, .cat-btn img {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             opacity: 0.6;
             transition: opacity 0.2s;
         }
@@ -351,7 +350,6 @@
             opacity: 1;
         }
 
-        /* 🏷️ Sub-categories Style 1 (Minimal Pill Row) */
         .sub-categories { 
             display: none; 
             justify-content: center; 
@@ -366,9 +364,9 @@
         .sub-btn { 
             background: var(--card-bg); 
             border: 1px solid var(--border-color); 
-            padding: 8px 18px; 
+            padding: 9px 20px; 
             border-radius: 20px; 
-            font-size: 12px; 
+            font-size: 13px; 
             font-weight: 600; 
             font-family: var(--nav-font); 
             white-space: nowrap; 
@@ -404,7 +402,6 @@
 
         .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 12px; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); }
         
-        /* 🦴 Skeleton Loading Placeholder Styles */
         .skeleton-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -466,19 +463,20 @@
         .price { font-size: 16px; font-weight: 900; color: var(--accent); }
 
         .size-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .size-label { font-size: 10px; font-weight: 800; color: var(--text-muted); }
+        .size-label { font-size: 11px; font-weight: 800; color: var(--text-muted); }
         
         .size-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 8px; }
-        .size-btn { border: 1px solid var(--border-color); background: var(--input-bg); padding: 6px 0; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; text-align: center; color: var(--primary); }
+        .size-btn { border: 1px solid var(--border-color); background: var(--input-bg); padding: 8px 0; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center; color: var(--primary); transition: all 0.2s; }
         .size-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 
         .stock-hint-box { font-size: 11px; color: var(--text-muted); font-weight: 700; text-align: center; margin-bottom: 8px; min-height: 16px; }
         .stock-hint-box span { color: var(--accent); font-weight: 900; }
 
-        .btn-add { width: 100%; background: var(--primary); color: var(--bg-color); border: none; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 11px; cursor: pointer; transition: background 0.2s; }
+        /* 🔘 Larger & Cleaner Add Button */
+        .btn-add { width: 100%; background: var(--primary); color: var(--bg-color); border: none; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; transition: background 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
         .btn-add:active { background: var(--accent); }
 
-        /* 🛡️ Clean, Elevated & Perfectly Spaced Cart Checkout Bar */
+        /* 🛡️ Cart Checkout Bar */
         .cart-checkout-bar { 
             position: fixed; 
             bottom: 0; 
@@ -488,28 +486,29 @@
             backdrop-filter: blur(12px); 
             -webkit-backdrop-filter: blur(12px);
             border-top: 1px solid var(--border-color); 
-            padding: 10px 16px; 
+            padding: 12px 16px; 
             padding-bottom: calc(16px + env(safe-area-inset-bottom)); 
             z-index: 100; 
             box-shadow: 0 -4px 20px rgba(0,0,0,0.06); 
         }
         .bar-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .total-price { font-size: 16px; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 4px; }
-        .total-label { font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
-        .bar-buttons { display: flex; gap: 6px; }
+        .total-price { font-size: 17px; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 4px; }
+        .total-label { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+        .bar-buttons { display: flex; gap: 8px; }
         
+        /* 🔘 Medium Sized Bottom Bar Buttons */
         .btn-cart-view { 
             background: var(--card-bg); 
             color: var(--primary); 
             border: 1px solid var(--border-color); 
-            padding: 8px 12px; 
-            border-radius: 10px; 
+            padding: 10px 16px; 
+            border-radius: 12px; 
             font-weight: 800; 
-            font-size: 11px; 
+            font-size: 12px; 
             cursor: pointer; 
             display: flex; 
             align-items: center; 
-            gap: 6px; 
+            gap: 8px; 
             white-space: nowrap;
             box-shadow: 0 2px 6px rgba(0,0,0,0.02);
             transition: all 0.2s ease;
@@ -523,15 +522,15 @@
             background: var(--accent); 
             color: white; 
             border: none; 
-            padding: 8px 14px; 
-            border-radius: 10px; 
+            padding: 10px 18px; 
+            border-radius: 12px; 
             font-weight: 800; 
-            font-size: 11px; 
+            font-size: 12px; 
             cursor: pointer; 
             box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25); 
             display: flex; 
             align-items: center; 
-            gap: 6px; 
+            gap: 8px; 
             white-space: nowrap;
             transition: all 0.2s ease;
         }
@@ -540,14 +539,44 @@
             transform: translateY(-1px);
         }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); z-index: 200; display: none; justify-content: flex-end; flex-direction: column; backdrop-filter: blur(4px); pointer-events: none; opacity: 0; transition: opacity 0.2s ease; }
+        /* 🖼️ Medium Centered Popup Modals */
+        .modal-overlay { 
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0; 
+            background: rgba(15, 23, 42, 0.6); 
+            z-index: 200; 
+            display: none; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 16px; 
+            backdrop-filter: blur(4px); 
+            pointer-events: none; 
+            opacity: 0; 
+            transition: opacity 0.2s ease; 
+        }
         .modal-overlay.active { display: flex; pointer-events: auto; opacity: 1; }
-        .modal-content { background: var(--modal-bg); color: var(--primary); border-radius: 24px 24px 0 0; padding: 20px; max-height: 85vh; overflow-y: auto; max-width: 480px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; box-shadow: 0 -10px 25px rgba(0,0,0,0.1); border-top: 1px solid var(--border-color); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 14px; }
-        .modal-title { font-size: 16px; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 6px; }
-        .btn-close { background: var(--accent-light); border: none; font-size: 14px; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; color: var(--text-muted); }
+        
+        .modal-content { 
+            background: var(--modal-bg); 
+            color: var(--primary); 
+            border-radius: 20px; 
+            padding: 24px; 
+            max-height: 85vh; 
+            overflow-y: auto; 
+            max-width: 500px; 
+            width: 100%; 
+            margin: auto; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+            border: 1px solid var(--border-color); 
+        }
 
-        /* 🎬 3D / Product Image & Video Popup Modal Styles (Medium Size centered popup) */
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 14px; }
+        .modal-title { font-size: 17px; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .btn-close { background: var(--accent-light); border: none; font-size: 15px; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-weight: 800; }
+
+        /* 🎬 3D / Product Image & Video Popup Modal Styles */
         .model-3d-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -565,7 +594,7 @@
         .model-3d-container {
             background: var(--card-bg);
             width: 100%;
-            max-width: 420px;
+            max-width: 450px;
             max-height: 85vh;
             border-radius: 20px;
             overflow: hidden;
@@ -589,45 +618,45 @@
             -webkit-backface-visibility: hidden;
         }
 
-        #cart-list { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; max-height: 260px; }
-        .cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 10px 0; }
-        .item-info { font-size: 12px; font-weight: 800; color: var(--primary); }
-        .item-sub { font-size: 10px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
-        .qty-controls { display: flex; align-items: center; gap: 6px; }
-        .btn-qty { background: var(--accent-light); color: var(--accent); border: 1px solid var(--border-color); width: 26px; height: 26px; border-radius: 8px; font-weight: 900; cursor: pointer; }
-        .btn-delete-item { background: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; width: 26px; height: 26px; border-radius: 8px; font-weight: 800; cursor: pointer; margin-left: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; }
-        .empty-msg { text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 12px; }
+        #cart-list { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; max-height: 300px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 12px 0; }
+        .item-info { font-size: 13px; font-weight: 800; color: var(--primary); }
+        .item-sub { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+        .qty-controls { display: flex; align-items: center; gap: 8px; }
+        .btn-qty { background: var(--accent-light); color: var(--accent); border: 1px solid var(--border-color); width: 30px; height: 30px; border-radius: 8px; font-weight: 900; cursor: pointer; font-size: 14px; }
+        .btn-delete-item { background: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; width: 30px; height: 30px; border-radius: 8px; font-weight: 800; cursor: pointer; margin-left: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .empty-msg { text-align: center; color: var(--text-muted); padding: 30px 0; font-size: 13px; font-weight: 600; }
 
-        .summary-box { border-top: 1px solid var(--border-color); padding-top: 10px; padding-bottom: 4px; display: flex; flex-direction: column; gap: 6px; }
-        .summary-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted); font-weight: 700; }
+        .summary-box { border-top: 1px solid var(--border-color); padding-top: 12px; padding-bottom: 4px; display: flex; flex-direction: column; gap: 8px; }
+        .summary-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-muted); font-weight: 700; }
 
         .delivery-fee-label { display: flex; align-items: center; gap: 6px; }
 
-        .checkout-form { border-top: 1px solid var(--border-color); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
-        .form-group { display: flex; flex-direction: column; gap: 4px; width: 100%; }
-        .form-label { font-size: 11px; font-weight: 800; color: var(--primary); }
-        .form-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 10px; outline: none; background: var(--input-bg); color: var(--primary); }
+        .checkout-form { border-top: 1px solid var(--border-color); padding-top: 14px; display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+        .form-label { font-size: 12px; font-weight: 800; color: var(--primary); }
+        .form-input { width: 100%; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 12px; outline: none; background: var(--input-bg); color: var(--primary); font-size: 14px !important; }
         .form-input:focus { border-color: var(--accent); background: var(--card-bg); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
         .form-input.error { border-color: #ef4444; background: #fef2f2; }
 
-        .modal-footer { border-top: 1px solid var(--border-color); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+        .modal-footer { border-top: 1px solid var(--border-color); padding-top: 14px; display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
         .modal-total-row { display: flex; justify-content: space-between; align-items: center; }
-        .modal-total-label { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
-        .modal-total-amount { font-size: 18px; font-weight: 900; color: var(--accent); display: flex; align-items: center; gap: 4px; }
-        .btn-modal-telegram { width: 100%; background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 13px; text-align: center; cursor: pointer; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .modal-total-label { font-size: 13px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+        .modal-total-amount { font-size: 19px; font-weight: 900; color: var(--accent); display: flex; align-items: center; gap: 4px; }
+        .btn-modal-telegram { width: 100%; background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; text-align: center; cursor: pointer; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        .guide-step { font-size: 12px; line-height: 1.8; color: var(--primary); margin-bottom: 8px; font-weight: 600; }
+        .guide-step { font-size: 13px; line-height: 1.8; color: var(--primary); margin-bottom: 8px; font-weight: 600; }
 
         .toast-notification {
             position: fixed;
-            bottom: 80px;
+            bottom: 85px;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
             background: rgba(15, 23, 42, 0.9);
             color: #ffffff;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 20px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
             z-index: 300;
             opacity: 0;
@@ -636,7 +665,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
         .toast-notification.show {
             transform: translateX(-50%) translateY(0);
@@ -840,7 +869,7 @@
                     <label class="form-label" data-key="label_map">ទីតាំងលើ Map (Optional)</label>
                     <div style="display: flex; gap: 6px;">
                         <input type="text" id="custMapUrl" class="form-input" data-placeholder-key="placeholder_map" placeholder="ជ្រើសរើសទីតាំងលើ Map (បើមាន)..." readonly style="cursor: pointer;" onclick="openMapModal()">
-                        <button type="button" onclick="openMapModal()" style="background: var(--accent-light); color: var(--accent); border: 1px solid var(--border-color); padding: 0 10px; border-radius: 10px; font-weight:800; font-size:11px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:4px;" data-key="btn_select_map">
+                        <button type="button" onclick="openMapModal()" style="background: var(--accent-light); color: var(--accent); border: 1px solid var(--border-color); padding: 0 12px; border-radius: 12px; font-weight:800; font-size:12px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:4px;" data-key="btn_select_map">
                             🗺️ Select Map
                         </button>
                     </div>
@@ -865,7 +894,7 @@
 
     <!-- Modal OpenStreetMap Picker -->
     <div class="modal-overlay" id="mapPickerModal" style="z-index: 300;" onclick="handleModalClick(event, 'mapPickerModal')">
-        <div class="modal-content" style="height: 85vh; padding: 16px; display: flex; flex-direction: column;">
+        <div class="modal-content" style="height: 85vh; padding: 20px; display: flex; flex-direction: column;">
             <div class="modal-header">
                 <div class="modal-title">
                     <span data-key="map_picker_title">📍 សុំជ្រើសរើសទីតាំងទទួលទំនិញ</span>
@@ -889,10 +918,10 @@
         </div>
     </div>
 
-    <!-- 🧊 Product/3D Video & Image Popup Modal (With Sound / Controls enabled) -->
+    <!-- 🧊 Product/3D Video & Image Popup Modal -->
     <div class="model-3d-overlay" id="videoPopupModal" onclick="handleModalClick(event, 'videoPopupModal')">
         <div class="model-3d-container">
-            <button class="btn-close" onclick="closeModal('videoPopupModal')" style="position: absolute; top: 10px; right: 10px; z-index: 20; background: rgba(0,0,0,0.7); color: #fff; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
+            <button class="btn-close" onclick="closeModal('videoPopupModal')" style="position: absolute; top: 10px; right: 10px; z-index: 20; background: rgba(0,0,0,0.7); color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
             <img id="popupImagePlayer" style="width: 100%; height: auto; max-height: 85vh; object-fit: contain; display: none; margin: auto;" alt="Product Preview">
             <video id="popupVideoPlayer" autoplay loop controls playsinline webkit-playsinline preload="auto" style="display: none;"></video>
         </div>
@@ -1290,7 +1319,6 @@
         }
         function handleModalClick(event, modalId) { if (event.target.id === modalId) closeModal(modalId); }
 
-        // 🎬 Function បង្ហាញ Popup រូបភាព/វីដេអូ/3D ទំហំធំល្មម
         function openProductVideoPopup(mediaUrl) {
             let modal = document.getElementById('videoPopupModal');
             let videoPlayer = document.getElementById('popupVideoPlayer');
@@ -1313,12 +1341,12 @@
                 }
                 if (videoPlayer) {
                     videoPlayer.style.display = 'block';
-                    videoPlayer.muted = false; // បើកសំឡេង (Unmute)
+                    videoPlayer.muted = false;
                     videoPlayer.src = optimizeMediaUrl(mediaUrl, true);
                     videoPlayer.load();
                     videoPlayer.play().catch(err => {
                         console.log("Auto-play with sound blocked, trying muted:", err);
-                        videoPlayer.muted = true; // ប្រសិនបើ Browser រារាំង វានឹងលេងបែបអត់សំឡេងស្វ័យប្រវត្តិ
+                        videoPlayer.muted = true;
                         videoPlayer.play();
                     });
                 }
@@ -1742,7 +1770,7 @@
             let html = '';
             for (let i = 1; i <= totalPages; i++) {
                 let isActive = (i === currentPage) ? 'active' : '';
-                html += `<button class="page-btn ${isActive}" onclick="changePage(${i})" style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: ${i === currentPage ? 'var(--accent)' : 'var(--card-bg)'}; color: ${i === currentPage ? '#fff' : 'var(--primary)'}; font-weight: 800; cursor: pointer; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">${i}</button>`;
+                html += `<button class="page-btn ${isActive}" onclick="changePage(${i})" style="padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border-color); background: ${i === currentPage ? 'var(--accent)' : 'var(--card-bg)'}; color: ${i === currentPage ? '#fff' : 'var(--primary)'}; font-weight: 800; cursor: pointer; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">${i}</button>`;
             }
             paginationContainer.innerHTML = html;
         }
@@ -1939,7 +1967,7 @@
                         </div>
                         <div class="qty-controls">
                             <button class="btn-qty" onclick="changeQty('${key}', -1)">-</button>
-                            <span style="font-weight:800; font-size:12px;">${item.qty}</span>
+                            <span style="font-weight:800; font-size:13px;">${item.qty}</span>
                             <button class="btn-qty" onclick="changeQty('${key}', 1)">+</button>
                             <button class="btn-delete-item" onclick="deleteCartItem('${key}')" title="Delete">🗑️</button>
                         </div>
