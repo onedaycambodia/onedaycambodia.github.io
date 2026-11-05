@@ -15,6 +15,16 @@ const DEVICE_ID = crypto.randomUUID(); // keeps Wing from revoking the token ear
 
 let tokenCache = { token: null, expiresAt: 0 };
 
+// Node's fetch only says "fetch failed"; the real reason (DNS, timeout, refused, TLS) is in err.cause.
+async function wfetch(url, opts) {
+    try {
+        return await fetch(url, opts);
+    } catch (err) {
+        const c = err && err.cause ? (err.cause.code || err.cause.message) : '';
+        throw new Error(`cannot reach Wing (${new URL(url).host}): ${err.message}${c ? ' - ' + c : ''}`);
+    }
+}
+
 function isEnabled() {
     return Boolean(process.env.WING_CLIENT_ID && process.env.WING_CLIENT_SECRET);
 }
@@ -47,7 +57,7 @@ async function getToken(force) {
         client_secret: process.env.WING_CLIENT_SECRET,
         scope: `partner:standard device_id:${DEVICE_ID}`
     });
-    const res = await fetch(HOST + '/idp/v1/token', {
+    const res = await wfetch(HOST + '/idp/v1/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body,
@@ -86,7 +96,7 @@ async function createPayment({ amount, orderRef, returnUrl, cancelUrl, merchantN
 
     for (let attempt = 0; attempt < 2; attempt++) {
         const token = await getToken(attempt > 0);
-        const res = await fetch(SERVICE + '/generate/khqr', {
+        const res = await wfetch(SERVICE + '/generate/khqr', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -116,7 +126,7 @@ async function checkPaid(orderRef, expectedAmount) {
     try {
         for (let attempt = 0; attempt < 2; attempt++) {
             const token = await getToken(attempt > 0);
-            const res = await fetch(SERVICE + '/inquiry/khqr/success', {
+            const res = await wfetch(SERVICE + '/inquiry/khqr/success', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ order_reference_no: orderRef }),
