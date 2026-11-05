@@ -1472,14 +1472,19 @@
                     
                     // HERE Maps raster tiles (key restricted to our domain in HERE platform)
                     const HERE_API_KEY = 'jKSBkCzNf2pzmEDQD_4775QIe-Y8PgjvlHohp66pV4s';
-                    L.tileLayer('https://maps.hereapi.com/v3/base/mc/{z}/{x}/{y}/png8?style=explore.day&size=512&apiKey=' + HERE_API_KEY, {
+                    L.tileLayer('https://maps.hereapi.com/v3/base/mc/{z}/{x}/{y}/png8?style=explore.night&size=512&apiKey=' + HERE_API_KEY, {
                         maxZoom: 19, minZoom: 7,
                         tileSize: 512, zoomOffset: -1,
                         attribution: '&copy; HERE'
                     }).addTo(freeMapObj);
 
                     L.control.zoom({ position: 'topleft' }).addTo(freeMapObj);
-                    freeMarker = L.marker([currentPos.lat, currentPos.lng], { draggable: true }).addTo(freeMapObj);
+                    const hereIcon = L.divIcon({
+                        className: '',
+                        html: '<div style="width:22px;height:22px;background:#00AFAA;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.6)"></div>',
+                        iconSize: [22, 22], iconAnchor: [11, 11]
+                    });
+                    freeMarker = L.marker([currentPos.lat, currentPos.lng], { draggable: true, icon: hereIcon }).addTo(freeMapObj);
 
                     freeMapObj.on('click', function(e) {
                         if (bounds.contains(e.latlng)) {
