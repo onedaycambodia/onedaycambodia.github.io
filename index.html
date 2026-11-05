@@ -756,6 +756,85 @@
         .kq-confetti i { position: absolute; border-radius: 2px; opacity: 0; animation: kq-burst 1.7s cubic-bezier(.15,.7,.3,1) forwards; }
         @keyframes kq-burst { 0% { opacity: 1; transform: translate(0,0) rotate(0); } 75% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 140px)) rotate(var(--rot)); } }
         @media (prefers-reduced-motion: reduce) { .kq-scan, .ty-badge::before, .ty-badge::after { animation: none; } .kq-confetti { display: none; } }
+
+        /* ===== UI MOTION (tap feedback, modals, cards, cart) ===== */
+        :root { --spring: cubic-bezier(.34, 1.56, .64, 1); --ease-out: cubic-bezier(.2, .9, .25, 1); }
+        button, .size-btn, .cat-btn, .sub-btn { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+        /* 1) Press feedback: every tappable thing squishes, then springs back */
+        .cat-btn, .sub-btn, .size-btn, .btn-add, .btn-cart-view, .btn-telegram, .btn-modal-telegram,
+        .btn-qty, .btn-delete-item, .btn-close, .guide-top-btn, .theme-toggle-btn, .btn-3d-toggle, .page-btn {
+            transition: transform .35s var(--spring), background-color .25s ease, color .25s ease,
+                        border-color .25s ease, box-shadow .3s ease, opacity .2s ease;
+        }
+        .cat-btn:active, .sub-btn:active, .size-btn:active, .btn-add:active, .btn-cart-view:active,
+        .btn-telegram:active, .btn-modal-telegram:active, .btn-qty:active, .btn-delete-item:active,
+        .guide-top-btn:active, .theme-toggle-btn:active, .btn-3d-toggle:active, .page-btn:active {
+            transform: scale(.94); transition-duration: .08s;
+        }
+        .btn-close:active { transform: scale(.88) rotate(90deg); transition-duration: .1s; }
+        .btn-telegram:hover { transform: none; }
+
+        /* 2) Selection pop (class added by JS on tap) */
+        @keyframes sel-pop { 0% { transform: scale(.9); } 55% { transform: scale(1.08); } 100% { transform: scale(1); } }
+        .pop { animation: sel-pop .38s var(--ease-out); }
+
+        /* Sub-category row slides in when gender changes */
+        @keyframes sub-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+        .sub-categories.active { animation: sub-in .35s var(--ease-out); }
+
+        /* 3) Product cards rise in whenever they appear (first load + every filter change) */
+        @keyframes card-in { from { opacity: 0; transform: translateY(22px) scale(.97); } to { opacity: 1; transform: none; } }
+        .container .card { animation: card-in .5s var(--ease-out) backwards; }
+        .container .card:nth-child(2) { animation-delay: .06s; }
+        .container .card:nth-child(3) { animation-delay: .12s; }
+        .container .card:nth-child(4) { animation-delay: .18s; }
+        .container .card:nth-child(n+5) { animation-delay: .24s; }
+
+        /* 4) Modals: fade the backdrop, spring the panel up */
+        .modal-overlay, .model-3d-overlay {
+            display: flex; visibility: hidden; opacity: 0; pointer-events: none;
+            transition: opacity .28s ease, visibility 0s linear .28s;
+        }
+        .modal-overlay.active, .model-3d-overlay.active {
+            visibility: visible; opacity: 1; pointer-events: auto;
+            transition: opacity .28s ease, visibility 0s;
+        }
+        .modal-content, .model-3d-container {
+            opacity: 0; transform: translateY(40px) scale(.94);
+            transition: transform .5s var(--spring), opacity .25s ease;
+        }
+        .modal-overlay.active .modal-content, .model-3d-overlay.active .model-3d-container {
+            opacity: 1; transform: none;
+        }
+
+        /* 5) Add-to-cart button confirms itself */
+        @keyframes added-flash { 0% { transform: scale(.94); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .btn-add.added { background: #16a34a !important; color: #fff !important; animation: added-flash .45s var(--ease-out); pointer-events: none; }
+        .btn-add.added .ico { color: #fff; stroke-width: 3; vertical-align: -0.18em; margin-right: 4px; }
+
+        /* Cart button + total bump when something lands */
+        @keyframes bump { 0% { transform: scale(1); } 35% { transform: scale(1.14); } 100% { transform: scale(1); } }
+        .btn-cart-view.bump { animation: bump .45s var(--ease-out); border-color: var(--accent); color: var(--accent); }
+        @keyframes tick { 0% { transform: translateY(0); } 40% { transform: translateY(-5px) scale(1.12); color: var(--accent); } 100% { transform: none; } }
+        #total-price.tick { display: inline-block; animation: tick .45s var(--ease-out); }
+
+        /* Toast springs up */
+        .toast-notification { transition: transform .5s var(--spring), opacity .25s ease; transform: translateX(-50%) translateY(120px) scale(.9); }
+        .toast-notification.show { transform: translateX(-50%) translateY(0) scale(1); }
+
+        /* Size buttons + stock hint */
+        .size-btn.active { box-shadow: 0 4px 10px rgba(2, 132, 199, .3); }
+        .stock-hint-box span { transition: opacity .2s ease; }
+
+        /* Inputs glow smoothly */
+        .form-input { transition: border-color .25s ease, box-shadow .25s ease, background-color .25s ease; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .pop, .container .card, .sub-categories.active, .btn-add.added, .btn-cart-view.bump, #total-price.tick { animation: none !important; }
+            .modal-content, .model-3d-container, .toast-notification { transition-duration: .01s !important; transform: none; }
+            button:active { transform: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -1963,22 +2042,35 @@
             let flyer = document.createElement(isVideo ? 'video' : 'img');
             flyer.src = imgBox.currentSrc || imgBox.src;
             flyer.className = 'fly-item';
-            
+            flyer.style.transition = 'none';
+
             let rect = imgBox.getBoundingClientRect();
-            flyer.style.top = rect.top + 'px';
-            flyer.style.left = rect.left + 'px';
+            let cartRect = cartBtn.getBoundingClientRect();
+            let startX = rect.left + rect.width / 2 - 30;
+            let startY = rect.top + rect.height / 2 - 30;
+            flyer.style.left = startX + 'px';
+            flyer.style.top = startY + 'px';
             document.body.appendChild(flyer);
 
-            let cartRect = cartBtn.getBoundingClientRect();
-            setTimeout(() => {
-                flyer.style.top = (cartRect.top + 5) + 'px';
-                flyer.style.left = (cartRect.left + 5) + 'px';
-                flyer.style.width = '20px';
-                flyer.style.height = '20px';
-                flyer.style.opacity = '0.5';
-            }, 50);
+            let dx = (cartRect.left + cartRect.width / 2 - 30) - startX;
+            let dy = (cartRect.top + cartRect.height / 2 - 30) - startY;
 
-            setTimeout(() => flyer.remove(), 850);
+            const done = () => {
+                flyer.remove();
+                cartBtn.classList.remove('bump');
+                void cartBtn.offsetWidth;
+                cartBtn.classList.add('bump');
+                setTimeout(() => cartBtn.classList.remove('bump'), 500);
+            };
+
+            if (!flyer.animate) { setTimeout(done, 700); return; }
+            // curved path: lifts up first, then dives into the cart
+            let anim = flyer.animate([
+                { transform: 'translate(0,0) scale(1.15) rotate(0deg)', opacity: 1, offset: 0 },
+                { transform: `translate(${dx * 0.45}px, ${Math.min(dy * 0.2, 0) - 70}px) scale(.8) rotate(100deg)`, opacity: 1, offset: 0.4 },
+                { transform: `translate(${dx}px, ${dy}px) scale(.2) rotate(260deg)`, opacity: .35, offset: 1 }
+            ], { duration: 750, easing: 'cubic-bezier(.45,.05,.55,.95)', fill: 'forwards' });
+            anim.onfinish = done;
         }
 
         async function addToCart(buttonEl, defaultPrice, cardId, refText, event) {
@@ -2020,6 +2112,13 @@
 
             renderCart();
             showToast(translations[currentLang].toast_added);
+
+            if (buttonEl && !buttonEl.classList.contains('added')) {
+                let original = buttonEl.innerHTML;
+                buttonEl.innerHTML = ico('check') + translations[currentLang].toast_added.replace(/!$/, '');
+                buttonEl.classList.add('added');
+                setTimeout(() => { buttonEl.innerHTML = original; buttonEl.classList.remove('added'); }, 1100);
+            }
         }
 
         function changeQty(itemKey, delta) {
@@ -2513,6 +2612,28 @@
                 alert("មិនអាចភ្ជាប់ទៅកាន់ Server លើ Railway បានទេ!");
             }
         }
+
+        // ===== UI motion helpers =====
+        (function () {
+            // pop animation on selection buttons
+            document.addEventListener('click', function (e) {
+                let el = e.target.closest('.cat-btn, .sub-btn, .size-btn, .page-btn');
+                if (!el) return;
+                el.classList.remove('pop');
+                void el.offsetWidth;
+                el.classList.add('pop');
+                el.addEventListener('animationend', function h() { el.classList.remove('pop'); el.removeEventListener('animationend', h); });
+            });
+            // total price ticks whenever it changes
+            let tp = document.getElementById('total-price');
+            if (tp && window.MutationObserver) {
+                new MutationObserver(function () {
+                    tp.classList.remove('tick');
+                    void tp.offsetWidth;
+                    tp.classList.add('tick');
+                }).observe(tp, { childList: true, characterData: true, subtree: true });
+            }
+        })();
     </script>
 </body>
 </html>
