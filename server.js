@@ -357,7 +357,7 @@ const webAdmin = require('./webadmin')(app, {
 });
 
 // ---------------- 💳 KHQR / BAKONG PAYMENT ----------------
-const KHQR_EXPIRE_MINUTES = 10;
+const KHQR_EXPIRE_MINUTES = Number(process.env.KHQR_EXPIRE_MINUTES) || 3; // QR lifetime; also the stock-hold time for unpaid orders
 const khqrRateMap = new Map(); // ip -> [timestamps], stops someone locking all stock with unpaid QR orders
 
 function khqrRateLimited(ip) {
@@ -569,8 +569,8 @@ app.get('/api/payment-status/:md5', async (req, res) => {
                     if (c.state === 'PAID') { await markOrderPaid(o.id); return res.json({ status: 'PAID', order_id: o.id }); }
                     if (c.state === 'ERROR') console.error(`WING check error (order ${o.id}):`, c.detail);
                 }
-            } else if (req.query.force === '1' && !o.manual_review && sinceLast >= 20000) {
-                // the customer pressed "I have paid - check again": one extra check (may use the reserve), 20 s cooldown per order
+            } else if (req.query.force === '1' && !o.manual_review && sinceLast >= 8000) {
+                // the customer pressed "I have paid - check again": one extra check (may use the reserve), 8 s cooldown per order
                 khqrLastChecked.set(md5, now);
                 const c = await checkOrderPaid(o, 'manual');
                 if (c.state === 'PAID') { await markOrderPaid(o.id); return res.json({ status: 'PAID', order_id: o.id }); }
@@ -605,11 +605,15 @@ app.post('/api/payment-claim/:md5', async (req, res) => {
 // ---- Central Bakong poller ------------------------------------------------------------------------
 // ONE batched Bakong call covers every waiting order. Nothing is called when nobody is waiting.
 // Schedule per order (age = time since the QR was made); orders whose page is no longer open are checked rarely.
+// Nobody can scan + confirm in the first seconds, so the first check waits KHQR_FIRST_CHECK_MS. After that the
+// pace is tuned for a 3-minute QR: most customers pay in 20-60 s, so we check a bit more often early on and
+// slow down later. When the customer comes back from the bank app the browser asks for an immediate check
+// anyway (see ?force=1 below), so the success screen does not depend on this schedule.
+const KHQR_FIRST_CHECK_MS = 12000;
 function khqrPollInterval(ageMs, seen) {
-    if (!seen) return 45000;
-    if (ageMs < 60000) return 8000;
-    if (ageMs < 180000) return 15000;
-    return 30000;
+    if (!seen) return 60000;          // page closed / phone locked: rarely; the deadline check settles it
+    if (ageMs < 90000) return 12000;  // 12 s - 90 s
+    return 20000;                     // 90 s - expiry
 }
 let khqrPolling = false;
 setInterval(async () => {
@@ -627,6 +631,7 @@ setInterval(async () => {
         const due = r.rows.some(o => {
             const age = KHQR_EXPIRE_MINUTES * 60000 - (new Date(o.expires_at).getTime() - now);
             const seen = now - (khqrLastSeen.get(o.khqr_md5) || 0) < 60000;
+            if (age < KHQR_FIRST_CHECK_MS) return false;
             return now - (khqrLastChecked.get(o.khqr_md5) || 0) >= khqrPollInterval(age, seen);
         });
         if (!due) return;
