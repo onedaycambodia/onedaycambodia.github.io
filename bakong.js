@@ -78,8 +78,8 @@ async function checkPaid(md5, expectedAmount) {
         return { state: 'PAID' };
     }
 
-    // responseCode 1 + errorCode 3 = "Transaction could not be found" = simply not paid yet
-    if (body.responseCode === 1 && body.errorCode === 3) return { state: 'UNPAID' };
+    // "Transaction could not be found" = simply not paid yet (Bakong sends errorCode 1 or 3 depending on the case)
+    if (body.responseCode === 1 && /could not be found/i.test(String(body.responseMessage || ''))) return { state: 'UNPAID' };
 
     return { state: 'ERROR', detail: `${body.responseCode}/${body.errorCode}: ${body.responseMessage || ''}` };
 }
