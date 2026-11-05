@@ -690,7 +690,11 @@ app.post('/api/order', async (req, res) => {
         try { await client.query('ROLLBACK'); } catch (e) {}
         client.release();
         console.error('order error:', err);
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({
+            success: false,
+            error: err.message,
+            message: isKhqr ? 'មិនអាចបង្កើតការបង់ប្រាក់បានទេ សូមសាកល្បងម្តងទៀត ឬជ្រើសវិធីបង់ប្រាក់ផ្សេង។' : undefined
+        });
     }
 });
 
