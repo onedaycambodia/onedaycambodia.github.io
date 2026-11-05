@@ -6,6 +6,8 @@ const cloudinary = require('cloudinary').v2;
 const path = require('path');
 const translate = require('translate-google'); // 📦 Library សម្រាប់បកប្រែស្វ័យប្រវត្តិ
 const bakong = require('./bakong'); // 💳 Bakong KHQR payments
+const wing = require('./wing');     // 🟢 Wing KHQR payments
+const crypto = require('crypto');
 
 const app = express();
 app.set('trust proxy', 1); // Railway sits behind a proxy; needed so req.ip is the real visitor
@@ -245,6 +247,7 @@ async function initDB() {
             ALTER TABLE orders
                 ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20) DEFAULT 'COD',
                 ADD COLUMN IF NOT EXISTS khqr_md5 VARCHAR(64),
+                ADD COLUMN IF NOT EXISTS wing_ref VARCHAR(40),
                 ADD COLUMN IF NOT EXISTS pay_amount DECIMAL(10,2),
                 ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP,
                 ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP;
@@ -354,6 +357,14 @@ function khqrRateLimited(ip) {
     return false;
 }
 
+// Ask the right provider (Bakong or Wing) whether this order has been paid.
+async function checkOrderPaid(o) {
+    if (o.payment_method === 'WING') {
+        return wing.isEnabled() ? wing.checkPaid(o.wing_ref, o.pay_amount) : { state: 'UNPAID' };
+    }
+    return bakong.isEnabled() ? bakong.checkPaid(o.khqr_md5, o.pay_amount) : { state: 'UNPAID' };
+}
+
 async function getDeliveryFeeNumber() {
     const r = await pool.query("SELECT value FROM website_settings WHERE key = 'delivery_fee'");
     const val = r.rows.length > 0 ? String(r.rows[0].value).trim() : '2.00';
@@ -416,7 +427,7 @@ async function markOrderPaid(orderId) {
     const o = r.rows[0];
     const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items;
     const customer = typeof o.customer === 'string' ? JSON.parse(o.customer) : o.customer;
-    await sendOrderToAdmins(o.id, customer, items, o.pay_amount || o.total, `✅ **បង់ប្រាក់រួចរាល់តាម KHQR $${Number(o.pay_amount).toFixed(2)}** (Bakong)\n`);
+    await sendOrderToAdmins(o.id, customer, items, o.pay_amount || o.total, `✅ **បង់ប្រាក់រួចរាល់តាម ${o.payment_method === 'WING' ? 'Wing KHQR' : 'KHQR (Bakong)'} $${Number(o.pay_amount).toFixed(2)}**\n`);
     return true;
 }
 
@@ -443,7 +454,7 @@ async function expireOrder(orderId) {
 }
 
 app.get('/api/payment-config', (req, res) => {
-    res.json({ khqr_enabled: bakong.isEnabled(), expire_minutes: KHQR_EXPIRE_MINUTES });
+    res.json({ khqr_enabled: bakong.isEnabled(), wing_enabled: wing.isEnabled(), expire_minutes: KHQR_EXPIRE_MINUTES });
 });
 
 // The browser polls this with the (unguessable) md5 of its QR every few seconds.
@@ -452,21 +463,21 @@ app.get('/api/payment-status/:md5', async (req, res) => {
         const md5 = String(req.params.md5).toLowerCase();
         if (!/^[a-f0-9]{32}$/.test(md5)) return res.status(400).json({ status: 'INVALID' });
 
-        const r = await pool.query("SELECT id, status, pay_amount, expires_at FROM orders WHERE khqr_md5 = $1", [md5]);
+        const r = await pool.query("SELECT id, status, pay_amount, expires_at, payment_method, khqr_md5, wing_ref FROM orders WHERE khqr_md5 = $1", [md5]);
         if (r.rows.length === 0) return res.status(404).json({ status: 'NOT_FOUND' });
         const o = r.rows[0];
 
         if (o.status === 'AWAITING_PAYMENT') {
             if (new Date(o.expires_at) <= new Date()) {
                 // last chance: the customer may have paid right at the deadline
-                const late = await bakong.checkPaid(md5, o.pay_amount);
+                const late = await checkOrderPaid(o);
                 if (late.state === 'PAID') { await markOrderPaid(o.id); return res.json({ status: 'PAID', order_id: o.id }); }
                 await expireOrder(o.id);
                 return res.json({ status: 'EXPIRED' });
             }
-            const c = await bakong.checkPaid(md5, o.pay_amount);
+            const c = await checkOrderPaid(o);
             if (c.state === 'PAID') { await markOrderPaid(o.id); return res.json({ status: 'PAID', order_id: o.id }); }
-            if (c.state === 'ERROR') console.error(`Bakong check error (order ${o.id}):`, c.detail);
+            if (c.state === 'ERROR') console.error(`${o.payment_method} check error (order ${o.id}):`, c.detail);
             return res.json({ status: 'WAITING' });
         }
         // PENDING/CONFIRMED with paid_at = paid; anything else = expired or cancelled
@@ -481,9 +492,9 @@ app.get('/api/payment-status/:md5', async (req, res) => {
 // Safety net: every minute, give up on unpaid orders (after one last Bakong check) so stock is not locked.
 setInterval(async () => {
     try {
-        const r = await pool.query("SELECT id, khqr_md5, pay_amount FROM orders WHERE status = 'AWAITING_PAYMENT' AND expires_at <= NOW()");
+        const r = await pool.query("SELECT id, khqr_md5, pay_amount, payment_method, wing_ref FROM orders WHERE status = 'AWAITING_PAYMENT' AND expires_at <= NOW()");
         for (const o of r.rows) {
-            const c = bakong.isEnabled() ? await bakong.checkPaid(o.khqr_md5, o.pay_amount) : { state: 'UNPAID' };
+            const c = await checkOrderPaid(o);
             if (c.state === 'PAID') await markOrderPaid(o.id);
             else if (c.state === 'UNPAID' || c.state === 'ERROR') await expireOrder(o.id);
         }
@@ -494,10 +505,11 @@ setInterval(async () => {
 
 app.post('/api/order', async (req, res) => {
     let { customer, items, payment_method } = req.body;
-    const isKhqr = payment_method === 'khqr';
+    const isWing = payment_method === 'wing';
+    const isKhqr = payment_method === 'khqr' || isWing; // "pay online" (Bakong KHQR or Wing)
 
     if (isKhqr) {
-        if (!bakong.isEnabled()) return res.json({ success: false, message: 'KHQR payment is not available right now.' });
+        if (!(isWing ? wing.isEnabled() : bakong.isEnabled())) return res.json({ success: false, message: 'This payment method is not available right now.' });
         if (khqrRateLimited(req.ip)) return res.status(429).json({ success: false, message: 'ព្យាយាមច្រើនពេក សូមរង់ចាំបន្តិចសិន។' });
     }
 
@@ -570,15 +582,31 @@ app.post('/api/order', async (req, res) => {
             `INSERT INTO orders (customer, items, total, status, payment_method, pay_amount, expires_at)
              VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
             [JSON.stringify(customer || {}), JSON.stringify(itemsSummary), totalAmount,
-             isKhqr ? 'AWAITING_PAYMENT' : 'PENDING', isKhqr ? 'KHQR' : 'COD', isKhqr ? payAmount : null, expiresAt]
+             isKhqr ? 'AWAITING_PAYMENT' : 'PENDING', isWing ? 'WING' : isKhqr ? 'KHQR' : 'COD', isKhqr ? payAmount : null, expiresAt]
         );
         let orderId = orderRes.rows[0].id;
 
         let khqrResult = null;
         if (isKhqr) {
             // If QR generation throws, the catch below rolls back the order AND the stock deduction.
-            khqrResult = bakong.createKhqr({ amount: payAmount, billNumber: `OD${orderId}`, expiresAt: expiresAt.getTime() });
-            await client.query("UPDATE orders SET khqr_md5 = $1 WHERE id = $2", [khqrResult.md5, orderId]);
+            if (isWing) {
+                // Wing identifies the payment by our order reference (max 24 chars, must be unique).
+                // The browser polls with a random key instead, so strangers cannot guess it from the order id.
+                const wingRef = `OD${orderId}W${Date.now().toString(36)}`.slice(0, 24);
+                const returnUrl = process.env.WING_RETURN_URL || (RAILWAY_HOST + '/');
+                const page = await wing.createPayment({
+                    amount: payAmount,
+                    orderRef: wingRef,
+                    returnUrl,
+                    cancelUrl: returnUrl,
+                    merchantName: process.env.WING_MERCHANT_NAME || process.env.BAKONG_MERCHANT_NAME || 'Oneday Clothing'
+                });
+                khqrResult = { md5: crypto.randomBytes(16).toString('hex'), wingUrl: page.url };
+                await client.query("UPDATE orders SET khqr_md5 = $1, wing_ref = $2 WHERE id = $3", [khqrResult.md5, wingRef, orderId]);
+            } else {
+                khqrResult = bakong.createKhqr({ amount: payAmount, billNumber: `OD${orderId}`, expiresAt: expiresAt.getTime() });
+                await client.query("UPDATE orders SET khqr_md5 = $1 WHERE id = $2", [khqrResult.md5, orderId]);
+            }
         }
 
         for (let key in items) {
@@ -646,9 +674,10 @@ app.post('/api/order', async (req, res) => {
         if (isKhqr) {
             return res.json({
                 success: true,
-                payment: 'khqr',
+                payment: isWing ? 'wing' : 'khqr',
                 order_id: orderId,
                 qr: khqrResult.qr,
+                wing_url: khqrResult.wingUrl,
                 md5: khqrResult.md5,
                 amount: payAmount,
                 expires_at: expiresAt.getTime()
