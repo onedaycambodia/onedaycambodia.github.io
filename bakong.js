@@ -118,6 +118,38 @@ function createKhqr({ amount, billNumber, expiresAt }) {
 }
 
 /**
+ * Standalone KHQR for the "free QR" page. Touches NO order, NO stock, NO database and NO Bakong API call.
+ *  - no amount  -> static QR: never expires, the payer types the amount, can be paid any number of times
+ *  - with amount -> dynamic QR that expires after `days` days (Bakong requires an expiry for QRs with an amount)
+ * Nothing is tracked afterwards: the owner confirms the payment in the banking app.
+ */
+function createStandaloneKhqr({ amount, note, days }) {
+    const { BakongKHQR, khqrData, IndividualInfo } = require('bakong-khqr');
+    const amt = Number(amount);
+    const hasAmount = Number.isFinite(amt) && amt > 0;
+    const opts = { currency: khqrData.currency.usd };
+    const bill = String(note || '').replace(/[^A-Za-z0-9 _-]/g, '').trim().slice(0, 25);
+    if (bill) opts.billNumber = bill;
+    if (hasAmount) {
+        opts.amount = Number(amt.toFixed(2));
+        const d = Math.min(30, Math.max(1, Math.floor(Number(days) || 1)));
+        opts.expirationTimestamp = Date.now() + d * 24 * 3600 * 1000;
+    }
+    const info = new IndividualInfo(
+        process.env.BAKONG_ACCOUNT_ID,
+        process.env.BAKONG_MERCHANT_NAME,
+        process.env.BAKONG_MERCHANT_CITY || 'Phnom Penh',
+        opts
+    );
+    const result = new BakongKHQR().generateIndividual(info);
+    if (!result || !result.data || !result.data.qr) {
+        const why = result && result.status ? `${result.status.code} ${result.status.message}` : 'unknown';
+        throw new Error('KHQR generation failed: ' + why);
+    }
+    return { qr: result.data.qr, dynamic: hasAmount, expires_at: opts.expirationTimestamp || null };
+}
+
+/**
  * Ask Bakong whether the QR with this md5 has been paid (1 API call).
  * @returns {Promise<{ state: 'PAID'|'UNPAID'|'QUOTA'|'ERROR', detail?: string }>}
  *   QUOTA = we are out of calls (or blocked); the real answer is UNKNOWN, never treat it as "unpaid".
@@ -220,4 +252,4 @@ async function checkPaidBatch(items, priority = 'auto') {
     return out;
 }
 
-module.exports = { isEnabled, createKhqr, checkPaid, checkPaidBatch, init, allow, degraded, status };
+module.exports = { isEnabled, createKhqr, createStandaloneKhqr, checkPaid, checkPaidBatch, init, allow, degraded, status };
