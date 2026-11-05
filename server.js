@@ -21,7 +21,9 @@ app.use('/api', (req, res, next) => {
     next();
 });
 
-app.use(express.static('.')); // Serve ហ្វាល Static ធម្មតា
+// Only the picture/video folders are public. (Before, express.static('.') also served server.js and every other source file.)
+app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use('/videos', express.static(path.join(__dirname, 'videos')));
 
 // ☁️ កំណត់តម្លៃ Cloudinary ជាមួយ API Key ដែលបានកែតម្រូវត្រឹមត្រូវ (មានលេខ 7 ពីរដង)
 cloudinary.config({
@@ -332,6 +334,9 @@ app.post('/api/check-admin', async (req, res) => {
 app.post('/api/admin/update-stock', async (req, res) => {
     let { ref, size, qty } = req.body;
     try {
+        if (!(await webAdmin.authorize(req))) return res.status(401).json({ success: false, error: 'Unauthorized' });
+        qty = parseInt(qty, 10);
+        if (!Number.isInteger(qty) || qty < 0 || qty > 100000) return res.status(400).json({ success: false, error: 'Invalid qty' });
         let cleanRef = ref.replace(/ref:?\s*/i, '').trim().toUpperCase();
         let cleanSize = size.trim().toUpperCase();
         await pool.query(
@@ -342,6 +347,11 @@ app.post('/api/admin/update-stock', async (req, res) => {
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
+});
+
+// 🖥️ Web admin (browser version of the bot's admin tools): /web-admin
+const webAdmin = require('./webadmin')(app, {
+    pool, bot, cloudinary, autoTranslate, isAdminUser, deleteCloudinaryFileByUrl, restoreStockForItems, botToken: BOT_TOKEN
 });
 
 // ---------------- 💳 KHQR / BAKONG PAYMENT ----------------
@@ -425,6 +435,7 @@ async function markOrderPaid(orderId) {
     );
     if (r.rows.length === 0) return false; // someone else already handled it
     const o = r.rows[0];
+    console.log(`Payment received: order ${o.id} via ${o.payment_method} $${o.pay_amount}`);
     const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items;
     const customer = typeof o.customer === 'string' ? JSON.parse(o.customer) : o.customer;
     await sendOrderToAdmins(o.id, customer, items, o.pay_amount || o.total, `✅ **បង់ប្រាក់រួចរាល់តាម ${o.payment_method === 'WING' ? 'Wing KHQR' : 'KHQR (Bakong)'} $${Number(o.pay_amount).toFixed(2)}**\n`);
@@ -1392,6 +1403,13 @@ bot.hears(/^\/deleteref\s*(.+)/i, async (ctx) => {
     ctx.reply(reportMsg, { parse_mode: 'Markdown' });
 });
 
+bot.command('web', async (ctx) => {
+    if (!await isAdminUser(ctx.chat.id, ctx.from.username || '')) return ctx.reply('⛔️ គ្មានសិទ្ធិ!');
+    await ctx.reply('🖥️ បើក Web Admin៖', {
+        reply_markup: { inline_keyboard: [[{ text: '🖥️ Web Admin', web_app: { url: `${RAILWAY_HOST}/web-admin` } }]] }
+    });
+});
+
 bot.command('cleanup', async (ctx) => {
     ctx.reply('🧹 ប្រព័ន្ធកំពុងប្រើប្រាស់ Cloudinary Cloud Storage 100% ដូច្នេះមិនចាំបាច់មានការសម្អាត Local File ទៀតទេ។');
 });
@@ -1839,12 +1857,22 @@ bot.telegram.setMyCommands([
     { command: 'checkadmin', description: 'មើលបញ្ជី Owner និង Admin (សម្រាប់ Owner)' },
     { command: 'add', description: 'បន្ថែមទំនិញថ្មីចូលស្តុក (Image/Video & 3D)' },
     { command: 'change', description: 'កែប្រែព័ត៌មានទំនិញ' },
+    { command: 'web', description: 'បើក Web Admin (គ្រប់គ្រងទំនិញ/ស្តុក/កុម្មង់ក្នុង Browser)' },
     { command: 'cleanup', description: 'សម្អាត Media ចាស់ៗ (Cloudinary Ready)' },
     { command: 'cancel', description: 'បោះបង់សកម្មភាពកំពុងរត់' },
     { command: 'setmeowner', description: 'កំណត់សិទ្ធិ Owner (ប្រើពេលដំបូង)' }
 ]).catch(err => console.error("Set commands error:", err));
 
-bot.launch();
+// A 409 "terminated by other getUpdates request" means ANOTHER copy of this bot (same token) is running, e.g. an old
+// deployment or a local test. It used to crash the whole server (and any payment being checked at that moment).
+function launchBot(attempt) {
+    bot.launch().catch(err => {
+        console.error(`Telegram bot launch failed (attempt ${attempt}):`, err.message);
+        setTimeout(() => launchBot(attempt + 1), Math.min(30000, 5000 * attempt));
+    });
+}
+launchBot(1);
+process.on('unhandledRejection', (reason) => console.error('Unhandled rejection (server kept running):', reason));
 console.log('Telegram Bot started successfully with Cloudinary...');
 
 process.once('SIGINT', () => bot.stop('SIGINT'));

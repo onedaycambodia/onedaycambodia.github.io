@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Oneday Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f1f5f9; --card:#ffffff; --text:#0f172a; --muted:#64748b; --line:#e2e8f0; --input:#f8fafc;
+  --accent:#0284c7; --accent-soft:#e0f2fe; --ok:#16a34a; --ok-soft:#dcfce7; --warn:#d97706; --warn-soft:#fef3c7;
+  --bad:#dc2626; --bad-soft:#fee2e2; --shadow:0 1px 3px rgba(15,23,42,.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#0b1220; --card:#131c2e; --text:#e8eef9; --muted:#94a3b8; --line:#243049; --input:#0f1829;
+    --accent:#38bdf8; --accent-soft:#0c2a3d; --ok:#4ade80; --ok-soft:#10301f; --warn:#fbbf24; --warn-soft:#3a2a07;
+    --bad:#f87171; --bad-soft:#3b1414; --shadow:none; }
+}
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { margin:0; background:var(--bg); color:var(--text); font-family:'Kantumruy Pro',system-ui,sans-serif; font-size:14px; line-height:1.5; }
+.hidden { display:none !important; }
+button, input, select, textarea { font:inherit; color:inherit; }
+button { cursor:pointer; }
+
+/* login */
+#login { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px 16px; }
+.login-box { background:var(--card); border-radius:20px; padding:32px 24px; width:100%; max-width:380px; text-align:center; box-shadow:var(--shadow); border:1px solid var(--line); }
+.login-box h1 { margin:0 0 6px; font-size:22px; }
+.login-box p { margin:0 0 22px; color:var(--muted); }
+#loginWidget { min-height:48px; display:flex; justify-content:center; }
+#loginMsg { margin-top:16px; color:var(--bad); font-weight:600; min-height:20px; }
+
+/* shell */
+header.top { position:sticky; top:0; z-index:20; background:var(--card); border-bottom:1px solid var(--line); padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
+header.top b { font-size:16px; }
+header.top .who { color:var(--muted); font-size:12px; margin-left:8px; }
+.linkbtn { background:none; border:none; color:var(--accent); font-weight:700; padding:6px 0; }
+main { max-width:760px; margin:0 auto; padding:14px 14px 96px; }
+nav.tabs { position:fixed; bottom:0; left:0; right:0; z-index:20; background:var(--card); border-top:1px solid var(--line); display:flex; padding-bottom:env(safe-area-inset-bottom); }
+nav.tabs button { flex:1; background:none; border:none; padding:10px 4px 8px; color:var(--muted); font-weight:700; font-size:12px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+nav.tabs button.on { color:var(--accent); }
+nav.tabs svg { width:22px; height:22px; }
+
+/* common */
+.card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; box-shadow:var(--shadow); margin-bottom:12px; }
+.row { display:flex; align-items:center; gap:10px; }
+.between { justify-content:space-between; }
+.muted { color:var(--muted); }
+.small { font-size:12px; }
+.badge { display:inline-block; padding:2px 9px; border-radius:99px; font-size:11px; font-weight:800; }
+.b-ok { background:var(--ok-soft); color:var(--ok); } .b-warn { background:var(--warn-soft); color:var(--warn); }
+.b-bad { background:var(--bad-soft); color:var(--bad); } .b-info { background:var(--accent-soft); color:var(--accent); } .b-gray { background:var(--input); color:var(--muted); border:1px solid var(--line); }
+.btn { border:none; border-radius:12px; padding:10px 16px; font-weight:800; background:var(--accent); color:#fff; }
+.btn.ghost { background:var(--accent-soft); color:var(--accent); }
+.btn.danger { background:var(--bad-soft); color:var(--bad); }
+.btn.ok { background:var(--ok); color:#fff; }
+.btn:disabled { opacity:.5; }
+.btn.sm { padding:7px 12px; font-size:13px; border-radius:10px; }
+.chips { display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:6px; }
+.chip { flex:none; border:1px solid var(--line); background:var(--card); border-radius:99px; padding:6px 14px; font-weight:700; color:var(--muted); }
+.chip.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+.empty { text-align:center; color:var(--muted); padding:36px 0; }
+h2.sec { font-size:15px; margin:18px 2px 8px; }
+
+/* dashboard */
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+.stat { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; box-shadow:var(--shadow); }
+.stat .v { font-size:24px; font-weight:800; margin-top:2px; }
+.stat .l { color:var(--muted); font-size:12px; font-weight:600; }
+.bars { display:flex; align-items:flex-end; gap:8px; height:120px; margin-top:10px; }
+.bar { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:4px; }
+.bar i { display:block; width:100%; max-width:34px; background:var(--accent); border-radius:6px 6px 0 0; min-height:2px; }
+.bar span { font-size:10px; color:var(--muted); }
+.bar em { font-style:normal; font-size:10px; font-weight:700; }
+.list-line { display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); }
+.list-line:last-child { border-bottom:none; }
+
+/* orders */
+.order .head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+.order .items { margin:10px 0; padding:10px; background:var(--input); border-radius:12px; font-size:13px; }
+.order .items div { display:flex; justify-content:space-between; gap:8px; padding:2px 0; }
+.order .actions { display:flex; gap:8px; }
+.order .actions .btn { flex:1; }
+.total { font-weight:800; font-size:16px; }
+
+/* products */
+.search { width:100%; padding:11px 14px; border:1px solid var(--line); border-radius:12px; background:var(--card); margin-bottom:10px; }
+.prod { display:flex; gap:12px; }
+.thumb { width:64px; height:96px; border-radius:10px; background:var(--input); object-fit:cover; flex:none; border:1px solid var(--line); }
+.prod .info { flex:1; min-width:0; }
+.prod .title { font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sizes { display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:8px; margin:10px 0; }
+.size { border:1px solid var(--line); border-radius:12px; padding:6px; background:var(--input); }
+.size .sz { font-size:11px; font-weight:800; color:var(--muted); text-align:center; }
+.stepper { display:flex; align-items:center; gap:2px; }
+.stepper button { width:30px; height:30px; border-radius:8px; border:none; background:var(--accent-soft); color:var(--accent); font-weight:800; font-size:16px; line-height:1; }
+.stepper input { width:100%; min-width:0; text-align:center; border:none; background:transparent; font-weight:800; font-size:15px; padding:0; }
+.stepper input.zero { color:var(--bad); }
+.fab { position:fixed; right:16px; bottom:calc(76px + env(safe-area-inset-bottom)); z-index:19; border-radius:99px; padding:13px 20px; box-shadow:0 6px 18px rgba(2,132,199,.4); }
+
+/* sheet (form) */
+.overlay { position:fixed; inset:0; background:rgba(2,6,23,.55); z-index:50; display:flex; align-items:flex-end; justify-content:center; }
+.sheet { background:var(--card); width:100%; max-width:640px; max-height:92vh; overflow-y:auto; border-radius:22px 22px 0 0; padding:18px 16px calc(24px + env(safe-area-inset-bottom)); }
+@media (min-width:700px) { .overlay { align-items:center; } .sheet { border-radius:22px; } }
+.sheet h3 { margin:0 0 12px; font-size:17px; }
+label.f { display:block; font-weight:700; font-size:12px; margin:12px 0 4px; color:var(--muted); }
+.in { width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:12px; background:var(--input); outline:none; }
+.in:focus { border-color:var(--accent); }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.media-row { display:flex; gap:8px; align-items:center; }
+.media-row .in { flex:1; min-width:0; }
+.progress { height:6px; border-radius:6px; background:var(--line); margin-top:6px; overflow:hidden; }
+.progress i { display:block; height:100%; width:0; background:var(--accent); transition:width .15s; }
+details { margin-top:14px; border:1px solid var(--line); border-radius:12px; padding:8px 12px; }
+details summary { font-weight:700; cursor:pointer; padding:4px 0; }
+.sheet .actions { display:flex; gap:10px; margin-top:20px; }
+.sheet .actions .btn { flex:1; padding:13px; }
+#toast { position:fixed; left:50%; bottom:calc(86px + env(safe-area-inset-bottom)); transform:translateX(-50%); background:#0f172a; color:#fff; padding:10px 18px; border-radius:99px; font-weight:700; z-index:100; opacity:0; pointer-events:none; transition:opacity .2s; max-width:90vw; text-align:center; }
+#toast.show { opacity:1; }
+#toast.err { background:var(--bad); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="hidden">
+  <div class="login-box">
+    <h1>Oneday Admin</h1>
+    <p>ចូលដោយប្រើគណនី Telegram របស់ Admin ក្នុង bot</p>
+    <div id="loginWidget"></div>
+    <div id="loginMsg"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <header class="top">
+    <div><b>Oneday Admin</b><span class="who" id="who"></span></div>
+    <button class="linkbtn" id="logoutBtn">ចាកចេញ</button>
+  </header>
+  <main id="view"></main>
+  <nav class="tabs" id="tabs">
+    <button data-tab="dash" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>ទិដ្ឋភាព</button>
+    <button data-tab="orders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"/><path d="M9 7h6M9 11h6"/></svg>កុម្មង់</button>
+    <button data-tab="products"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>ទំនិញ</button>
+  </nav>
+</div>
+
+<div id="sheetHost"></div>
+<div id="toast"></div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const money = (n) => '$' + Number(n || 0).toFixed(2);
+  const TZ = 'Asia/Phnom_Penh';
+  const fmtTime = (iso) => { try { return new Date(iso).toLocaleString('en-GB', { timeZone: TZ, day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }); } catch (e) { return ''; } };
+
+  let toastTimer = null;
+  function toast(msg, isErr) {
+    const t = $('#toast');
+    t.textContent = msg; t.className = 'show' + (isErr ? ' err' : '');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className = ''; }, 2600);
+  }
+
+  async function api(path, opts = {}) {
+    const res = await fetch('/api/web-admin' + path, {
+      method: opts.method || 'GET',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-WebAdmin': '1' },
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    });
+    let data = null; try { data = await res.json(); } catch (e) {}
+    if (res.status === 401 && !opts.noRedirect) { showLogin(); throw new Error('សូមចូលម្តងទៀត'); }
+    if (!res.ok) throw new Error((data && data.error) || ('កំហុស ' + res.status));
+    return data;
+  }
+
+  // ---------- login ----------
+  async function showLogin(msg) {
+    $('#app').classList.add('hidden');
+    $('#login').classList.remove('hidden');
+    $('#loginMsg').textContent = msg || '';
+    const host = $('#loginWidget');
+    if (host.dataset.ready) return;
+    try {
+      const cfg = await fetch('/api/web-admin/config').then(r => r.json());
+      if (!cfg.bot_username) { $('#loginMsg').textContent = 'មិនអាចទាញឈ្មោះ bot បានទេ សូម refresh ទំព័រ'; return; }
+      const s = document.createElement('script');
+      s.src = 'https://telegram.org/js/telegram-widget.js?22';
+      s.async = true;
+      s.setAttribute('data-telegram-login', cfg.bot_username);
+      s.setAttribute('data-size', 'large');
+      s.setAttribute('data-radius', '12');
+      s.setAttribute('data-request-access', 'write');
+      s.setAttribute('data-onauth', 'onTelegramAuth(user)');
+      host.appendChild(s);
+      host.dataset.ready = '1';
+    } catch (e) { $('#loginMsg').textContent = 'មិនអាចភ្ជាប់ Server បានទេ'; }
+  }
+
+  async function doLogin(payload) {
+    try {
+      await api('/login', { method: 'POST', body: payload, noRedirect: true });
+      await boot();
+    } catch (e) { showLogin(e.message); }
+  }
+  window.onTelegramAuth = (user) => doLogin({ widget: user });
+
+  $('#logoutBtn').onclick = async () => {
+    try { await api('/logout', { method: 'POST', noRedirect: true }); } catch (e) {}
+    showLogin();
+  };
+
+  // ---------- tabs ----------
+  let tab = 'dash';
+  document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => { tab = b.dataset.tab; renderTab(); });
+  function renderTab() {
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+    ({ dash: renderDash, orders: renderOrders, products: renderProducts })[tab]();
+  }
+
+  async function boot() {
+    try {
+      const me = await api('/me', { noRedirect: true });
+      $('#who').textContent = me.username ? '@' + me.username : '';
+      $('#login').classList.add('hidden');
+      $('#app').classList.remove('hidden');
+      renderTab();
+    } catch (e) {
+      const tg = window.Telegram && window.Telegram.WebApp;
+      if (tg && tg.initData) return doLogin({ initData: tg.initData }); // opened from the bot: log in automatically
+      showLogin();
+    }
+  }
+
+  // ---------- dashboard ----------
+  const STATUS_KM = { PENDING:'រង់ចាំបញ្ជាក់', CONFIRMED:'បានបញ្ជាក់', CANCELLED:'បានលុប', AWAITING_PAYMENT:'រង់ចាំបង់ប្រាក់', EXPIRED:'ផុតកំណត់' };
+  const STATUS_CLASS = { PENDING:'b-warn', CONFIRMED:'b-ok', CANCELLED:'b-bad', AWAITING_PAYMENT:'b-info', EXPIRED:'b-gray' };
+
+  async function renderDash() {
+    const v = $('#view'); v.innerHTML = '<div class="empty">កំពុងផ្ទុក...</div>';
+    let s; try { s = await api('/stats'); } catch (e) { v.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    const by = s.orders_by_status || {};
+    // last 7 days, filled in even when a day had no sales
+    const map = {}; (s.last_days || []).forEach(d => map[d.d] = d);
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86400000);
+      const key = d.toLocaleDateString('en-CA', { timeZone: TZ });
+      days.push({ key, label: key.slice(5).replace('-', '/'), sales: map[key] ? map[key].sales : 0 });
+    }
+    const max = Math.max(1, ...days.map(d => d.sales));
+    v.innerHTML = `
+      <div class="stats">
+        <div class="stat"><div class="l">កុម្មង់រង់ចាំបញ្ជាក់</div><div class="v" style="color:var(--warn)">${by.PENDING || 0}</div></div>
+        <div class="stat"><div class="l">កំពុងរង់ចាំបង់ប្រាក់</div><div class="v">${by.AWAITING_PAYMENT || 0}</div></div>
+        <div class="stat"><div class="l">ការលក់សរុប (Confirmed)</div><div class="v" style="color:var(--ok)">${money(s.confirmed_sales)}</div></div>
+        <div class="stat"><div class="l">ប្រាក់ចំណេញ</div><div class="v">${money(s.confirmed_profit)}</div></div>
+        <div class="stat"><div class="l">ទំនិញសរុប</div><div class="v">${s.products}</div></div>
+        <div class="stat"><div class="l">Size ដែលអស់ស្តុក</div><div class="v" style="color:var(--bad)">${s.sizes_out_of_stock}</div></div>
+      </div>
+      <div class="card"><b>ការលក់ ៧ ថ្ងៃចុងក្រោយ</b>
+        <div class="bars">${days.map(d => `<div class="bar"><em>${d.sales ? Math.round(d.sales) : ''}</em><i style="height:${Math.max(2, d.sales / max * 80)}%"></i><span>${d.label}</span></div>`).join('')}</div>
+      </div>
+      <h2 class="sec">លក់ដាច់បំផុត</h2>
+      <div class="card">${(s.top_sellers || []).length ? s.top_sellers.map(t => `<div class="list-line"><span>Ref ${esc(t.ref)} · ${esc(t.title)}</span><b>${t.qty}</b></div>`).join('') : '<div class="muted">មិនទាន់មានទិន្នន័យ</div>'}</div>
+      <h2 class="sec">ស្តុកជិតអស់ (១-២)</h2>
+      <div class="card">${(s.low_stock || []).length ? s.low_stock.map(l => `<div class="list-line"><span>Ref ${esc(l.ref)} · ${esc(l.title_km)} · ${esc(l.size)}</span><b style="color:var(--warn)">${l.stock_qty}</b></div>`).join('') : '<div class="muted">គ្មាន</div>'}</div>`;
+  }
+
+  // ---------- orders ----------
+  let orderFilter = 'PENDING';
+  async function renderOrders() {
+    const v = $('#view');
+    const filters = [['PENDING','រង់ចាំ'],['AWAITING_PAYMENT','រង់ចាំបង់ប្រាក់'],['CONFIRMED','បានបញ្ជាក់'],['CANCELLED','បានលុប'],['EXPIRED','ផុតកំណត់'],['','ទាំងអស់']];
+    v.innerHTML = `<div class="chips">${filters.map(([k, l]) => `<button class="chip ${orderFilter === k ? 'on' : ''}" data-f="${k}">${l}</button>`).join('')}</div><div id="orderList"><div class="empty">កំពុងផ្ទុក...</div></div>`;
+    v.querySelectorAll('.chip').forEach(c => c.onclick = () => { orderFilter = c.dataset.f; renderOrders(); });
+    let list; try { list = await api('/orders' + (orderFilter ? '?status=' + orderFilter : '')); } catch (e) { $('#orderList').innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    if (!list.length) { $('#orderList').innerHTML = '<div class="empty">មិនមានកុម្មង់</div>'; return; }
+    $('#orderList').innerHTML = list.map(o => {
+      const c = o.customer || {};
+      const pay = o.payment_method === 'KHQR' ? '<span class="badge b-info">KHQR</span>' : o.payment_method === 'WING' ? '<span class="badge b-ok">Wing</span>' : '<span class="badge b-gray">បង់ពេលទទួល</span>';
+      const paid = o.paid_at ? '<span class="badge b-ok">បានបង់រួច</span>' : '';
+      const phone = esc(c.phone || '');
+      return `<div class="card order" data-id="${o.id}">
+        <div class="head"><div><b>#${o.id}</b> <span class="muted small">${fmtTime(o.created_at)}</span><div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap"><span class="badge ${STATUS_CLASS[o.status] || 'b-gray'}">${STATUS_KM[o.status] || esc(o.status)}</span>${pay}${paid}</div></div><div class="total">${money(o.pay_amount || o.total)}</div></div>
+        <div style="margin-top:10px"><b>${esc(c.name || '—')}</b> ${phone ? `· <a href="tel:${phone}" style="color:var(--accent)">${phone}</a>` : ''}<div class="muted small">${esc(c.address || '')}</div>${c.username ? `<div class="small"><a style="color:var(--accent)" href="https://t.me/${esc(c.username)}" target="_blank" rel="noopener">@${esc(c.username)}</a></div>` : ''}${c.mapUrl ? `<div class="small"><a style="color:var(--accent)" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${encodeURIComponent(String(c.mapUrl).replace(/\s+/g, ''))}">មើលលើ Map</a></div>` : ''}</div>
+        <div class="items">${(o.items || []).map(i => `<div><span>Ref ${esc(i.ref)} · ${esc(i.title)} (${esc(i.size)}) ×${i.qty}</span><b>${money(i.total)}</b></div>`).join('')}</div>
+        ${o.status === 'PENDING' ? '<div class="actions"><button class="btn ok" data-act="confirm">បញ្ជាក់</button><button class="btn danger" data-act="cancel">លុប & សងស្តុក</button></div>' : o.status === 'CONFIRMED' ? '<div class="actions"><button class="btn danger" data-act="cancel">លុប & សងស្តុក</button></div>' : ''}
+      </div>`;
+    }).join('');
+    $('#orderList').querySelectorAll('button[data-act]').forEach(b => b.onclick = async () => {
+      const id = b.closest('.order').dataset.id, act = b.dataset.act;
+      if (act === 'cancel' && !confirm('លុបការកុម្មង់ #' + id + ' ហើយសងស្តុកវិញ?\n(បើអតិថិជនបានបង់ប្រាក់រួច ត្រូវសងលុយដោយដៃ)')) return;
+      b.disabled = true;
+      try { await api('/orders/' + id + '/' + act, { method: 'POST', body: {} }); toast(act === 'confirm' ? 'បានបញ្ជាក់' : 'បានលុប និងសងស្តុក'); renderOrders(); }
+      catch (e) { toast(e.message, true); b.disabled = false; }
+    });
+  }
+
+  // ---------- products ----------
+  let products = [];
+  let search = '';
+  const isVideo = (u) => /\/video\/upload\/|\.(mp4|mov|webm|m4v)(\?|$)/i.test(u || '');
+  function thumb(p) {
+    const u = p.video_url || '';
+    if (!u) return '<div class="thumb"></div>';
+    if (isVideo(u)) return `<video class="thumb" src="${esc(u)}#t=0.1" muted playsinline preload="metadata"></video>`;
+    return `<img class="thumb" src="${esc(u)}" alt="" loading="lazy">`;
+  }
+
+  async function renderProducts() {
+    const v = $('#view');
+    v.innerHTML = `<input class="search" id="q" placeholder="ស្វែងរក Ref ឬឈ្មោះ..." value="${esc(search)}"><div id="plist"><div class="empty">កំពុងផ្ទុក...</div></div><button class="btn fab" id="addBtn">+ បន្ថែមទំនិញ</button>`;
+    $('#q').oninput = (e) => { search = e.target.value; drawProducts(); };
+    $('#addBtn').onclick = () => openForm(null);
+    try { products = await api('/products'); } catch (e) { $('#plist').innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+    drawProducts();
+  }
+
+  function drawProducts() {
+    const q = search.trim().toLowerCase();
+    const list = products.filter(p => !q || String(p.ref).toLowerCase().includes(q) || String(p.title_km || '').toLowerCase().includes(q) || String(p.title_en || '').toLowerCase().includes(q));
+    const host = $('#plist');
+    if (!list.length) { host.innerHTML = '<div class="empty">មិនមានទំនិញ</div>'; return; }
+    host.innerHTML = list.map(p => `
+      <div class="card" data-ref="${esc(p.ref)}">
+        <div class="prod">${thumb(p)}
+          <div class="info">
+            <div class="row between"><span class="badge b-info">Ref ${esc(p.ref)}</span><b>${money(p.price)}</b></div>
+            <div class="title" style="margin-top:4px">${esc(p.title_km)}</div>
+            <div class="muted small">${esc(p.gender)} · ${esc(p.type)} · ដើម ${money(p.cost_price)}</div>
+            <div class="row" style="margin-top:8px"><button class="btn ghost sm" data-act="edit">កែ</button><button class="btn danger sm" data-act="del">លុប</button></div>
+          </div>
+        </div>
+        <div class="sizes">${['S','M','L','XL','XXL'].map(sz => {
+          const f = (p.sizes || []).find(x => x.size === sz); const n = f ? f.stock_qty : 0;
+          return `<div class="size" data-size="${sz}"><div class="sz">${sz}</div><div class="stepper"><button data-d="-1">−</button><input type="number" inputmode="numeric" min="0" value="${n}" class="${n <= 0 ? 'zero' : ''}"><button data-d="1">+</button></div></div>`;
+        }).join('')}</div>
+      </div>`).join('');
+
+    host.querySelectorAll('.card').forEach(card => {
+      const ref = card.dataset.ref;
+      card.querySelector('[data-act="edit"]').onclick = () => openForm(products.find(p => p.ref === ref));
+      card.querySelector('[data-act="del"]').onclick = async () => {
+        if (!confirm('លុបទំនិញ Ref ' + ref + ' ជាអចិន្ត្រៃយ៍ (រួមទាំងស្តុក និង Media)?')) return;
+        try { await api('/products/' + encodeURIComponent(ref), { method: 'DELETE', body: {} }); toast('បានលុប ' + ref); products = products.filter(p => p.ref !== ref); drawProducts(); }
+        catch (e) { toast(e.message, true); }
+      };
+      card.querySelectorAll('.size').forEach(box => {
+        const size = box.dataset.size, input = box.querySelector('input');
+        const apply = (n, p) => { input.value = n; input.classList.toggle('zero', n <= 0); const f = p.sizes.find(x => x.size === size); if (f) f.stock_qty = n; else p.sizes.push({ size, stock_qty: n }); };
+        const p = products.find(x => x.ref === ref);
+        box.querySelectorAll('button').forEach(b => b.onclick = async () => {
+          try { const r = await api('/stock', { method: 'POST', body: { ref, size, delta: Number(b.dataset.d) } }); apply(r.stock_qty, p); toast(`${ref} ${size} = ${r.stock_qty}`); }
+          catch (e) { toast(e.message, true); }
+        });
+        input.onchange = async () => {
+          const n = parseInt(input.value, 10);
+          if (!Number.isInteger(n) || n < 0) { input.value = (p.sizes.find(x => x.size === size) || {}).stock_qty || 0; return toast('ចំនួនមិនត្រឹមត្រូវ', true); }
+          try { const r = await api('/stock', { method: 'POST', body: { ref, size, qty: n } }); apply(r.stock_qty, p); toast(`${ref} ${size} = ${r.stock_qty}`); }
+          catch (e) { toast(e.message, true); }
+        };
+      });
+    });
+  }
+
+  // ---------- product form ----------
+  function uploadToCloudinary(file, onProgress) {
+    return api('/upload-signature').then(sig => new Promise((resolve, reject) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('api_key', sig.api_key);
+      fd.append('timestamp', sig.timestamp);
+      fd.append('folder', sig.folder);
+      fd.append('signature', sig.signature);
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${sig.cloud_name}/auto/upload`);
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+      xhr.onload = () => { try { const j = JSON.parse(xhr.responseText); xhr.status < 300 && j.secure_url ? resolve(j.secure_url) : reject(new Error((j.error && j.error.message) || 'Upload failed')); } catch (e) { reject(new Error('Upload failed')); } };
+      xhr.onerror = () => reject(new Error('Upload failed (network)'));
+      xhr.send(fd);
+    }));
+  }
+
+  function mediaField(id, label, value) {
+    return `<label class="f">${label}</label>
+      <div class="media-row"><input class="in" id="${id}" placeholder="https://..." value="${esc(value || '')}"><label class="btn ghost sm" style="margin:0">Upload<input type="file" id="${id}File" accept="image/*,video/*" hidden></label></div>
+      <div class="progress hidden" id="${id}Bar"><i></i></div>`;
+  }
+
+  function openForm(p) {
+    const isEdit = !!p; p = p || {};
+    $('#sheetHost').innerHTML = `
+      <div class="overlay" id="ov"><div class="sheet">
+        <h3>${isEdit ? 'កែទំនិញ Ref ' + esc(p.ref) : 'បន្ថែមទំនិញថ្មី'}</h3>
+        <label class="f">Ref (លេខកូដ)</label><input class="in" id="f_ref" value="${esc(p.ref || '')}" ${isEdit ? 'disabled' : ''} placeholder="ឧ. 101">
+        <label class="f">ឈ្មោះទំនិញ (ខ្មែរ)</label><input class="in" id="f_title_km" value="${esc(p.title_km || '')}">
+        <div class="grid2">
+          <div><label class="f">តម្លៃលក់ ($)</label><input class="in" id="f_price" type="number" step="0.01" min="0" inputmode="decimal" value="${p.price != null ? Number(p.price) : ''}"></div>
+          <div><label class="f">តម្លៃដើម ($)</label><input class="in" id="f_cost" type="number" step="0.01" min="0" inputmode="decimal" value="${p.cost_price != null ? Number(p.cost_price) : ''}"></div>
+        </div>
+        <div class="grid2">
+          <div><label class="f">Gender</label><select class="in" id="f_gender"><option value="men">Men (បុរស)</option><option value="women">Women (នារី)</option></select></div>
+          <div><label class="f">Type</label><select class="in" id="f_type"><option value="tops">Tops (អាវ)</option><option value="pants">Pants (ខោ)</option><option value="outerwear">Outerwear</option><option value="dresses">Dresses</option></select></div>
+        </div>
+        <label class="f">ការពិពណ៌នា (ខ្មែរ)</label><textarea class="in" id="f_desc_km" rows="3">${esc(p.desc_km || '')}</textarea>
+        ${mediaField('f_video', 'រូបភាព / Video ទំនិញ', p.video_url)}
+        ${mediaField('f_3d', 'Video 3D (មិនចាំបាច់)', p.model_3d_url)}
+        <details><summary>ការបកប្រែ (EN / 中文)</summary>
+          <label class="row" style="margin:8px 0"><input type="checkbox" id="f_auto" ${isEdit ? '' : 'checked'}> <span>បកប្រែស្វ័យប្រវត្តិពីភាសាខ្មែរ</span></label>
+          <label class="f">Title EN</label><input class="in" id="f_title_en" value="${esc(p.title_en || '')}">
+          <label class="f">Title 中文</label><input class="in" id="f_title_zh" value="${esc(p.title_zh || '')}">
+          <label class="f">Description EN</label><textarea class="in" id="f_desc_en" rows="2">${esc(p.desc_en || '')}</textarea>
+          <label class="f">Description 中文</label><textarea class="in" id="f_desc_zh" rows="2">${esc(p.desc_zh || '')}</textarea>
+        </details>
+        <div class="actions"><button class="btn ghost" id="f_cancel">បោះបង់</button><button class="btn" id="f_save">រក្សាទុក</button></div>
+      </div></div>`;
+    $('#f_gender').value = p.gender || 'men';
+    $('#f_type').value = p.type || 'tops';
+    $('#ov').onclick = (e) => { if (e.target.id === 'ov' && confirm('បិទទម្រង់នេះ?')) closeForm(); };
+    $('#f_cancel').onclick = closeForm;
+
+    let uploading = 0;
+    [['f_video'], ['f_3d']].forEach(([id]) => {
+      $('#' + id + 'File').onchange = async (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        const bar = $('#' + id + 'Bar'); bar.classList.remove('hidden'); bar.firstElementChild.style.width = '0';
+        uploading++; $('#f_save').disabled = true;
+        try { $('#' + id).value = await uploadToCloudinary(file, r => { bar.firstElementChild.style.width = Math.round(r * 100) + '%'; }); toast('Upload រួចរាល់'); }
+        catch (err) { toast(err.message, true); }
+        uploading--; if (!uploading) $('#f_save').disabled = false;
+        setTimeout(() => bar.classList.add('hidden'), 600);
+      };
+    });
+
+    $('#f_save').onclick = async () => {
+      const auto = $('#f_auto').checked;
+      const body = {
+        ref: $('#f_ref').value, title_km: $('#f_title_km').value, price: $('#f_price').value, cost_price: $('#f_cost').value || 0,
+        gender: $('#f_gender').value, type: $('#f_type').value, desc_km: $('#f_desc_km').value,
+        video_url: $('#f_video').value, model_3d_url: $('#f_3d').value,
+        title_en: auto ? '' : $('#f_title_en').value, title_zh: auto ? '' : $('#f_title_zh').value,
+        desc_en: auto ? '' : $('#f_desc_en').value, desc_zh: auto ? '' : $('#f_desc_zh').value
+      };
+      const btn = $('#f_save'); btn.disabled = true; btn.textContent = 'កំពុងរក្សាទុក...';
+      try {
+        if (isEdit) await api('/products/' + encodeURIComponent(p.ref), { method: 'PUT', body });
+        else await api('/products', { method: 'POST', body });
+        toast('បានរក្សាទុក'); closeForm(); renderProducts();
+      } catch (e) { toast(e.message, true); btn.disabled = false; btn.textContent = 'រក្សាទុក'; }
+    };
+  }
+  function closeForm() { $('#sheetHost').innerHTML = ''; }
+
+  // ---------- start ----------
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { try { tg.ready(); tg.expand(); } catch (e) {} }
+  boot();
+})();
+</script>
+</body>
+</html>

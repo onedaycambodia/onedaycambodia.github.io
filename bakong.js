@@ -46,6 +46,16 @@ function createKhqr({ amount, billNumber, expiresAt }) {
  * @returns {Promise<{ state: 'PAID'|'UNPAID'|'ERROR', detail?: string }>}
  */
 async function checkPaid(md5, expectedAmount) {
+    let last = { state: 'ERROR', detail: 'no attempt' };
+    for (let attempt = 0; attempt < 2; attempt++) {
+        if (attempt > 0) await new Promise(r => setTimeout(r, 700));
+        last = await checkOnce(md5, expectedAmount);
+        if (last.state !== 'ERROR' || !last.retry) return last; // only network errors / 5xx / 429 are worth one retry
+    }
+    return last;
+}
+
+async function checkOnce(md5, expectedAmount) {
     let res;
     try {
         res = await fetch(`${BASE_URL}/v1/check_transaction_by_md5`, {
@@ -58,7 +68,7 @@ async function checkPaid(md5, expectedAmount) {
             signal: AbortSignal.timeout(8000)
         });
     } catch (err) {
-        return { state: 'ERROR', detail: 'network: ' + err.message };
+        return { state: 'ERROR', retry: true, detail: 'network: ' + err.message };
     }
 
     let body = null;
@@ -68,11 +78,14 @@ async function checkPaid(md5, expectedAmount) {
     if (res.status === 401 || res.status === 403) {
         return { state: 'ERROR', detail: `HTTP ${res.status} (token expired, or the server IP is blocked by Bakong)` };
     }
+    if (res.status === 429 || res.status >= 500) return { state: 'ERROR', retry: true, detail: `HTTP ${res.status} (Bakong busy)` };
     if (!body) return { state: 'ERROR', detail: `HTTP ${res.status} with no JSON` };
 
     if (body.responseCode === 0 && body.data) {
+        // The amount is locked inside the QR, so a found transaction is the right amount. Only reject when Bakong
+        // clearly reports a smaller positive amount; a missing/zero amount field must not block a real payment.
         const paid = Number(body.data.amount);
-        if (expectedAmount !== undefined && Number.isFinite(paid) && paid + 0.005 < Number(expectedAmount)) {
+        if (expectedAmount !== undefined && Number.isFinite(paid) && paid > 0 && paid + 0.005 < Number(expectedAmount)) {
             return { state: 'ERROR', detail: `underpaid: got ${paid}, expected ${expectedAmount}` };
         }
         return { state: 'PAID' };

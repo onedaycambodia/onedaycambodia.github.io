@@ -226,12 +226,14 @@
             try {
                 let res = await fetch(`${API_BASE}/api/admin/update-stock`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': tg?.initData || '' },
                     body: JSON.stringify({ ref, size, qty })
                 });
                 let data = await res.json();
                 if (data.success) {
                     showToast(`✅ Ref ${ref} (${size}) = ${qty}`);
+                } else {
+                    showToast('⛔ ' + (data.error || 'Failed'));
                 }
             } catch (e) {
                 console.error(`Failed to update stock:`, e);
