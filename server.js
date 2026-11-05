@@ -535,6 +535,32 @@ async function settleExpired(o) {
     return 'MANUAL';
 }
 
+// ---- Standalone QR generator: completely separate from orders, stock and the database ----------
+// /qr shows a small page; POST /api/qr/generate builds a KHQR locally (no Bakong API call, nothing saved).
+const standaloneQrRate = new Map(); // ip -> [timestamps]
+app.get('/qr', (req, res) => res.sendFile(path.join(__dirname, 'qr.html')));
+app.post('/api/qr/generate', (req, res) => {
+    try {
+        if (!bakong.isEnabled()) return res.status(503).json({ ok: false, message: 'KHQR is not configured' });
+        const now = Date.now();
+        const ip = req.ip || 'x';
+        const recent = (standaloneQrRate.get(ip) || []).filter(t => now - t < 10 * 60 * 1000);
+        if (recent.length >= 20) return res.status(429).json({ ok: false, message: 'Too many requests, try again later' });
+        recent.push(now);
+        standaloneQrRate.set(ip, recent);
+
+        const { amount, note, days } = req.body || {};
+        const a = Number(amount);
+        if (amount !== undefined && amount !== null && amount !== '' && (!Number.isFinite(a) || a < 0 || a > 10000)) {
+            return res.status(400).json({ ok: false, message: 'Invalid amount' });
+        }
+        res.json({ ok: true, ...bakong.createStandaloneKhqr({ amount: a || 0, note, days }) });
+    } catch (err) {
+        console.error('standalone qr error:', err.message);
+        res.status(500).json({ ok: false, message: 'Could not generate QR' });
+    }
+});
+
 // ---- Browser status endpoint (costs ZERO Bakong calls for KHQR) ----------------------------------
 // The browser polls this every few seconds, but it only reads the database. The Bakong calls are made by the
 // central poller below, shared by every customer, and only as often as the budget allows.
