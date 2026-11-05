@@ -1470,9 +1470,12 @@
                         maxBoundsViscosity: 1.0
                     }).setView([currentPos.lat, currentPos.lng], 13);
                     
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_3jby_1_5ff4e5e8b17be757cdfcc3c7', {
-                        maxZoom: 19, minZoom: 7, subdomains: 'abcd',
-                        attribution: '&copy; CARTO'
+                    // HERE Maps raster tiles (key restricted to our domain in HERE platform)
+                    const HERE_API_KEY = 'jKSBkCzNf2pzmEDQD_4775QIe-Y8PgjvlHohp66pV4s';
+                    L.tileLayer('https://maps.hereapi.com/v3/base/mc/{z}/{x}/{y}/png8?style=explore.day&size=512&apiKey=' + HERE_API_KEY, {
+                        maxZoom: 19, minZoom: 7,
+                        tileSize: 512, zoomOffset: -1,
+                        attribution: '&copy; HERE'
                     }).addTo(freeMapObj);
 
                     L.control.zoom({ position: 'topleft' }).addTo(freeMapObj);
