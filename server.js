@@ -252,9 +252,11 @@ async function initDB() {
                 ADD COLUMN IF NOT EXISTS wing_ref VARCHAR(40),
                 ADD COLUMN IF NOT EXISTS pay_amount DECIMAL(10,2),
                 ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP,
-                ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP;
+                ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP,
+                ADD COLUMN IF NOT EXISTS manual_review BOOLEAN DEFAULT FALSE;
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_orders_khqr_md5 ON orders (khqr_md5);`);
+        await bakong.init(pool); // persistent Bakong call counter (survives restarts)
 
         console.log("Database initialized successfully.");
     } catch (err) {
@@ -368,11 +370,11 @@ function khqrRateLimited(ip) {
 }
 
 // Ask the right provider (Bakong or Wing) whether this order has been paid.
-async function checkOrderPaid(o) {
+async function checkOrderPaid(o, priority = 'auto') {
     if (o.payment_method === 'WING') {
         return wing.isEnabled() ? wing.checkPaid(o.wing_ref, o.pay_amount) : { state: 'UNPAID' };
     }
-    return bakong.isEnabled() ? bakong.checkPaid(o.khqr_md5, o.pay_amount) : { state: 'UNPAID' };
+    return bakong.isEnabled() ? bakong.checkPaid(o.khqr_md5, o.pay_amount, priority) : { state: 'UNPAID' };
 }
 
 async function getDeliveryFeeNumber() {
@@ -468,28 +470,113 @@ app.get('/api/payment-config', (req, res) => {
     res.json({ khqr_enabled: bakong.isEnabled(), wing_enabled: wing.isEnabled(), expire_minutes: KHQR_EXPIRE_MINUTES });
 });
 
-// The browser polls this with the (unguessable) md5 of its QR every few seconds.
+// ---- Manual-confirmation fallback -------------------------------------------------------------
+// When Bakong cannot answer (daily quota used up, token problem, ...) we must NEVER guess "unpaid" and expire
+// the order: the customer may really have paid. Instead the order is flagged, kept for a grace period, and the
+// admins get a Telegram message with buttons to confirm / cancel it by hand.
+const KHQR_MANUAL_GRACE_MIN = Number(process.env.KHQR_MANUAL_GRACE_MIN) || 12 * 60; // how long a flagged order keeps its stock
+const KHQR_MANUAL_MAX_AGE_MS = 48 * 60 * 60 * 1000;                                // absolute limit, then it expires anyway
+
+async function notifyManualReview(o, reason) {
+    try {
+        const admins = await pool.query("SELECT chat_id FROM admins WHERE chat_id IS NOT NULL");
+        if (admins.rows.length === 0) return;
+        const customer = typeof o.customer === 'string' ? JSON.parse(o.customer) : (o.customer || {});
+        const items = typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || {});
+        let lines = [];
+        for (const k in items) lines.push(`- ${items[k].ref} (${items[k].size}) x ${items[k].qty}`);
+        const msg =
+            `⚠️ ត្រូវការបញ្ជាក់ការបង់ប្រាក់ដោយដៃ (Order #${o.id})\n\n` +
+            `💵 ទឹកប្រាក់: $${Number(o.pay_amount).toFixed(2)} (${o.payment_method === 'WING' ? 'Wing' : 'KHQR Bakong'})\n` +
+            `🧾 Bill number: OD${o.id}\n` +
+            `👤 ${customer.name || customer.fullName || '-'} | ${customer.phone || customer.phoneNumber || '-'}\n` +
+            (lines.length ? `🛒 ទំនិញ:\n${lines.join('\n')}\n` : '') +
+            `\nមូលហេតុ: ${reason}\n\n` +
+            `សូមបើកកម្មវិធី Bakong/ធនាគាររបស់អ្នក ពិនិត្យថាបានទទួលប្រាក់ពិតមែនឬអត់ មុនចុចប៊ូតុង។`;
+        const kb = { inline_keyboard: [[
+            { text: '✅ បានទទួលប្រាក់ (Paid)', callback_data: `manual_paid_${o.id}` },
+            { text: '❌ មិនបានទទួល (Cancel)', callback_data: `manual_cancel_${o.id}` }
+        ]] };
+        for (const adm of admins.rows) {
+            try { await bot.telegram.sendMessage(adm.chat_id, msg, { reply_markup: kb }); } catch (e) {}
+        }
+    } catch (err) {
+        console.error('notifyManualReview error:', err.message);
+    }
+}
+
+// Flag an awaiting order for manual review (once) and tell the admins. Returns true if this call flagged it.
+async function flagManualReview(o, reason) {
+    const r = await pool.query(
+        "UPDATE orders SET manual_review = TRUE, expires_at = NOW() + make_interval(mins => $2::int) WHERE id = $1 AND status = 'AWAITING_PAYMENT' AND manual_review IS NOT TRUE RETURNING *",
+        [o.id, KHQR_MANUAL_GRACE_MIN]
+    );
+    if (r.rows.length === 0) return false;
+    console.log(`Order ${o.id} flagged for manual payment review: ${reason}`);
+    await notifyManualReview(r.rows[0], reason);
+    return true;
+}
+
+// An awaiting order reached its deadline: one last check, then decide. Never expires on QUOTA/ERROR.
+// returns 'PAID' | 'EXPIRED' | 'MANUAL'
+async function settleExpired(o) {
+    const c = await checkOrderPaid(o, 'final');
+    if (c.state === 'PAID') { await markOrderPaid(o.id); return 'PAID'; }
+    if (c.state === 'UNPAID') { await expireOrder(o.id); return 'EXPIRED'; }
+
+    // QUOTA / ERROR: the answer is unknown
+    const ageMs = o.created_at ? Date.now() - new Date(o.created_at).getTime() : 0;
+    if (o.manual_review) {
+        if (ageMs > KHQR_MANUAL_MAX_AGE_MS) { await expireOrder(o.id); return 'EXPIRED'; }
+        await pool.query("UPDATE orders SET expires_at = NOW() + interval '30 minutes' WHERE id = $1 AND status = 'AWAITING_PAYMENT'", [o.id]); // retry later
+        return 'MANUAL';
+    }
+    await flagManualReview(o, c.state === 'QUOTA' ? 'Bakong ប្រើកូតាហៅ API អស់ហើយសម្រាប់ថ្ងៃនេះ' : `ពិនិត្យស្វ័យប្រវត្តិមិនបាន (${c.detail || 'error'})`);
+    return 'MANUAL';
+}
+
+// ---- Browser status endpoint (costs ZERO Bakong calls for KHQR) ----------------------------------
+// The browser polls this every few seconds, but it only reads the database. The Bakong calls are made by the
+// central poller below, shared by every customer, and only as often as the budget allows.
+const khqrLastSeen = new Map();    // md5 -> last time a browser asked about it
+const khqrLastChecked = new Map(); // md5 -> last time we asked the payment provider about it
+
 app.get('/api/payment-status/:md5', async (req, res) => {
     try {
         const md5 = String(req.params.md5).toLowerCase();
         if (!/^[a-f0-9]{32}$/.test(md5)) return res.status(400).json({ status: 'INVALID' });
 
-        const r = await pool.query("SELECT id, status, pay_amount, expires_at, payment_method, khqr_md5, wing_ref FROM orders WHERE khqr_md5 = $1", [md5]);
+        const r = await pool.query("SELECT id, status, pay_amount, expires_at, payment_method, khqr_md5, wing_ref, manual_review, created_at FROM orders WHERE khqr_md5 = $1", [md5]);
         if (r.rows.length === 0) return res.status(404).json({ status: 'NOT_FOUND' });
         const o = r.rows[0];
 
         if (o.status === 'AWAITING_PAYMENT') {
+            khqrLastSeen.set(md5, Date.now());
+
             if (new Date(o.expires_at) <= new Date()) {
-                // last chance: the customer may have paid right at the deadline
-                const late = await checkOrderPaid(o);
-                if (late.state === 'PAID') { await markOrderPaid(o.id); return res.json({ status: 'PAID', order_id: o.id }); }
-                await expireOrder(o.id);
-                return res.json({ status: 'EXPIRED' });
+                const out = await settleExpired(o);
+                if (out === 'PAID') return res.json({ status: 'PAID', order_id: o.id });
+                if (out === 'EXPIRED') return res.json({ status: 'EXPIRED' });
+                return res.json({ status: 'WAITING', manual: true, degraded: true });
             }
-            const c = await checkOrderPaid(o);
-            if (c.state === 'PAID') { await markOrderPaid(o.id); return res.json({ status: 'PAID', order_id: o.id }); }
-            if (c.state === 'ERROR') console.error(`${o.payment_method} check error (order ${o.id}):`, c.detail);
-            return res.json({ status: 'WAITING' });
+
+            const now = Date.now();
+            const sinceLast = now - (khqrLastChecked.get(md5) || 0);
+            if (o.payment_method === 'WING') {
+                if (sinceLast >= 3000) { // Wing has no known tiny quota, but still never hit it more than once per 3 s per order
+                    khqrLastChecked.set(md5, now);
+                    const c = await checkOrderPaid(o);
+                    if (c.state === 'PAID') { await markOrderPaid(o.id); return res.json({ status: 'PAID', order_id: o.id }); }
+                    if (c.state === 'ERROR') console.error(`WING check error (order ${o.id}):`, c.detail);
+                }
+            } else if (req.query.force === '1' && !o.manual_review && sinceLast >= 20000) {
+                // the customer pressed "I have paid - check again": one extra check (may use the reserve), 20 s cooldown per order
+                khqrLastChecked.set(md5, now);
+                const c = await checkOrderPaid(o, 'manual');
+                if (c.state === 'PAID') { await markOrderPaid(o.id); return res.json({ status: 'PAID', order_id: o.id }); }
+                if (c.state !== 'UNPAID') console.error(`KHQR manual check (order ${o.id}): ${c.state} ${c.detail || ''}`);
+            }
+            return res.json({ status: 'WAITING', manual: !!o.manual_review, degraded: o.payment_method === 'WING' ? false : bakong.degraded() });
         }
         // PENDING/CONFIRMED with paid_at = paid; anything else = expired or cancelled
         if (o.status === 'PENDING' || o.status === 'CONFIRMED') return res.json({ status: 'PAID', order_id: o.id });
@@ -500,15 +587,73 @@ app.get('/api/payment-status/:md5', async (req, res) => {
     }
 });
 
-// Safety net: every minute, give up on unpaid orders (after one last Bakong check) so stock is not locked.
+// Customer says "I paid" while the automatic check cannot confirm it -> flag the order and ping the admins.
+app.post('/api/payment-claim/:md5', async (req, res) => {
+    try {
+        const md5 = String(req.params.md5).toLowerCase();
+        if (!/^[a-f0-9]{32}$/.test(md5)) return res.status(400).json({ ok: false });
+        const r = await pool.query("SELECT * FROM orders WHERE khqr_md5 = $1 AND status = 'AWAITING_PAYMENT'", [md5]);
+        if (r.rows.length === 0) return res.json({ ok: false });
+        await flagManualReview(r.rows[0], 'អតិថិជនចុច "ខ្ញុំបានបង់រួចហើយ" ប៉ុន្តែប្រព័ន្ធមិនទាន់អាចបញ្ជាក់បាន');
+        res.json({ ok: true }); // already flagged = still ok, the admins have the message
+    } catch (err) {
+        console.error('payment-claim error:', err);
+        res.status(500).json({ ok: false });
+    }
+});
+
+// ---- Central Bakong poller ------------------------------------------------------------------------
+// ONE batched Bakong call covers every waiting order. Nothing is called when nobody is waiting.
+// Schedule per order (age = time since the QR was made); orders whose page is no longer open are checked rarely.
+function khqrPollInterval(ageMs, seen) {
+    if (!seen) return 45000;
+    if (ageMs < 60000) return 8000;
+    if (ageMs < 180000) return 15000;
+    return 30000;
+}
+let khqrPolling = false;
+setInterval(async () => {
+    if (khqrPolling || !bakong.isEnabled()) return;
+    khqrPolling = true;
+    try {
+        const r = await pool.query(
+            "SELECT id, khqr_md5, pay_amount, expires_at FROM orders WHERE status = 'AWAITING_PAYMENT' AND payment_method = 'KHQR' AND khqr_md5 IS NOT NULL AND manual_review IS NOT TRUE AND expires_at > NOW()"
+        );
+        const now = Date.now();
+        for (const [k, t] of khqrLastSeen) if (now - t > 3600000) khqrLastSeen.delete(k);
+        for (const [k, t] of khqrLastChecked) if (now - t > 3600000) khqrLastChecked.delete(k);
+        if (r.rows.length === 0) return;
+
+        const due = r.rows.some(o => {
+            const age = KHQR_EXPIRE_MINUTES * 60000 - (new Date(o.expires_at).getTime() - now);
+            const seen = now - (khqrLastSeen.get(o.khqr_md5) || 0) < 60000;
+            return now - (khqrLastChecked.get(o.khqr_md5) || 0) >= khqrPollInterval(age, seen);
+        });
+        if (!due) return;
+        if (!bakong.allow('auto')) return; // out of (non-reserved) calls: wait for manual review instead of hammering the API
+
+        r.rows.forEach(o => khqrLastChecked.set(o.khqr_md5, now));
+        const results = await bakong.checkPaidBatch(r.rows.map(o => ({ md5: o.khqr_md5, amount: o.pay_amount })), 'auto');
+        const st = bakong.status();
+        for (const o of r.rows) {
+            const c = results.get(o.khqr_md5);
+            if (!c) continue;
+            if (c.state === 'PAID') await markOrderPaid(o.id);
+            else if (c.state === 'QUOTA') console.error(`Bakong quota reached (${st.used}/${st.limit} today). Waiting orders will go to manual review.`);
+            else if (c.state === 'ERROR') console.error(`KHQR check error (order ${o.id}):`, c.detail);
+        }
+    } catch (err) {
+        console.error('khqr poller error:', err.message);
+    } finally {
+        khqrPolling = false;
+    }
+}, 5000);
+
+// Safety net: every minute, settle orders past their deadline (last check, then PAID / EXPIRED / manual review).
 setInterval(async () => {
     try {
-        const r = await pool.query("SELECT id, khqr_md5, pay_amount, payment_method, wing_ref FROM orders WHERE status = 'AWAITING_PAYMENT' AND expires_at <= NOW()");
-        for (const o of r.rows) {
-            const c = await checkOrderPaid(o);
-            if (c.state === 'PAID') await markOrderPaid(o.id);
-            else if (c.state === 'UNPAID' || c.state === 'ERROR') await expireOrder(o.id);
-        }
+        const r = await pool.query("SELECT id, customer, items, khqr_md5, pay_amount, payment_method, wing_ref, manual_review, created_at FROM orders WHERE status = 'AWAITING_PAYMENT' AND expires_at <= NOW()");
+        for (const o of r.rows) await settleExpired(o);
     } catch (err) {
         console.error('expire sweeper error:', err.message);
     }
@@ -1412,6 +1557,31 @@ bot.command('web', async (ctx) => {
 
 bot.command('cleanup', async (ctx) => {
     ctx.reply('🧹 ប្រព័ន្ធកំពុងប្រើប្រាស់ Cloudinary Cloud Storage 100% ដូច្នេះមិនចាំបាច់មានការសម្អាត Local File ទៀតទេ។');
+});
+
+// Manual payment review buttons (sent when Bakong could not confirm a payment automatically)
+bot.action(/^manual_paid_(\d+)$/, async (ctx) => {
+    try {
+        const ok = await markOrderPaid(ctx.match[1]); // sends the normal order message (with Confirm/Cancel) to the admins
+        if (!ok) return ctx.answerCbQuery('⚠ ដោះស្រាយរួចហើយ!', { show_alert: true });
+        await ctx.answerCbQuery('✅ បានកត់ត្រាថាបង់ប្រាក់រួច!');
+        await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\nstatus: ✅ បានទទួលប្រាក់ (បញ្ជាក់ដោយដៃ)', { reply_markup: { inline_keyboard: [] } });
+    } catch (err) {
+        console.error('manual_paid error:', err);
+        await ctx.answerCbQuery('❌ មានបញ្ហា', { show_alert: true });
+    }
+});
+
+bot.action(/^manual_cancel_(\d+)$/, async (ctx) => {
+    try {
+        const ok = await expireOrder(ctx.match[1]); // releases the reserved stock
+        if (!ok) return ctx.answerCbQuery('⚠ ដោះស្រាយរួចហើយ!', { show_alert: true });
+        await ctx.answerCbQuery('❌ បានលុបចោល និងសងស្តុកវិញ!');
+        await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\nstatus: ❌ មិនបានទទួលប្រាក់ - លុបចោល', { reply_markup: { inline_keyboard: [] } });
+    } catch (err) {
+        console.error('manual_cancel error:', err);
+        await ctx.answerCbQuery('❌ មានបញ្ហា', { show_alert: true });
+    }
 });
 
 bot.action(/^confirm_order_(.+)$/, async (ctx) => {
