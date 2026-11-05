@@ -870,8 +870,8 @@
                     <label class="form-label" data-key="label_map">ទីតាំងលើ Map (Optional)</label>
                     <div style="display: flex; gap: 6px;">
                         <input type="text" id="custMapUrl" class="form-input" data-placeholder-key="placeholder_map" placeholder="ជ្រើសរើសទីតាំងលើ Map (បើមាន)..." readonly style="cursor: pointer;" onclick="openMapModal()">
-                        <button type="button" onclick="openMapModal()" style="background: var(--accent-light); color: var(--accent); border: 1px solid var(--border-color); padding: 0 12px; border-radius: 12px; font-weight:800; font-size:12px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:4px;" data-key="btn_select_map">
-                            🗺️ Select Map
+                        <button type="button" onclick="openMapModal()" style="background: var(--accent-light); color: var(--accent); border: 1px solid var(--border-color); padding: 0 12px; border-radius: 12px; font-weight:800; font-size:12px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:4px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7 9 4z"/><path d="M9 4v13M15 7v13"/></svg><span data-key="btn_select_map">Select Map</span>
                         </button>
                     </div>
                 </div>
@@ -882,7 +882,7 @@
                 <label class="form-label" data-key="label_payment">វិធីបង់ប្រាក់ (Payment)</label>
                 <label id="payRowKhqr" style="display:none; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--border-color); border-radius:12px; margin-top:6px; cursor:pointer; font-size:13px; font-weight:700; color:var(--primary);">
                     <input type="radio" name="payMethod" value="khqr">
-                    <span data-key="pay_khqr">💳 បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)</span>
+                    <img src="images/bakong.png" alt="Bakong" width="22" height="22" style="flex:none; border-radius:5px;"><span data-key="pay_khqr">បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)</span>
                 </label>
                 <label id="payRowWing" style="display:none; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--border-color); border-radius:12px; margin-top:6px; cursor:pointer; font-size:13px; font-weight:700; color:var(--primary);">
                     <input type="radio" name="payMethod" value="wing">
@@ -890,7 +890,7 @@
                 </label>
                 <label style="display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--border-color); border-radius:12px; margin-top:6px; cursor:pointer; font-size:13px; font-weight:700; color:var(--primary);">
                     <input type="radio" name="payMethod" value="cod" id="payRadioCod" checked>
-                    <span data-key="pay_cod">📦 កុម្មង់តាម Telegram (បង់ពេលទទួល)</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg><span data-key="pay_cod">កុម្មង់តាម Telegram (បង់ពេលទទួល)</span>
                 </label>
             </div>
 
@@ -914,7 +914,7 @@
     <div class="modal-overlay" id="khqrModal" style="z-index: 350;">
         <div class="modal-content" style="text-align: center;">
             <div class="modal-header">
-                <div class="modal-title"><span data-key="khqr_title">💳 ស្កេនដើម្បីបង់ប្រាក់</span></div>
+                <div class="modal-title"><img src="images/bakong.png" alt="Bakong" width="22" height="22" style="flex:none; border-radius:5px;"><span data-key="khqr_title">ស្កេនដើម្បីបង់ប្រាក់</span></div>
                 <button class="btn-close" onclick="closeKhqrModal()">✕</button>
             </div>
             <div id="khqrBody">
@@ -1030,7 +1030,7 @@
                 guide_step4: "៤. ចុចបញ្ជូនសារទៅកាន់ Telegram ហាងជាការស្រេច!",
                 label_name: "ឈ្មោះរបស់អ្នក (Name)", label_phone: "លេខទូរស័ព្ទ (Phone Number)", label_address: "ទីតាំងទទួលទំនិញ (Delivery Location)", label_map: "ទីតាំងលើ Map (Optional)",
                 placeholder_name: "បំពេញឈ្មោះ...", placeholder_phone: "បំពេញលេខទូរស័ព្ទ (ឧ. 012345678)...", placeholder_address: "បំពេញអាសយដ្ឋាន (ឧ. ផ្ទះ..., ផ្លូវ...)", placeholder_map: "ជ្រើសរើសទីតាំងលើ Map (បើមាន)...",
-                btn_select_map: "🗺️ Select Map", map_picker_title: "📍 សុំជ្រើសរើសទីតាំងទទួលទំនិញ", btn_confirm_location: "បញ្ជាក់ទីតាំងនេះ",
+                btn_select_map: "Select Map", map_picker_title: "📍 សុំជ្រើសរើសទីតាំងទទួលទំនិញ", btn_confirm_location: "បញ្ជាក់ទីតាំងនេះ",
                 alert_fill: "សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងទីតាំងឱ្យបានត្រឹមត្រូវ!",
                 alert_phone_invalid: "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យបានត្រឹមត្រូវ (យ៉ាងតិច 8ខ្ទង់)!",
                 toast_added: "បានដាក់ចូលកន្ត្រកជោគជ័យ!",
@@ -1065,7 +1065,7 @@
                 guide_step4: "4. Send the order message directly to our Telegram!",
                 label_name: "Your Name", label_phone: "Phone Number", label_address: "Delivery Location", label_map: "Map Location (Optional)",
                 placeholder_name: "Enter your name...", placeholder_phone: "Enter phone number (e.g. 012345678)...", placeholder_address: "Enter address (e.g. House..., Street...)", placeholder_map: "Select location on map (Optional)...",
-                btn_select_map: "🗺️ Select Map", map_picker_title: "📍 Select Delivery Location", btn_confirm_location: "Confirm Location",
+                btn_select_map: "Select Map", map_picker_title: "📍 Select Delivery Location", btn_confirm_location: "Confirm Location",
                 alert_fill: "Please fill in your name, phone number, and location!",
                 alert_phone_invalid: "Please enter a valid phone number (at least 8 digits)!",
                 toast_added: "Added to cart successfully!",
@@ -1100,7 +1100,7 @@
                 guide_step4: "4. 将订单发送至我们的电报客服即可！",
                 label_name: "您的姓名", label_phone: "联系电话", label_address: "收货地址", label_map: "地图定位 (Optional)",
                 placeholder_name: "请输入您的姓名...", placeholder_phone: "请输入电话号码 (例如 012345678)...", placeholder_address: "请输入收货地址...", placeholder_map: "在地图上选择位置 (可选)...",
-                btn_select_map: "🗺️ 选择地图", map_picker_title: "📍 选择收货地址", btn_confirm_location: "确认此位置",
+                btn_select_map: "选择地图", map_picker_title: "📍 选择收货地址", btn_confirm_location: "确认此位置",
                 alert_fill: "请填写您的姓名、电话和收货地址！",
                 alert_phone_invalid: "请输入有效的电话号码（至少8位数）！",
                 toast_added: "已成功加入购物车！",
@@ -1127,20 +1127,20 @@
 
         // 💳 KHQR texts (added on top of the dictionaries above)
         Object.assign(translations.km, {
-            label_payment: "វិធីបង់ប្រាក់ (Payment)", pay_wing: "🟢 បង់ប្រាក់ឥឡូវតាម Wing", wing_open: "🟢 បើកទំព័រ Wing ដើម្បីបង់ប្រាក់", wing_hint: "ចុចប៊ូតុងខាងលើដើម្បីបង់ក្នុង Wing (ឬស្កេន QR នេះដោយទូរស័ព្ទ)។ ទុកទំព័រនេះបើកចោល រហូតដល់ឃើញថាបង់ជោគជ័យ។", pay_khqr: "💳 បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)", pay_cod: "📦 កុម្មង់តាម Telegram (បង់ពេលទទួល)",
-            khqr_title: "💳 ស្កេនដើម្បីបង់ប្រាក់", khqr_waiting: "⏳ កំពុងរង់ចាំការបង់ប្រាក់...", khqr_expires_in: "ផុតកំណត់ក្នុង",
+            label_payment: "វិធីបង់ប្រាក់ (Payment)", pay_wing: "🟢 បង់ប្រាក់ឥឡូវតាម Wing", wing_open: "🟢 បើកទំព័រ Wing ដើម្បីបង់ប្រាក់", wing_hint: "ចុចប៊ូតុងខាងលើដើម្បីបង់ក្នុង Wing (ឬស្កេន QR នេះដោយទូរស័ព្ទ)។ ទុកទំព័រនេះបើកចោល រហូតដល់ឃើញថាបង់ជោគជ័យ។", pay_khqr: "បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)", pay_cod: "កុម្មង់តាម Telegram (បង់ពេលទទួល)",
+            khqr_title: "ស្កេនដើម្បីបង់ប្រាក់", khqr_waiting: "⏳ កំពុងរង់ចាំការបង់ប្រាក់...", khqr_expires_in: "ផុតកំណត់ក្នុង",
             khqr_hint: "បើកកម្មវិធីធនាគារណាមួយ (ABA, ACLEDA, Wing...) រួចស្កេន QR នេះ។ កុំបិទទំព័រនេះ រហូតដល់ឃើញថាបង់ជោគជ័យ។", khqr_close: "បិទ",
             khqr_paid: "✅ បង់ប្រាក់ជោគជ័យ! យើងនឹងទាក់ទងអ្នកឆាប់ៗនេះ។", khqr_expired: "⌛ QR ផុតកំណត់ហើយ។ ប្រសិនបើអ្នកបានបង់រួច សូមទាក់ទងហាង។ បើមិនទាន់ សូមកុម្មង់ម្តងទៀត។"
         });
         Object.assign(translations.en, {
-            label_payment: "Payment Method", pay_wing: "🟢 Pay now with Wing", wing_open: "🟢 Open Wing to pay", wing_hint: "Tap the button above to pay in Wing (or scan this QR with your phone). Keep this page open until you see the payment succeed.", pay_khqr: "💳 Pay now with KHQR (Bakong)", pay_cod: "📦 Order via Telegram (pay on delivery)",
-            khqr_title: "💳 Scan to Pay", khqr_waiting: "⏳ Waiting for payment...", khqr_expires_in: "Expires in",
+            label_payment: "Payment Method", pay_wing: "🟢 Pay now with Wing", wing_open: "🟢 Open Wing to pay", wing_hint: "Tap the button above to pay in Wing (or scan this QR with your phone). Keep this page open until you see the payment succeed.", pay_khqr: "Pay now with KHQR (Bakong)", pay_cod: "Order via Telegram (pay on delivery)",
+            khqr_title: "Scan to Pay", khqr_waiting: "⏳ Waiting for payment...", khqr_expires_in: "Expires in",
             khqr_hint: "Open any banking app (ABA, ACLEDA, Wing...) and scan this QR. Keep this page open until you see the payment succeed.", khqr_close: "Close",
             khqr_paid: "✅ Payment received! We will contact you shortly.", khqr_expired: "⌛ This QR has expired. If you already paid, please contact the shop. Otherwise please order again."
         });
         Object.assign(translations.zh, {
-            label_payment: "支付方式", pay_wing: "🟢 立即使用 Wing 支付", wing_open: "🟢 打开 Wing 付款", wing_hint: "点击上方按钮在 Wing 中付款（或用手机扫描此二维码）。付款成功前请勿关闭本页面。", pay_khqr: "💳 立即使用 KHQR (Bakong) 支付", pay_cod: "📦 通过 Telegram 下单 (货到付款)",
-            khqr_title: "💳 扫码支付", khqr_waiting: "⏳ 等待付款...", khqr_expires_in: "剩余时间",
+            label_payment: "支付方式", pay_wing: "🟢 立即使用 Wing 支付", wing_open: "🟢 打开 Wing 付款", wing_hint: "点击上方按钮在 Wing 中付款（或用手机扫描此二维码）。付款成功前请勿关闭本页面。", pay_khqr: "立即使用 KHQR (Bakong) 支付", pay_cod: "通过 Telegram 下单 (货到付款)",
+            khqr_title: "扫码支付", khqr_waiting: "⏳ 等待付款...", khqr_expires_in: "剩余时间",
             khqr_hint: "打开任意银行应用 (ABA, ACLEDA, Wing...) 扫描此二维码。付款成功前请勿关闭本页面。", khqr_close: "关闭",
             khqr_paid: "✅ 付款成功！我们会尽快联系您。", khqr_expired: "⌛ 二维码已过期。如已付款请联系商店，否则请重新下单。"
         });
