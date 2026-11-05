@@ -40,6 +40,7 @@
     <!-- OpenStreetMap (Leaflet.js) CSS & JS : defer ដើម្បីកុំឱ្យរារាំងការបង្ហាញទំព័រ -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 
     <style>
         :root {
@@ -876,6 +877,19 @@
                 </div>
             </div>
 
+            <!-- 💳 Payment method (shown only when the server has Bakong configured) -->
+            <div id="paymentMethodBox" style="display: none; margin-top: 12px;">
+                <label class="form-label" data-key="label_payment">វិធីបង់ប្រាក់ (Payment)</label>
+                <label style="display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--border-color); border-radius:12px; margin-top:6px; cursor:pointer; font-size:13px; font-weight:700; color:var(--primary);">
+                    <input type="radio" name="payMethod" value="khqr" checked>
+                    <span data-key="pay_khqr">💳 បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--border-color); border-radius:12px; margin-top:6px; cursor:pointer; font-size:13px; font-weight:700; color:var(--primary);">
+                    <input type="radio" name="payMethod" value="cod">
+                    <span data-key="pay_cod">📦 កុម្មង់តាម Telegram (បង់ពេលទទួល)</span>
+                </label>
+            </div>
+
             <div class="modal-footer" style="display: flex; margin-top: 15px;">
                 <div class="modal-total-row">
                     <span class="modal-total-label" data-key="total_label">តម្លៃសរុប</span>
@@ -889,6 +903,30 @@
                     <span data-key="btn_order_now">Order Now</span>
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- 💳 KHQR payment modal (no click-outside-to-close, so a payment is never hidden by accident) -->
+    <div class="modal-overlay" id="khqrModal" style="z-index: 350;">
+        <div class="modal-content" style="text-align: center;">
+            <div class="modal-header">
+                <div class="modal-title"><span data-key="khqr_title">💳 ស្កេនដើម្បីបង់ប្រាក់</span></div>
+                <button class="btn-close" onclick="closeKhqrModal()">✕</button>
+            </div>
+            <div id="khqrBody">
+                <div style="font-size: 26px; font-weight: 900; color: var(--primary);" id="khqrAmount">$0.00</div>
+                <div id="khqrQrBox" style="display:inline-block; background:#fff; padding:14px; border-radius:16px; margin:14px 0; border:1px solid var(--border-color);"></div>
+                <div id="khqrStatus" style="font-size:14px; font-weight:800; color: var(--primary);" data-key="khqr_waiting">⏳ កំពុងរង់ចាំការបង់ប្រាក់...</div>
+                <div style="font-size:12px; color: var(--text-muted); margin-top:6px;">
+                    <span data-key="khqr_expires_in">ផុតកំណត់ក្នុង</span> <b id="khqrCountdown">10:00</b>
+                </div>
+                <div style="font-size:12px; color: var(--text-muted); margin-top:10px;" data-key="khqr_hint">
+                    បើកកម្មវិធីធនាគារណាមួយ (ABA, ACLEDA, Wing...) រួចស្កេន QR នេះ។ កុំបិទទំព័រនេះ រហូតដល់ឃើញថាបង់ជោគជ័យ។
+                </div>
+            </div>
+            <button id="khqrDoneBtn" onclick="closeKhqrModal()" class="btn-modal-telegram" style="display:none; margin-top:14px;">
+                <span data-key="khqr_close">បិទ</span>
+            </button>
         </div>
     </div>
 
@@ -1082,6 +1120,26 @@
                 tg_grandtotal: "• 总金额: "
             }
         };
+
+        // 💳 KHQR texts (added on top of the dictionaries above)
+        Object.assign(translations.km, {
+            label_payment: "វិធីបង់ប្រាក់ (Payment)", pay_khqr: "💳 បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)", pay_cod: "📦 កុម្មង់តាម Telegram (បង់ពេលទទួល)",
+            khqr_title: "💳 ស្កេនដើម្បីបង់ប្រាក់", khqr_waiting: "⏳ កំពុងរង់ចាំការបង់ប្រាក់...", khqr_expires_in: "ផុតកំណត់ក្នុង",
+            khqr_hint: "បើកកម្មវិធីធនាគារណាមួយ (ABA, ACLEDA, Wing...) រួចស្កេន QR នេះ។ កុំបិទទំព័រនេះ រហូតដល់ឃើញថាបង់ជោគជ័យ។", khqr_close: "បិទ",
+            khqr_paid: "✅ បង់ប្រាក់ជោគជ័យ! យើងនឹងទាក់ទងអ្នកឆាប់ៗនេះ។", khqr_expired: "⌛ QR ផុតកំណត់ហើយ។ ប្រសិនបើអ្នកបានបង់រួច សូមទាក់ទងហាង។ បើមិនទាន់ សូមកុម្មង់ម្តងទៀត។"
+        });
+        Object.assign(translations.en, {
+            label_payment: "Payment Method", pay_khqr: "💳 Pay now with KHQR (Bakong)", pay_cod: "📦 Order via Telegram (pay on delivery)",
+            khqr_title: "💳 Scan to Pay", khqr_waiting: "⏳ Waiting for payment...", khqr_expires_in: "Expires in",
+            khqr_hint: "Open any banking app (ABA, ACLEDA, Wing...) and scan this QR. Keep this page open until you see the payment succeed.", khqr_close: "Close",
+            khqr_paid: "✅ Payment received! We will contact you shortly.", khqr_expired: "⌛ This QR has expired. If you already paid, please contact the shop. Otherwise please order again."
+        });
+        Object.assign(translations.zh, {
+            label_payment: "支付方式", pay_khqr: "💳 立即使用 KHQR (Bakong) 支付", pay_cod: "📦 通过 Telegram 下单 (货到付款)",
+            khqr_title: "💳 扫码支付", khqr_waiting: "⏳ 等待付款...", khqr_expires_in: "剩余时间",
+            khqr_hint: "打开任意银行应用 (ABA, ACLEDA, Wing...) 扫描此二维码。付款成功前请勿关闭本页面。", khqr_close: "关闭",
+            khqr_paid: "✅ 付款成功！我们会尽快联系您。", khqr_expired: "⌛ 二维码已过期。如已付款请联系商店，否则请重新下单。"
+        });
 
         async function fetchRetry(url, tries = 4, timeoutMs = 10000) {
             let lastErr;
@@ -1786,6 +1844,7 @@
             loadUserInfo();
 
             loadWebsiteSettings();
+            loadPaymentConfig();
             loadDynamicCovers();
             loadDynamicProducts();
 
@@ -2001,6 +2060,109 @@
             document.getElementById('checkout-total-price').innerText = '$' + grandTotal.toFixed(2);
         }
 
+        // ---------------- 💳 KHQR / Bakong ----------------
+        let khqrEnabled = false;
+        let khqrPollTimer = null;
+        let khqrCountTimer = null;
+        let khqrBusy = false;
+
+        async function loadPaymentConfig() {
+            try {
+                let r = await fetch(`${RAILWAY_API_URL}/api/payment-config`, { cache: 'no-store' });
+                let cfg = await r.json();
+                khqrEnabled = !!cfg.khqr_enabled;
+            } catch (e) { khqrEnabled = false; }
+            let box = document.getElementById('paymentMethodBox');
+            if (box) box.style.display = khqrEnabled ? 'block' : 'none';
+        }
+
+        function stopKhqrTimers() {
+            if (khqrPollTimer) { clearInterval(khqrPollTimer); khqrPollTimer = null; }
+            if (khqrCountTimer) { clearInterval(khqrCountTimer); khqrCountTimer = null; }
+        }
+
+        function closeKhqrModal() {
+            stopKhqrTimers();
+            closeModal('khqrModal');
+        }
+
+        function showKhqrResult(text, ok) {
+            stopKhqrTimers();
+            document.getElementById('khqrBody').innerHTML =
+                `<div style="font-size:15px; font-weight:800; line-height:1.6; padding:18px 4px; color:${ok ? '#16a34a' : '#ef4444'};">${text}</div>`;
+            document.getElementById('khqrDoneBtn').style.display = 'flex';
+        }
+
+        async function startKhqrPayment(orderData) {
+            if (khqrBusy) return;
+            khqrBusy = true;
+            let t = translations[currentLang];
+            try {
+                let response = await fetch(`${RAILWAY_API_URL}/api/order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...orderData, payment_method: 'khqr' })
+                });
+                let result = await response.json();
+                if (!result.success) {
+                    alert(result.message || result.error || "មានបញ្ហាពេលកុម្មង់ទំនិញ!");
+                    return;
+                }
+
+                // Reset the modal (it may have shown an earlier result) and draw the QR
+                document.getElementById('khqrBody').innerHTML = `
+                    <div style="font-size: 26px; font-weight: 900; color: var(--primary);" id="khqrAmount"></div>
+                    <div id="khqrQrBox" style="display:inline-block; background:#fff; padding:14px; border-radius:16px; margin:14px 0; border:1px solid var(--border-color);"></div>
+                    <div id="khqrStatus" style="font-size:14px; font-weight:800; color: var(--primary);">${t.khqr_waiting}</div>
+                    <div style="font-size:12px; color: var(--text-muted); margin-top:6px;">${t.khqr_expires_in} <b id="khqrCountdown"></b></div>
+                    <div style="font-size:12px; color: var(--text-muted); margin-top:10px;">${t.khqr_hint}</div>`;
+                document.getElementById('khqrDoneBtn').style.display = 'none';
+                document.getElementById('khqrAmount').innerText = '$' + Number(result.amount).toFixed(2);
+                new QRCode(document.getElementById('khqrQrBox'), {
+                    text: result.qr, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M
+                });
+
+                closeModal('checkoutModal');
+                closeModal('cartModal');
+                openModal('khqrModal');
+
+                stopKhqrTimers();
+                let expiresAt = result.expires_at;
+                let tick = () => {
+                    let left = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+                    let el = document.getElementById('khqrCountdown');
+                    if (el) el.innerText = String(Math.floor(left / 60)).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');
+                };
+                tick();
+                khqrCountTimer = setInterval(tick, 1000);
+
+                let polling = false;
+                khqrPollTimer = setInterval(async () => {
+                    if (polling) return;
+                    polling = true;
+                    try {
+                        let r = await fetch(`${RAILWAY_API_URL}/api/payment-status/${result.md5}`, { cache: 'no-store' });
+                        let s = await r.json();
+                        if (s.status === 'PAID') {
+                            cart = {};
+                            renderCart();
+                            updateAllCardStocks();
+                            showKhqrResult(translations[currentLang].khqr_paid, true);
+                        } else if (s.status === 'EXPIRED' || s.status === 'NOT_FOUND') {
+                            showKhqrResult(translations[currentLang].khqr_expired, false);
+                            backgroundSyncStock();
+                        }
+                    } catch (e) { /* network blip: keep polling */ }
+                    polling = false;
+                }, 3000);
+            } catch (error) {
+                console.error("KHQR order error:", error);
+                alert("មិនអាចភ្ជាប់ទៅកាន់ Server លើ Railway បានទេ!");
+            } finally {
+                khqrBusy = false;
+            }
+        }
+
         async function openTelegram() {
             if (Object.keys(cart).length === 0) {
                 alert(translations[currentLang].empty_cart);
@@ -2058,6 +2220,13 @@
                 customer: { name, phone, address, mapUrl, userId, username },
                 items: formattedCart
             };
+
+            // 💳 Pay-now path: the server creates the order + KHQR, then we wait for Bakong to confirm.
+            let payChoice = document.querySelector('input[name="payMethod"]:checked');
+            if (khqrEnabled && payChoice && payChoice.value === 'khqr') {
+                await startKhqrPayment(orderData);
+                return;
+            }
 
             try {
                 let response = await fetch(`${RAILWAY_API_URL}/api/order`, {

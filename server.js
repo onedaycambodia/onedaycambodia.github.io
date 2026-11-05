@@ -5,8 +5,10 @@ const { Telegraf } = require('telegraf');
 const cloudinary = require('cloudinary').v2;
 const path = require('path');
 const translate = require('translate-google'); // 📦 Library សម្រាប់បកប្រែស្វ័យប្រវត្តិ
+const bakong = require('./bakong'); // 💳 Bakong KHQR payments
 
 const app = express();
+app.set('trust proxy', 1); // Railway sits behind a proxy; needed so req.ip is the real visitor
 app.use(cors());
 app.use(express.json());
 
@@ -238,6 +240,17 @@ async function initDB() {
             );
         `);
         
+        // 💳 KHQR payment columns (safe to run repeatedly)
+        await pool.query(`
+            ALTER TABLE orders
+                ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20) DEFAULT 'COD',
+                ADD COLUMN IF NOT EXISTS khqr_md5 VARCHAR(64),
+                ADD COLUMN IF NOT EXISTS pay_amount DECIMAL(10,2),
+                ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP,
+                ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP;
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_orders_khqr_md5 ON orders (khqr_md5);`);
+
         console.log("Database initialized successfully.");
     } catch (err) {
         console.error("Database initialization error:", err);
@@ -328,8 +341,166 @@ app.post('/api/admin/update-stock', async (req, res) => {
     }
 });
 
+// ---------------- 💳 KHQR / BAKONG PAYMENT ----------------
+const KHQR_EXPIRE_MINUTES = 10;
+const khqrRateMap = new Map(); // ip -> [timestamps], stops someone locking all stock with unpaid QR orders
+
+function khqrRateLimited(ip) {
+    const now = Date.now();
+    const recent = (khqrRateMap.get(ip) || []).filter(t => now - t < 10 * 60 * 1000);
+    if (recent.length >= 5) { khqrRateMap.set(ip, recent); return true; }
+    recent.push(now);
+    khqrRateMap.set(ip, recent);
+    return false;
+}
+
+async function getDeliveryFeeNumber() {
+    const r = await pool.query("SELECT value FROM website_settings WHERE key = 'delivery_fee'");
+    const val = r.rows.length > 0 ? String(r.rows[0].value).trim() : '2.00';
+    const n = parseFloat(val);
+    return isNaN(n) ? 0 : n; // same rule as the website: text such as "pay at shop" = 0
+}
+
+async function restoreStockForItems(db, items) {
+    items = typeof items === 'string' ? JSON.parse(items) : items;
+    for (let key in items) {
+        let item = items[key];
+        await db.query(
+            "UPDATE stock SET stock_qty = stock_qty + $1 WHERE UPPER(ref) = $2 AND UPPER(size) = $3",
+            [parseInt(item.qty) || 0, String(item.ref).toUpperCase(), String(item.size).toUpperCase()]
+        );
+    }
+}
+
+async function sendOrderToAdmins(orderId, customer, itemsSummary, totalAmount, headerExtra) {
+    let adminsRes = await pool.query("SELECT chat_id FROM admins WHERE chat_id IS NOT NULL");
+    if (adminsRes.rows.length === 0) return;
+    customer = customer || {};
+    let custName = customer.name || customer.fullName || 'អតិថិជនមិនបញ្ចេញឈ្មោះ';
+    let custPhone = customer.phone || customer.phoneNumber || 'គ្មានលេខទូរស័ព្ទ';
+    let custAddress = customer.address || customer.location || 'គ្មានអាសយដ្ឋាន';
+    let userId = customer.userId || customer.telegramId || '';
+    let username = customer.username || '';
+
+    let msg = `📦 **មានការកុម្មង់ទំនិញថ្មី!** (#Order ID: ${orderId})\n${headerExtra || ''}\n`;
+    msg += `👤 **ព័ត៌មានអតិថិជន:**\n- ឈ្មោះ: ${custName}\n- លេខទូរស័ព្ទ: ${custPhone}\n- អាសយដ្ឋាន: ${custAddress}\n`;
+    if (userId) msg += `- Telegram ID: \`${userId}\`\n`;
+    if (username) msg += `- Username: @${username}\n`;
+    msg += `\n🛒 **ទំនិញកុម្មង់:**\n`;
+    itemsSummary.forEach((it, idx) => {
+        msg += `${idx + 1}. Ref: ${it.ref} - ${it.title} (Size: ${it.size}) x ${it.qty} = $${Number(it.total).toFixed(2)}\n`;
+    });
+    msg += `\n💵 **សរុបទឹកប្រាក់:** $${Number(totalAmount).toFixed(2)}`;
+
+    let inlineKeyboard = [[
+        { text: '✅ Confirm Order', callback_data: `confirm_order_${orderId}` },
+        { text: '❌ Cancel & Restore Stock', callback_data: `cancel_order_${orderId}` }
+    ]];
+    if (userId) inlineKeyboard.push([{ text: '💬 ឆាតទៅកាន់អតិថិជន', url: `tg://user?id=${userId}` }]);
+    else if (username) inlineKeyboard.push([{ text: '💬 ឆាតទៅកាន់អតិថិជន', url: `https://t.me/${username}` }]);
+
+    for (let adm of adminsRes.rows) {
+        try {
+            await bot.telegram.sendMessage(adm.chat_id, msg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: inlineKeyboard } });
+        } catch (e) {}
+    }
+}
+
+// Mark an awaiting order as paid exactly once (the status guard makes double-calls harmless), then tell the admins.
+async function markOrderPaid(orderId) {
+    const r = await pool.query(
+        "UPDATE orders SET status = 'PENDING', paid_at = NOW() WHERE id = $1 AND status = 'AWAITING_PAYMENT' RETURNING *",
+        [orderId]
+    );
+    if (r.rows.length === 0) return false; // someone else already handled it
+    const o = r.rows[0];
+    const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items;
+    const customer = typeof o.customer === 'string' ? JSON.parse(o.customer) : o.customer;
+    await sendOrderToAdmins(o.id, customer, items, o.pay_amount || o.total, `✅ **បង់ប្រាក់រួចរាល់តាម KHQR $${Number(o.pay_amount).toFixed(2)}** (Bakong)\n`);
+    return true;
+}
+
+// Release the reserved stock of an unpaid order. Returns true if this call did the expiring.
+async function expireOrder(orderId) {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const r = await client.query(
+            "UPDATE orders SET status = 'EXPIRED' WHERE id = $1 AND status = 'AWAITING_PAYMENT' RETURNING items",
+            [orderId]
+        );
+        if (r.rows.length === 0) { await client.query('ROLLBACK'); return false; }
+        await restoreStockForItems(client, r.rows[0].items);
+        await client.query('COMMIT');
+        return true;
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('expireOrder error:', err);
+        return false;
+    } finally {
+        client.release();
+    }
+}
+
+app.get('/api/payment-config', (req, res) => {
+    res.json({ khqr_enabled: bakong.isEnabled(), expire_minutes: KHQR_EXPIRE_MINUTES });
+});
+
+// The browser polls this with the (unguessable) md5 of its QR every few seconds.
+app.get('/api/payment-status/:md5', async (req, res) => {
+    try {
+        const md5 = String(req.params.md5).toLowerCase();
+        if (!/^[a-f0-9]{32}$/.test(md5)) return res.status(400).json({ status: 'INVALID' });
+
+        const r = await pool.query("SELECT id, status, pay_amount, expires_at FROM orders WHERE khqr_md5 = $1", [md5]);
+        if (r.rows.length === 0) return res.status(404).json({ status: 'NOT_FOUND' });
+        const o = r.rows[0];
+
+        if (o.status === 'AWAITING_PAYMENT') {
+            if (new Date(o.expires_at) <= new Date()) {
+                // last chance: the customer may have paid right at the deadline
+                const late = await bakong.checkPaid(md5, o.pay_amount);
+                if (late.state === 'PAID') { await markOrderPaid(o.id); return res.json({ status: 'PAID', order_id: o.id }); }
+                await expireOrder(o.id);
+                return res.json({ status: 'EXPIRED' });
+            }
+            const c = await bakong.checkPaid(md5, o.pay_amount);
+            if (c.state === 'PAID') { await markOrderPaid(o.id); return res.json({ status: 'PAID', order_id: o.id }); }
+            if (c.state === 'ERROR') console.error(`Bakong check error (order ${o.id}):`, c.detail);
+            return res.json({ status: 'WAITING' });
+        }
+        // PENDING/CONFIRMED with paid_at = paid; anything else = expired or cancelled
+        if (o.status === 'PENDING' || o.status === 'CONFIRMED') return res.json({ status: 'PAID', order_id: o.id });
+        return res.json({ status: 'EXPIRED' });
+    } catch (err) {
+        console.error('payment-status error:', err);
+        res.status(500).json({ status: 'ERROR' });
+    }
+});
+
+// Safety net: every minute, give up on unpaid orders (after one last Bakong check) so stock is not locked.
+setInterval(async () => {
+    try {
+        const r = await pool.query("SELECT id, khqr_md5, pay_amount FROM orders WHERE status = 'AWAITING_PAYMENT' AND expires_at <= NOW()");
+        for (const o of r.rows) {
+            const c = bakong.isEnabled() ? await bakong.checkPaid(o.khqr_md5, o.pay_amount) : { state: 'UNPAID' };
+            if (c.state === 'PAID') await markOrderPaid(o.id);
+            else if (c.state === 'UNPAID' || c.state === 'ERROR') await expireOrder(o.id);
+        }
+    } catch (err) {
+        console.error('expire sweeper error:', err.message);
+    }
+}, 60 * 1000);
+
 app.post('/api/order', async (req, res) => {
-    let { customer, items } = req.body;
+    let { customer, items, payment_method } = req.body;
+    const isKhqr = payment_method === 'khqr';
+
+    if (isKhqr) {
+        if (!bakong.isEnabled()) return res.json({ success: false, message: 'KHQR payment is not available right now.' });
+        if (khqrRateLimited(req.ip)) return res.status(429).json({ success: false, message: 'ព្យាយាមច្រើនពេក សូមរង់ចាំបន្តិចសិន។' });
+    }
+
     const client = await pool.connect();
 
     try {
@@ -382,11 +553,33 @@ app.post('/api/order', async (req, res) => {
             }
         }
 
+        // For KHQR the customer pays items + delivery fee; the amount is always computed here, never trusted from the browser.
+        let payAmount = 0;
+        let expiresAt = null;
+        if (isKhqr) {
+            payAmount = Number((totalAmount + await getDeliveryFeeNumber()).toFixed(2));
+            if (!(payAmount > 0)) {
+                await client.query('ROLLBACK');
+                client.release();
+                return res.json({ success: false, message: 'ចំនួនទឹកប្រាក់មិនត្រឹមត្រូវ!' });
+            }
+            expiresAt = new Date(Date.now() + KHQR_EXPIRE_MINUTES * 60 * 1000);
+        }
+
         let orderRes = await client.query(
-            "INSERT INTO orders (customer, items, total, status) VALUES ($1, $2, $3, 'PENDING') RETURNING id",
-            [JSON.stringify(customer || {}), JSON.stringify(itemsSummary), totalAmount]
+            `INSERT INTO orders (customer, items, total, status, payment_method, pay_amount, expires_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+            [JSON.stringify(customer || {}), JSON.stringify(itemsSummary), totalAmount,
+             isKhqr ? 'AWAITING_PAYMENT' : 'PENDING', isKhqr ? 'KHQR' : 'COD', isKhqr ? payAmount : null, expiresAt]
         );
         let orderId = orderRes.rows[0].id;
+
+        let khqrResult = null;
+        if (isKhqr) {
+            // If QR generation throws, the catch below rolls back the order AND the stock deduction.
+            khqrResult = bakong.createKhqr({ amount: payAmount, billNumber: `OD${orderId}`, expiresAt: expiresAt.getTime() });
+            await client.query("UPDATE orders SET khqr_md5 = $1 WHERE id = $2", [khqrResult.md5, orderId]);
+        }
 
         for (let key in items) {
             let item = items[key];
@@ -403,7 +596,8 @@ app.post('/api/order', async (req, res) => {
         await client.query('COMMIT');
         client.release();
 
-        let adminsRes = await pool.query("SELECT chat_id FROM admins WHERE chat_id IS NOT NULL");
+        // KHQR orders notify the admins only after the money arrives (markOrderPaid)
+        let adminsRes = isKhqr ? { rows: [] } : await pool.query("SELECT chat_id FROM admins WHERE chat_id IS NOT NULL");
         if (adminsRes.rows.length > 0) {
             let custName = customer?.name || customer?.fullName || 'អតិថិជនមិនបញ្ចេញឈ្មោះ';
             let custPhone = customer?.phone || customer?.phoneNumber || 'គ្មានលេខទូរស័ព្ទ';
@@ -449,11 +643,24 @@ app.post('/api/order', async (req, res) => {
             }
         }
 
+        if (isKhqr) {
+            return res.json({
+                success: true,
+                payment: 'khqr',
+                order_id: orderId,
+                qr: khqrResult.qr,
+                md5: khqrResult.md5,
+                amount: payAmount,
+                expires_at: expiresAt.getTime()
+            });
+        }
+
         res.json({ success: true, message: "ការកុម្មង់បានជោគជ័យ និងកាត់ស្តុកស្វ័យប្រវត្តិរួចរាល់!" });
 
     } catch (err) {
-        await client.query('ROLLBACK');
+        try { await client.query('ROLLBACK'); } catch (e) {}
         client.release();
+        console.error('order error:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
@@ -1174,7 +1381,8 @@ bot.action(/^cancel_order_(.+)$/, async (ctx) => {
         let orderRes = await pool.query("SELECT * FROM orders WHERE id = $1", [orderId]);
         if (orderRes.rows.length === 0) return ctx.answerCbQuery('❌ រកមិនឃើញ!');
         let order = orderRes.rows[0];
-        if (order.status === 'CANCELLED') return ctx.answerCbQuery('⚠ លុបចោលរួចហើយ!');
+        if (order.status === 'CANCELLED' || order.status === 'EXPIRED') return ctx.answerCbQuery('⚠ លុបចោលរួចហើយ!');
+        if (order.status === 'AWAITING_PAYMENT') return ctx.answerCbQuery('⏳ កំពុងរង់ចាំការបង់ប្រាក់!');
 
         let items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
         for (let key in items) {
