@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Oneday · QR ទទួលប្រាក់</title>
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<style>
+    :root { --bg:#f1f5f9; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --accent:#0284c7; --ok:#16a34a; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#0b1220; --card:#131c2e; --ink:#f1f5f9; --muted:#94a3b8; --line:#243049; } }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { margin:0; min-height:100vh; background:var(--bg); color:var(--ink); font-family:'Kantumruy Pro',system-ui,sans-serif;
+           display:flex; justify-content:center; padding:24px 16px calc(24px + env(safe-area-inset-bottom)); }
+    .wrap { width:100%; max-width:420px; }
+    h1 { font-size:20px; font-weight:800; margin:4px 0 4px; }
+    .sub { font-size:13px; color:var(--muted); font-weight:600; margin:0 0 18px; line-height:1.6; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:18px; }
+    label { display:block; font-size:12px; font-weight:800; margin:14px 0 6px; }
+    label:first-child { margin-top:0; }
+    input, select { width:100%; padding:13px 14px; border:1px solid var(--line); border-radius:12px; background:var(--bg); color:var(--ink);
+                    font:inherit; font-size:16px; outline:none; transition:border-color .2s, box-shadow .2s; }
+    input:focus, select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(2,132,199,.15); }
+    .hint { font-size:11px; color:var(--muted); font-weight:600; margin-top:5px; line-height:1.5; }
+    button { font:inherit; cursor:pointer; border:none; transition:transform .3s cubic-bezier(.34,1.56,.64,1), opacity .2s; }
+    button:active { transform:scale(.95); transition-duration:.08s; }
+    .go { width:100%; margin-top:18px; padding:14px; border-radius:14px; background:var(--accent); color:#fff; font-weight:800; font-size:15px; box-shadow:0 4px 12px rgba(2,132,199,.25); }
+    .go:disabled { opacity:.6; }
+    #result { display:none; margin-top:16px; text-align:center; }
+    #result.show { display:block; animation:rise .45s cubic-bezier(.2,.9,.25,1); }
+    @keyframes rise { from { opacity:0; transform:translateY(18px) scale(.96); } to { opacity:1; transform:none; } }
+    #qrbox { display:inline-block; background:#fff; padding:14px; border-radius:16px; border:1px solid var(--line); }
+    #qrbox img, #qrbox canvas { display:block; }
+    .amt { font-size:26px; font-weight:800; margin:12px 0 2px; }
+    .meta { font-size:12px; color:var(--muted); font-weight:700; line-height:1.6; }
+    .row { display:flex; gap:8px; margin-top:14px; }
+    .row button { flex:1; padding:12px; border-radius:12px; background:var(--bg); color:var(--ink); border:1px solid var(--line); font-weight:800; font-size:13px; }
+    .err { color:#ef4444; font-size:12px; font-weight:700; margin-top:10px; text-align:center; min-height:16px; }
+    .note { margin-top:16px; font-size:11px; color:var(--muted); font-weight:600; line-height:1.7; text-align:center; }
+    @media (prefers-reduced-motion: reduce) { #result.show { animation:none; } button { transition:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <h1>QR ទទួលប្រាក់</h1>
+    <p class="sub">បង្កើត KHQR ដោយឡែក មិនពាក់ព័ន្ធនឹង order ឬស្តុកហាងទេ</p>
+
+    <div class="card">
+        <label for="amount">ចំនួនទឹកប្រាក់ (USD)</label>
+        <input id="amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="ទុកទទេ = អតិថិជនបញ្ចូលខ្លួនឯង">
+        <div class="hint">ទុកទទេ៖ QR ថេរ មិនផុតកំណត់ ហើយបង់បានច្រើនដង</div>
+
+        <div id="daysWrap" style="display:none">
+            <label for="days">QR មានសុពលភាព</label>
+            <select id="days">
+                <option value="1">1 ថ្ងៃ</option>
+                <option value="3">3 ថ្ងៃ</option>
+                <option value="7">7 ថ្ងៃ</option>
+                <option value="30">30 ថ្ងៃ</option>
+            </select>
+            <div class="hint">QR ដែលមានចំនួនទឹកប្រាក់ ត្រូវតែមានថ្ងៃផុតកំណត់។ សូមសាកស្កេនជាមួយ app ធនាគារមុនផ្ញើឱ្យអតិថិជន</div>
+        </div>
+
+        <label for="note">កំណត់សម្គាល់ (ជាជម្រើស)</label>
+        <input id="note" type="text" maxlength="25" placeholder="ឧ. INV-001 (អក្សរឡាតាំង/លេខ)">
+
+        <button class="go" id="go" type="button">បង្កើត QR</button>
+        <div class="err" id="err"></div>
+    </div>
+
+    <div class="card" id="result">
+        <div id="qrbox"></div>
+        <div class="amt" id="rAmt"></div>
+        <div class="meta" id="rMeta"></div>
+        <div class="row">
+            <button type="button" id="save">រក្សាទុករូបភាព</button>
+            <button type="button" id="again">បង្កើតថ្មី</button>
+        </div>
+    </div>
+
+    <p class="note">ប្រព័ន្ធនេះមិនតាមដានការបង់ប្រាក់ទេ។ សូមពិនិត្យការទទួលប្រាក់ក្នុង app ធនាគាររបស់អ្នកផ្ទាល់។<br>QR មិនអាចបង្ខំឱ្យបង់តែម្តងបានទេ អ្នកណាមានរូបភាព ក៏អាចបង់បានដែរ</p>
+</div>
+
+<script>
+(function () {
+    const $ = id => document.getElementById(id);
+    const amount = $('amount'), days = $('days'), note = $('note'), go = $('go'), err = $('err');
+    let qrObj = null, lastAmt = 0;
+
+    amount.addEventListener('input', () => {
+        $('daysWrap').style.display = Number(amount.value) > 0 ? 'block' : 'none';
+    });
+
+    go.addEventListener('click', async () => {
+        err.textContent = '';
+        const a = amount.value.trim();
+        if (a !== '' && (!(Number(a) >= 0) || Number(a) > 10000)) { err.textContent = 'ចំនួនទឹកប្រាក់មិនត្រឹមត្រូវ'; return; }
+        go.disabled = true;
+        try {
+            const r = await fetch('/api/qr/generate', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: a === '' ? 0 : Number(a), days: Number(days.value), note: note.value })
+            });
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.message || 'error');
+            show(d, Number(a) || 0);
+        } catch (e) {
+            err.textContent = 'មិនអាចបង្កើត QR បានទេ: ' + e.message;
+        }
+        go.disabled = false;
+    });
+
+    function show(d, a) {
+        lastAmt = a;
+        const box = $('qrbox');
+        box.innerHTML = '';
+        qrObj = new QRCode(box, { text: d.qr, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M });
+        $('rAmt').textContent = a > 0 ? '$' + a.toFixed(2) : 'បញ្ចូលចំនួនខ្លួនឯង';
+        $('rMeta').textContent = d.dynamic
+            ? 'ផុតកំណត់ ' + new Date(d.expires_at).toLocaleString('km-KH', { dateStyle: 'medium', timeStyle: 'short' })
+            : 'QR ថេរ មិនផុតកំណត់';
+        const res = $('result');
+        res.classList.remove('show'); void res.offsetWidth; res.classList.add('show');
+        res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    $('save').addEventListener('click', () => {
+        const c = $('qrbox').querySelector('canvas');
+        const img = $('qrbox').querySelector('img');
+        const src = c ? c.toDataURL('image/png') : (img && img.src);
+        if (!src) return;
+        const a = document.createElement('a');
+        a.href = src;
+        a.download = 'oneday-qr' + (lastAmt > 0 ? '-' + lastAmt.toFixed(2) : '') + '.png';
+        a.click();
+    });
+
+    $('again').addEventListener('click', () => {
+        $('result').classList.remove('show');
+        amount.value = ''; note.value = ''; $('daysWrap').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+})();
+</script>
+</body>
+</html>
