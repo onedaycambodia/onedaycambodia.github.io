@@ -1478,6 +1478,7 @@
                         attribution: '&copy; HERE'
                     }).addTo(freeMapObj);
 
+                    freeMapObj.attributionControl.setPrefix(false); // លាក់ពាក្យ Leaflet (រក្សា © HERE)
                     L.control.zoom({ position: 'topleft' }).addTo(freeMapObj);
                     const hereIcon = L.divIcon({
                         className: '',
