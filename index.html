@@ -706,6 +706,56 @@
         .pay-result-icon.warn { color: #f59e0b; width: 72px; height: 72px; }
         .pay-result-text { font-size: 15px; font-weight: 800; line-height: 1.6; animation: ps-fade .4s ease .8s both; }
         @media (prefers-reduced-motion: reduce) { .ico-spinner { animation-duration: 2s; } .pay-result-icon, .pay-result-icon * , .pay-result-text { animation-duration: .01s !important; animation-delay: 0s !important; } }
+    
+        /* ===== KHQR payment modal (redesign) ===== */
+        #khqrModal .modal-content { max-width: 380px; padding: 20px 20px 22px; text-align: center; }
+        .kq-merchant { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px; }
+        .kq-merchant img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color); background: #fff; }
+        .kq-m-name { font-size: 15px; font-weight: 800; color: var(--primary); text-align: left; line-height: 1.2; }
+        .kq-m-sub { font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: left; letter-spacing: .5px; }
+        .kq-amount { font-size: 34px; font-weight: 900; letter-spacing: -1px; margin: 8px 0 0; background: linear-gradient(135deg, #38bdf8, #0284c7); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #0284c7; }
+        .kq-qr { position: relative; display: inline-block; margin: 8px 0 12px; padding: 10px; border-radius: 22px; background: #fff; box-shadow: 0 10px 30px rgba(2,132,199,.18), 0 0 0 1px rgba(2,132,199,.12); overflow: hidden; }
+        .kq-qr-box { background: #fff; line-height: 0; }
+        .kq-qr-box img, .kq-qr-box canvas { max-width: 100%; height: auto !important; }
+        .kq-corner { position: absolute; width: 24px; height: 24px; border: 3px solid #0284c7; pointer-events: none; }
+        .kq-corner.tl { top: 6px; left: 6px; border-right: 0; border-bottom: 0; border-radius: 12px 0 0 0; }
+        .kq-corner.tr { top: 6px; right: 6px; border-left: 0; border-bottom: 0; border-radius: 0 12px 0 0; }
+        .kq-corner.bl { bottom: 6px; left: 6px; border-right: 0; border-top: 0; border-radius: 0 0 0 12px; }
+        .kq-corner.br { bottom: 6px; right: 6px; border-left: 0; border-top: 0; border-radius: 0 0 12px 0; }
+        .kq-scan { position: absolute; left: 14px; right: 14px; top: 14px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, #0ea5e9, transparent); box-shadow: 0 0 10px #0ea5e9; opacity: .65; pointer-events: none; animation: kq-scan 2.4s ease-in-out infinite; }
+        @keyframes kq-scan { 0%, 100% { top: 14px; } 50% { top: calc(100% - 16px); } }
+        .kq-status { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 30px; background: var(--accent-light); color: var(--accent); font-weight: 800; font-size: 13px; }
+        .kq-timer { margin: 12px 6px 0; }
+        .kq-bar { height: 6px; border-radius: 6px; background: var(--accent-light); overflow: hidden; }
+        .kq-bar i { display: block; height: 100%; width: 100%; border-radius: 6px; background: linear-gradient(90deg, #38bdf8, #0284c7); transition: width 1s linear, background .3s; }
+        .kq-time { margin-top: 6px; font-size: 12px; color: var(--text-muted); }
+        .kq-time b { color: var(--primary); font-variant-numeric: tabular-nums; }
+        .kq-hint { font-size: 11.5px; line-height: 1.5; color: var(--text-muted); margin-top: 10px; padding: 8px 10px; border-radius: 12px; background: var(--input-bg); }
+        .kq-btn-ghost { width: 100%; margin-top: 12px; padding: 12px; border-radius: 14px; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); font-weight: 800; font-size: 14px; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+        .kq-btn-ghost:active { transform: scale(.98); }
+
+        /* ===== Thank-you screen ===== */
+        #khqrModal .modal-content.kq-success .modal-header { display: none; }
+        #khqrModal .modal-content.kq-success { padding-top: 28px; }
+        .ty-wrap { position: relative; display: flex; flex-direction: column; align-items: center; padding: 6px 0 2px; }
+        .ty-badge { position: relative; width: 112px; height: 112px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 12px 30px rgba(22,163,74,.35); display: flex; align-items: center; justify-content: center; animation: ps-pop .55s cubic-bezier(.34,1.56,.64,1) both; }
+        .ty-badge::before, .ty-badge::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 3px solid #22c55e; opacity: 0; animation: ps-pulse 1.4s ease-out .7s 2; }
+        .ty-badge::after { animation-delay: 1.1s; }
+        .ty-badge svg { width: 62px; height: 62px; }
+        .ty-badge .tick { fill: none; stroke: #fff; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 48; stroke-dashoffset: 48; animation: ps-draw .45s cubic-bezier(.65,0,.45,1) .45s forwards; }
+        .ty-brand { display: flex; align-items: center; gap: 8px; margin-top: 22px; animation: ps-fade .5s ease .75s both; }
+        .ty-brand img { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-color); background: #fff; object-fit: cover; }
+        .ty-name { font-size: 24px; font-weight: 900; letter-spacing: -.5px; color: var(--primary); }
+        .ty-name b { color: var(--accent); font-weight: 900; }
+        .ty-name em { color: var(--accent); font-style: normal; }
+        .ty-title { margin-top: 6px; font-size: 32px; font-weight: 900; line-height: 1.25; background: linear-gradient(135deg, #38bdf8, #0284c7); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #0284c7; animation: ty-rise .6s cubic-bezier(.34,1.3,.64,1) .95s both; }
+        @keyframes ty-rise { from { opacity: 0; transform: translateY(14px) scale(.92); } to { opacity: 1; transform: none; } }
+        .ty-sub { margin-top: 10px; font-size: 14px; font-weight: 700; line-height: 1.6; color: var(--text-muted); max-width: 290px; animation: ps-fade .5s ease 1.2s both; }
+        .ty-amount { margin-top: 14px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 30px; background: rgba(22,163,74,.12); color: #16a34a; font-weight: 900; font-size: 15px; animation: ps-fade .5s ease 1.4s both; }
+        .kq-confetti { position: absolute; left: 50%; top: 62px; width: 0; height: 0; pointer-events: none; }
+        .kq-confetti i { position: absolute; border-radius: 2px; opacity: 0; animation: kq-burst 1.7s cubic-bezier(.15,.7,.3,1) forwards; }
+        @keyframes kq-burst { 0% { opacity: 1; transform: translate(0,0) rotate(0); } 75% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 140px)) rotate(var(--rot)); } }
+        @media (prefers-reduced-motion: reduce) { .kq-scan, .ty-badge::before, .ty-badge::after { animation: none; } .kq-confetti { display: none; } }
     </style>
 </head>
 <body>
@@ -941,18 +991,8 @@
                 <div class="modal-title"><img src="images/bakong.png" alt="Bakong" width="22" height="22" style="flex:none; border-radius:5px;"><span data-key="khqr_title">ស្កេនដើម្បីបង់ប្រាក់</span></div>
                 <button class="btn-close" onclick="closeKhqrModal()"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
             </div>
-            <div id="khqrBody">
-                <div style="font-size: 26px; font-weight: 900; color: var(--primary);" id="khqrAmount">$0.00</div>
-                <div id="khqrQrBox" style="display:inline-block; background:#fff; padding:14px; border-radius:16px; margin:14px 0; border:1px solid var(--border-color);"></div>
-                <div id="khqrStatus" style="font-size:14px; font-weight:800; color: var(--primary);" data-key="khqr_waiting"><svg class="ico ico-spinner" aria-hidden="true"><use href="#i-spinner"/></svg> កំពុងរង់ចាំការបង់ប្រាក់...</div>
-                <div style="font-size:12px; color: var(--text-muted); margin-top:6px;">
-                    <span data-key="khqr_expires_in">ផុតកំណត់ក្នុង</span> <b id="khqrCountdown">10:00</b>
-                </div>
-                <div style="font-size:12px; color: var(--text-muted); margin-top:10px;" data-key="khqr_hint">
-                    បើកកម្មវិធីធនាគារណាមួយ (ABA, ACLEDA, Wing...) រួចស្កេន QR នេះ។ កុំបិទទំព័រនេះ រហូតដល់ឃើញថាបង់ជោគជ័យ។
-                </div>
-            </div>
-            <button id="khqrDoneBtn" onclick="closeKhqrModal()" class="btn-modal-telegram" style="display:none; margin-top:14px;">
+            <div id="khqrBody"></div>
+            <button id="khqrDoneBtn" onclick="closeKhqrModal()" class="btn-modal-telegram" style="display:none; margin-top:16px;">
                 <span data-key="khqr_close">បិទ</span>
             </button>
         </div>
@@ -1155,6 +1195,7 @@
 
         // KHQR texts (added on top of the dictionaries above)
         Object.assign(translations.km, {
+                ty_title: "អរគុណច្រើន!",
             label_payment: "វិធីបង់ប្រាក់ (Payment)", pay_wing: "{{dot}} បង់ប្រាក់ឥឡូវតាម Wing", wing_open: "{{dot}} បើកទំព័រ Wing ដើម្បីបង់ប្រាក់", wing_hint: "ចុចប៊ូតុងខាងលើដើម្បីបង់ក្នុង Wing (ឬស្កេន QR នេះដោយទូរស័ព្ទ)។ ទុកទំព័រនេះបើកចោល រហូតដល់ឃើញថាបង់ជោគជ័យ។", pay_khqr: "បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)", pay_cod: "កុម្មង់តាម Telegram (បង់ពេលទទួល)",
             khqr_title: "ស្កេនដើម្បីបង់ប្រាក់", khqr_waiting: "{{spinner}} កំពុងរង់ចាំការបង់ប្រាក់...", khqr_expires_in: "ផុតកំណត់ក្នុង",
             khqr_hint: "បើកកម្មវិធីធនាគារណាមួយ (ABA, ACLEDA, Wing...) រួចស្កេន QR នេះ។ កុំបិទទំព័រនេះ រហូតដល់ឃើញថាបង់ជោគជ័យ។", khqr_close: "បិទ", khqr_check: "{{refresh}} ខ្ញុំបានបង់រួចហើយ - ពិនិត្យម្តងទៀត",
@@ -1162,6 +1203,7 @@
             khqr_degraded: "{{alert}} ប្រព័ន្ធពិនិត្យការបង់ប្រាក់ស្វ័យប្រវត្តិមានបញ្ហាបណ្តោះអាសន្ន។ បើអ្នកបានបង់រួចហើយ សូមចុចប៊ូតុងខាងក្រោម ដើម្បីឱ្យហាងបញ្ជាក់ដោយដៃ។", khqr_claim: "{{message}} ខ្ញុំបានបង់រួចហើយ - ជូនដំណឹងដល់ហាង", khqr_manual: "{{mail}} ហាងបានទទួលសំណើរបស់អ្នកហើយ។ យើងនឹងពិនិត្យ និងបញ្ជាក់ដោយដៃឆាប់ៗ។ សូមកុំបង់ម្តងទៀត។"
         });
         Object.assign(translations.en, {
+                ty_title: "Thank you!",
             label_payment: "Payment Method", pay_wing: "{{dot}} Pay now with Wing", wing_open: "{{dot}} Open Wing to pay", wing_hint: "Tap the button above to pay in Wing (or scan this QR with your phone). Keep this page open until you see the payment succeed.", pay_khqr: "Pay now with KHQR (Bakong)", pay_cod: "Order via Telegram (pay on delivery)",
             khqr_title: "Scan to Pay", khqr_waiting: "{{spinner}} Waiting for payment...", khqr_expires_in: "Expires in",
             khqr_hint: "Open any banking app (ABA, ACLEDA, Wing...) and scan this QR. Keep this page open until you see the payment succeed.", khqr_close: "Close", khqr_check: "{{refresh}} I have paid - check again",
@@ -1169,6 +1211,7 @@
             khqr_degraded: "{{alert}} Automatic payment checking is temporarily unavailable. If you have already paid, tap the button below so the shop can confirm it manually.", khqr_claim: "{{message}} I have paid - notify the shop", khqr_manual: "{{mail}} The shop has received your request and will confirm your payment manually soon. Please do not pay again."
         });
         Object.assign(translations.zh, {
+                ty_title: "非常感谢！",
             label_payment: "支付方式", pay_wing: "{{dot}} 立即使用 Wing 支付", wing_open: "{{dot}} 打开 Wing 付款", wing_hint: "点击上方按钮在 Wing 中付款（或用手机扫描此二维码）。付款成功前请勿关闭本页面。", pay_khqr: "立即使用 KHQR (Bakong) 支付", pay_cod: "通过 Telegram 下单 (货到付款)",
             khqr_title: "扫码支付", khqr_waiting: "{{spinner}} 等待付款...", khqr_expires_in: "剩余时间",
             khqr_hint: "打开任意银行应用 (ABA, ACLEDA, Wing...) 扫描此二维码。付款成功前请勿关闭本页面。", khqr_close: "关闭", khqr_check: "{{refresh}} 我已付款 - 重新检查",
@@ -2145,14 +2188,27 @@
 
         function showKhqrResult(text, ok) {
             stopKhqrTimers();
-            const OK_SVG = '<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="ring" cx="26" cy="26" r="25"/><path class="tick" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg>';
-            const icon = ok
-                ? '<div class="pay-result-icon ok">' + OK_SVG + '</div>'
-                : '<div class="pay-result-icon warn">' + ico('hourglass') + '</div>';
-            const msg = ok ? String(text).replace(/\{\{\w+\}\}\s*/g, '') : iconize(text);
-            document.getElementById('khqrBody').innerHTML =
-                '<div class="pay-result">' + icon +
-                '<div class="pay-result-text" style="color:' + (ok ? '#16a34a' : '#f59e0b') + ';">' + msg + '</div></div>';
+            const content = document.querySelector('#khqrModal .modal-content');
+            const body = document.getElementById('khqrBody');
+            if (ok) {
+                const t = translations[currentLang];
+                const sub = String(text).replace(/\{\{\w+\}\}\s*/g, '');
+                if (content) content.classList.add('kq-success');
+                body.innerHTML =
+                    '<div class="ty-wrap">' +
+                        '<div class="kq-confetti" id="kqConfetti"></div>' +
+                        '<div class="ty-badge"><svg viewBox="0 0 52 52" aria-hidden="true"><path class="tick" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg></div>' +
+                        '<div class="ty-brand"><img src="images/oneday_clothing_logo_180x180.png" alt=""><span class="ty-name"><b>One</b>day<em>.</em></span></div>' +
+                        '<div class="ty-title">' + (t.ty_title || 'Thank you!') + '</div>' +
+                        '<div class="ty-sub">' + sub + '</div>' +
+                        (khqrAmountText ? '<div class="ty-amount">' + ico('check') + ' ' + khqrAmountText + '</div>' : '') +
+                    '</div>';
+                launchConfetti(document.getElementById('kqConfetti'));
+            } else {
+                body.innerHTML =
+                    '<div class="pay-result"><div class="pay-result-icon warn">' + ico('hourglass') + '</div>' +
+                    '<div class="pay-result-text" style="color:#f59e0b;">' + iconize(text) + '</div></div>';
+            }
             document.getElementById('khqrDoneBtn').style.display = 'flex';
         }
 
@@ -2182,6 +2238,46 @@
             if (btn) btn.disabled = false;
         }
 
+        let khqrAmountText = '';
+        function buildKhqrBody(t, md5) {
+            return `
+                <div class="kq-merchant">
+                    <img src="images/oneday_clothing_logo_180x180.png" alt="Oneday">
+                    <div><div class="kq-m-name">Oneday Cambodia</div><div class="kq-m-sub">KHQR · BAKONG</div></div>
+                </div>
+                <div class="kq-amount" id="khqrAmount"></div>
+                <div class="kq-qr">
+                    <div id="khqrQrBox" class="kq-qr-box"></div>
+                    <span class="kq-corner tl"></span><span class="kq-corner tr"></span><span class="kq-corner bl"></span><span class="kq-corner br"></span>
+                    <div class="kq-scan"></div>
+                </div>
+                <div><span class="kq-status" id="khqrStatus">${iconize(t.khqr_waiting)}</span></div>
+                <div class="kq-timer">
+                    <div class="kq-bar"><i id="khqrBar"></i></div>
+                    <div class="kq-time">${t.khqr_expires_in} <b id="khqrCountdown"></b></div>
+                </div>
+                <div class="kq-hint" id="khqrHint">${t.khqr_hint}</div>
+                <div id="khqrNotice" style="display:none; font-size:13px; font-weight:700; line-height:1.5; margin-top:12px; padding:10px 12px; border-radius:12px; background:rgba(245,158,11,0.12); color:#b45309;"></div>
+                <button type="button" id="khqrClaimBtn" class="btn-modal-telegram" style="display:none; margin-top:10px;" onclick="claimKhqrPayment('${md5}')"><span>${iconize(t.khqr_claim)}</span></button>
+                <button type="button" class="kq-btn-ghost" onclick="if (khqrPollNow) khqrPollNow(true)"><span>${iconize(t.khqr_check)}</span></button>`;
+        }
+
+        function launchConfetti(box) {
+            const colors = ['#0284c7', '#38bdf8', '#22c55e', '#f59e0b', '#ec4899', '#a78bfa'];
+            for (let i = 0; i < 44; i++) {
+                const p = document.createElement('i');
+                const a = Math.random() * Math.PI * 2, d = 80 + Math.random() * 140;
+                p.style.setProperty('--dx', Math.cos(a) * d + 'px');
+                p.style.setProperty('--dy', (Math.sin(a) * d - 50) + 'px');
+                p.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+                p.style.background = colors[i % colors.length];
+                p.style.width = (5 + Math.random() * 5) + 'px';
+                p.style.height = (8 + Math.random() * 6) + 'px';
+                p.style.animationDelay = (0.55 + Math.random() * 0.2) + 's';
+                box.appendChild(p);
+            }
+        }
+
         async function startKhqrPayment(orderData, method) {
             if (khqrBusy) return;
             khqrBusy = true;
@@ -2199,17 +2295,12 @@
                 }
 
                 // Reset the modal (it may have shown an earlier result) and draw the QR
-                document.getElementById('khqrBody').innerHTML = `
-                    <div style="font-size: 26px; font-weight: 900; color: var(--primary);" id="khqrAmount"></div>
-                    <div id="khqrQrBox" style="display:inline-block; background:#fff; padding:14px; border-radius:16px; margin:14px 0; border:1px solid var(--border-color);"></div>
-                    <div id="khqrStatus" style="font-size:14px; font-weight:800; color: var(--primary);">${iconize(t.khqr_waiting)}</div>
-                    <div style="font-size:12px; color: var(--text-muted); margin-top:6px;">${t.khqr_expires_in} <b id="khqrCountdown"></b></div>
-                    <div id="khqrHint" style="font-size:12px; color: var(--text-muted); margin-top:10px;">${t.khqr_hint}</div>
-                    <div id="khqrNotice" style="display:none; font-size:13px; font-weight:700; line-height:1.5; margin-top:12px; padding:10px 12px; border-radius:12px; background:rgba(245,158,11,0.12); color:#b45309;"></div>
-                    <button type="button" id="khqrClaimBtn" class="btn-modal-telegram" style="display:none; margin-top:10px;" onclick="claimKhqrPayment('${result.md5}')"><span>${iconize(t.khqr_claim)}</span></button>
-                    <button type="button" class="btn-modal-telegram" style="margin-top:14px;" onclick="if (khqrPollNow) khqrPollNow(true)"><span>${iconize(t.khqr_check)}</span></button>`;
+                const kqContent = document.querySelector('#khqrModal .modal-content');
+                if (kqContent) kqContent.classList.remove('kq-success');
+                document.getElementById('khqrBody').innerHTML = buildKhqrBody(t, result.md5);
                 document.getElementById('khqrDoneBtn').style.display = 'none';
-                document.getElementById('khqrAmount').innerText = '$' + Number(result.amount).toFixed(2);
+                khqrAmountText = '$' + Number(result.amount).toFixed(2);
+                document.getElementById('khqrAmount').innerText = khqrAmountText;
                 if (result.payment === 'wing' && /^https:\/\//i.test(result.wing_url || '')) {
                     // Wing hosts the payment page: give the customer a button (new tab) and a QR of the same link
                     let a = document.createElement('a');
@@ -2221,13 +2312,13 @@
                     a.style.marginTop = '12px';
                     a.innerHTML = iconize(t.wing_open);
                     let qrBox = document.getElementById('khqrQrBox');
-                    qrBox.parentNode.insertBefore(a, qrBox);
+                    qrBox.closest('.kq-qr').parentNode.insertBefore(a, qrBox.closest('.kq-qr'));
                     new QRCode(qrBox, { text: result.wing_url, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
                     let hintEl = document.getElementById('khqrHint');
                     if (hintEl) hintEl.textContent = t.wing_hint;
                 } else {
                     new QRCode(document.getElementById('khqrQrBox'), {
-                        text: result.qr, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M
+                        text: result.qr, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M
                     });
                 }
 
@@ -2237,8 +2328,11 @@
 
                 stopKhqrTimers();
                 let expiresAt = result.expires_at;
+                let totalMs = Math.max(1000, expiresAt - Date.now());
                 let tick = () => {
                     let left = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+                    let bar = document.getElementById('khqrBar');
+                    if (bar) { bar.style.width = Math.min(100, (expiresAt - Date.now()) / totalMs * 100) + '%'; if (left < 60) bar.style.background = 'linear-gradient(90deg,#fbbf24,#f59e0b)'; }
                     let el = document.getElementById('khqrCountdown');
                     if (el) el.innerText = String(Math.floor(left / 60)).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');
                 };
