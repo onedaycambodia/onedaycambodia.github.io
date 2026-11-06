@@ -81,7 +81,25 @@ async function diagnose(reason) {
             return 'HTTP ' + r.status;
         }) : null;
 
-        for (const r of [ip, dnsR, tcpR, tlsR, httpR]) {
+        const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
+        let uaR = null, postR = null;
+        if (tlsR && tlsR.ok && httpR && !httpR.ok) {
+            uaR = await step('HTTPS request with browser User-Agent', async () => {
+                const r = await fetch(HOST, { headers: { 'User-Agent': BROWSER_UA }, signal: AbortSignal.timeout(8000) });
+                return 'HTTP ' + r.status;
+            });
+            postR = await step('POST token endpoint (no credentials, expects 400/401)', async () => {
+                const r = await fetch(HOST + '/idp/v1/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': BROWSER_UA },
+                    body: 'grant_type=client_credentials',
+                    signal: AbortSignal.timeout(8000)
+                });
+                return 'HTTP ' + r.status;
+            });
+        }
+
+        for (const r of [ip, dnsR, tcpR, tlsR, httpR, uaR, postR]) {
             if (r) log(`${r.ok ? 'OK  ' : 'FAIL'} ${r.name}: ${r.info} (${r.ms} ms)`);
             else out.push('skipped');
         }
@@ -93,7 +111,9 @@ async function diagnose(reason) {
         else if (!tcpR.ok) verdict = 'TCP connection failed (' + tcpR.info + '): network path to Wing is blocked.';
         else if (!tlsR.ok && /ECONNRESET/.test(tlsR.info)) verdict = 'TCP connects but Wing resets the connection during TLS: Wing is rejecting this server (IP not whitelisted or country/IP block). Send the public IP above to Wing. It is NOT a code or credentials problem.';
         else if (!tlsR.ok) verdict = 'TLS handshake failed (' + tlsR.info + ').';
-        else if (!httpR.ok) verdict = 'TLS works but the HTTPS request fails (' + httpR.info + '): Wing resets after connect, likely IP/WAF block.';
+        else if (!httpR.ok && uaR && uaR.ok) verdict = 'Wing resets Node\'s default User-Agent but answers a browser User-Agent. FIX: add Railway variable WING_USER_AGENT = ' + BROWSER_UA;
+        else if (!httpR.ok && postR && postR.ok) verdict = 'The token endpoint answers (' + postR.info + '), only a bare GET / is reset. Wing is reachable, so retry a real order.';
+        else if (!httpR.ok) verdict = 'TLS works but Wing resets every HTTPS request (' + httpR.info + ') even with a browser User-Agent: Wing/WAF is blocking this server IP. Send the public IP above to Wing and ask them to whitelist it.';
         else verdict = 'Network path to Wing is OK (' + httpR.info + '). If orders still fail, the problem is the request itself (credentials, hash, URL path).';
         if (!ip.ok) verdict += ' (Also: general outbound internet check failed, so Railway outbound network may be broken.)';
         log('VERDICT:', verdict);
@@ -117,6 +137,7 @@ let downUntil = 0;
 // Node's fetch only says "fetch failed"; the real reason (DNS, timeout, refused, TLS) is in err.cause.
 async function wfetch(url, opts) {
     try {
+        if (process.env.WING_USER_AGENT) opts = { ...opts, headers: { ...(opts && opts.headers), 'User-Agent': process.env.WING_USER_AGENT } };
         const res = await fetch(url, opts);
         downUntil = 0; // Wing answered, so the network path works
         return res;
