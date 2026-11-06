@@ -986,6 +986,51 @@
             .field.shake, .field.loc-set .form-input, #btnOrderNow::before, #btnOrderNow.busy::after,
             #checkoutModal.active .checkout-form .form-group, #checkoutModal.active #paymentMethodBox, #checkoutModal.active .modal-footer { animation: none !important; }
         }
+
+        /* ===== APP DIALOG (replaces the browser's plain alert box) ===== */
+        .ui-dialog { position: fixed; inset: 0; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 24px;
+                     background: rgba(15, 23, 42, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+                     opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .25s ease, visibility 0s linear .25s;
+                     --dlg: #0284c7; --dlg-soft: rgba(2, 132, 199, .14); }
+        .ui-dialog.open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .25s ease, visibility 0s; }
+        .ui-dialog.t-stock, .ui-dialog.t-location { --dlg: #f59e0b; --dlg-soft: rgba(245, 158, 11, .16); }
+        .ui-dialog.t-error, .ui-dialog.t-network { --dlg: #ef4444; --dlg-soft: rgba(239, 68, 68, .14); }
+        .ui-dialog.t-cart, .ui-dialog.t-info { --dlg: #0284c7; --dlg-soft: rgba(2, 132, 199, .14); }
+
+        .ui-dialog-card { position: relative; overflow: hidden; width: 100%; max-width: 340px; padding: 28px 22px 18px; text-align: center;
+                          background: var(--card-bg); color: var(--primary); border: 1px solid var(--border-color); border-radius: 26px;
+                          box-shadow: 0 24px 60px rgba(0, 0, 0, .35); opacity: 0; transform: translateY(44px) scale(.9);
+                          transition: transform .5s var(--spring), opacity .25s ease; }
+        .ui-dialog.open .ui-dialog-card { opacity: 1; transform: none; }
+        .ui-dialog-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--dlg); transform: scaleX(0); transform-origin: left; transition: transform .6s var(--ease-out) .15s; }
+        .ui-dialog.open .ui-dialog-card::before { transform: scaleX(1); }
+
+        .ui-dialog-icon { position: relative; width: 68px; height: 68px; margin: 0 auto 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--dlg-soft); color: var(--dlg); }
+        .ui-dialog-icon svg { width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .ui-dialog-icon::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--dlg); opacity: 0; }
+        .ui-dialog.open .ui-dialog-icon { animation: dlg-pop .6s var(--spring) .12s backwards; }
+        .ui-dialog.open .ui-dialog-icon::after { animation: dlg-ring 1.5s ease-out .55s 2; }
+        .ui-dialog.open.t-stock .ui-dialog-icon svg, .ui-dialog.open.t-error .ui-dialog-icon svg, .ui-dialog.open.t-network .ui-dialog-icon svg,
+        .ui-dialog.open.t-location .ui-dialog-icon svg { animation: dlg-wobble .7s ease .5s; }
+        @keyframes dlg-pop { from { transform: scale(.3) rotate(-25deg); opacity: 0; } to { transform: none; opacity: 1; } }
+        @keyframes dlg-ring { 0% { transform: scale(.85); opacity: .65; } 100% { transform: scale(1.55); opacity: 0; } }
+        @keyframes dlg-wobble { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-14deg); } 40% { transform: rotate(11deg); } 60% { transform: rotate(-7deg); } 80% { transform: rotate(3deg); } }
+
+        .ui-dialog-title { font-size: 17px; font-weight: 900; margin-bottom: 8px; }
+        .ui-dialog-msg { font-size: 14px; font-weight: 600; line-height: 1.75; color: var(--text-muted); white-space: pre-line; overflow-wrap: anywhere; }
+        .ui-dialog-btn { margin-top: 20px; width: 100%; padding: 13px; border: none; border-radius: 14px; background: var(--dlg); color: #fff; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer;
+                         box-shadow: 0 6px 16px rgba(0, 0, 0, .2); -webkit-tap-highlight-color: transparent; transition: transform .3s var(--spring); }
+        .ui-dialog-btn:active { transform: scale(.95); transition-duration: .08s; }
+        .ui-dialog.open .ui-dialog-title, .ui-dialog.open .ui-dialog-msg, .ui-dialog.open .ui-dialog-btn { animation: field-in .5s var(--ease-out) backwards; }
+        .ui-dialog.open .ui-dialog-title { animation-delay: .18s; }
+        .ui-dialog.open .ui-dialog-msg { animation-delay: .24s; }
+        .ui-dialog.open .ui-dialog-btn { animation-delay: .3s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .ui-dialog-card { transition-duration: .01s; transform: none; }
+            .ui-dialog.open .ui-dialog-icon, .ui-dialog.open .ui-dialog-icon::after, .ui-dialog.open .ui-dialog-icon svg,
+            .ui-dialog.open .ui-dialog-title, .ui-dialog.open .ui-dialog-msg, .ui-dialog.open .ui-dialog-btn { animation: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -1751,7 +1796,7 @@
 
         async function prepareOrder() {
             if (Object.keys(cart).length === 0) {
-                alert(translations[currentLang].empty_cart);
+                uiAlert(translations[currentLang].empty_cart, 'cart');
                 return;
             }
             await backgroundSyncStock();
@@ -1796,7 +1841,7 @@
             setTimeout(() => {
                 let bounds = getCambodiaBounds();
                 if (!window.L || !bounds) {
-                    alert("Map កំពុង load សូមរង់ចាំបន្តិច រួចព្យាយាមម្តងទៀត។");
+                    uiAlert("Map កំពុង load សូមរង់ចាំបន្តិច រួចព្យាយាមម្តងទៀត។", 'info');
                     return;
                 }
                 if (!freeMapObj) {
@@ -1896,7 +1941,7 @@
                         }
                         if (btn) { btn.classList.add('found'); setTimeout(() => btn.classList.remove('found'), 1600); }
                     } else {
-                        alert("\u1791\u17b8\u178f\u17b6\u17c6\u1784\u1794\u1785\u17d2\u1785\u17bb\u1794\u17d2\u1794\u1793\u17d2\u1793\u179a\u1794\u179f\u17cb\u17a2\u17d2\u1793\u1780\u1793\u17c5\u1780\u17d2\u179a\u17c5\u1794\u17d2\u179a\u1791\u17c1\u179f\u1780\u1798\u17d2\u1796\u17bb\u1787\u17b6!");
+                        uiAlert("\u1791\u17b8\u178f\u17b6\u17c6\u1784\u1794\u1785\u17d2\u1785\u17bb\u1794\u17d2\u1794\u1793\u17d2\u1793\u179a\u1794\u179f\u17cb\u17a2\u17d2\u1793\u1780\u1793\u17c5\u1780\u17d2\u179a\u17c5\u1794\u17d2\u179a\u1791\u17c1\u179f\u1780\u1798\u17d2\u1796\u17bb\u1787\u17b6!", 'location');
                     }
                 }, () => { if (btn) btn.classList.remove('locating'); }, { enableHighAccuracy: true, timeout: 15000 });
             }
@@ -2320,7 +2365,7 @@
             let currentQtyInCart = cart[stockKey] ? cart[stockKey].qty : 0;
 
             if (totalStock === 0 || (currentQtyInCart + 1) > totalStock) {
-                alert(translations[currentLang].alert_stock_exceeded(refText, selectedSize, totalStock));
+                uiAlert(translations[currentLang].alert_stock_exceeded(refText, selectedSize, totalStock), 'stock');
                 return;
             }
 
@@ -2363,7 +2408,7 @@
                     let parts = itemKey.split('_');
                     let refVal = parts[0];
                     let sizeVal = parts[1];
-                    alert(translations[currentLang].alert_stock_exceeded(refVal, sizeVal, availableStock));
+                    uiAlert(translations[currentLang].alert_stock_exceeded(refVal, sizeVal, availableStock), 'stock');
                     return;
                 }
 
@@ -2622,7 +2667,7 @@
                 });
                 let result = await response.json();
                 if (!result.success) {
-                    alert(result.message || result.error || "មានបញ្ហាពេលកុម្មង់ទំនិញ!");
+                    uiAlert(result.message || result.error || "មានបញ្ហាពេលកុម្មង់ទំនិញ!", 'error');
                     return;
                 }
 
@@ -2701,7 +2746,7 @@
                 khqrPollNow();
             } catch (error) {
                 console.error("KHQR order error:", error);
-                alert("មិនអាចភ្ជាប់ទៅកាន់ Server លើ Railway បានទេ!");
+                uiAlert("មិនអាចភ្ជាប់ទៅកាន់ Server លើ Railway បានទេ!", 'network');
             } finally {
                 khqrBusy = false;
             }
@@ -2709,7 +2754,7 @@
 
         async function openTelegram() {
             if (Object.keys(cart).length === 0) {
-                alert(translations[currentLang].empty_cart);
+                uiAlert(translations[currentLang].empty_cart, 'cart');
                 return;
             }
 
@@ -2840,11 +2885,11 @@
 
                     window.location.href = `https://t.me/${TELEGRAM_USERNAME}?text=${encodeURIComponent(message)}`;
                 } else {
-                    alert(result.message || "មានបញ្ហាពេលកុម្មង់ទំនិញ!");
+                    uiAlert(result.message || "មានបញ្ហាពេលកុម្មង់ទំនិញ!", 'error');
                 }
             } catch (error) {
                 console.error("Order error:", error);
-                alert("មិនអាចភ្ជាប់ទៅកាន់ Server លើ Railway បានទេ!");
+                uiAlert("មិនអាចភ្ជាប់ទៅកាន់ Server លើ Railway បានទេ!", 'network');
             }
         }
 
@@ -2905,6 +2950,72 @@
                 finally { if (b) b.classList.remove('busy'); }
             };
         })();
+
+        // ===== App dialog: nicer replacement for alert() =====
+        var UI_DLG_TEXT = {
+            stock:    { km: '\u179f\u17d2\u178f\u17bb\u1780\u1798\u17b7\u1793\u1782\u17d2\u179a\u1794\u17cb\u1782\u17d2\u179a\u17b6\u1793\u17cb', en: 'Not enough stock', zh: '\u5e93\u5b58\u4e0d\u8db3' },
+            error:    { km: '\u1798\u17b6\u1793\u1794\u1789\u17d2\u17a0\u17b6', en: 'Something went wrong', zh: '\u51fa\u9519\u4e86' },
+            network:  { km: '\u1798\u17b7\u1793\u17a2\u17b6\u1785\u1797\u17d2\u1787\u17b6\u1794\u17cb\u1794\u17b6\u1793', en: 'Connection problem', zh: '\u8fde\u63a5\u5931\u8d25' },
+            cart:     { km: '\u1780\u1793\u17d2\u178f\u17d2\u179a\u1780\u1791\u1791\u17c1', en: 'Your cart is empty', zh: '\u8d2d\u7269\u8f66\u662f\u7a7a\u7684' },
+            location: { km: '\u1791\u17b8\u178f\u17b6\u17c6\u1784\u1798\u17b7\u1793\u17a2\u17b6\u1785\u1794\u17d2\u179a\u17be\u1794\u17b6\u1793', en: 'Location unavailable', zh: '\u65e0\u6cd5\u4f7f\u7528\u8be5\u4f4d\u7f6e' },
+            info:     { km: '\u1787\u17bc\u1793\u178a\u17c6\u178e\u17b9\u1784', en: 'Notice', zh: '\u63d0\u793a' }
+        };
+        var UI_DLG_OK = { km: '\u1799\u179b\u17cb\u1796\u17d2\u179a\u1798', en: 'OK', zh: '\u597d\u7684' };
+        var UI_DLG_ICON = {
+            stock:    '<path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+            error:    '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><path d="M12 16.5v.01"/>',
+            network:  '<path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5 5 0 0 1 7 0"/><path d="M12 19.5v.01"/><path d="M4 4l16 16"/>',
+            cart:     '<path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/>',
+            location: '<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+            info:     '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.5v.01"/>'
+        };
+        var _dlgQueue = [], _dlgOpen = false, _dlgEl = null, _dlgLast = '';
+
+        function _dlgLang() { try { return (typeof currentLang !== 'undefined' && UI_DLG_OK[currentLang]) ? currentLang : 'km'; } catch (e) { return 'km'; } }
+        function _dlgBuild() {
+            if (_dlgEl) return _dlgEl;
+            _dlgEl = document.createElement('div');
+            _dlgEl.className = 'ui-dialog';
+            _dlgEl.setAttribute('aria-hidden', 'true');
+            _dlgEl.innerHTML = '<div class="ui-dialog-card" role="alertdialog" aria-modal="true">' +
+                '<div class="ui-dialog-icon"><svg viewBox="0 0 24 24" aria-hidden="true"></svg></div>' +
+                '<div class="ui-dialog-title"></div><div class="ui-dialog-msg"></div>' +
+                '<button type="button" class="ui-dialog-btn"></button></div>';
+            document.body.appendChild(_dlgEl);
+            _dlgEl.addEventListener('click', function (e) { if (e.target === _dlgEl) uiDialogClose(); });
+            _dlgEl.querySelector('.ui-dialog-btn').addEventListener('click', uiDialogClose);
+            document.addEventListener('keydown', function (e) { if (_dlgOpen && (e.key === 'Escape' || e.key === 'Enter')) { e.preventDefault(); uiDialogClose(); } });
+            return _dlgEl;
+        }
+        function _dlgNext() {
+            if (_dlgOpen || !_dlgQueue.length) return;
+            var item = _dlgQueue.shift(), el = _dlgBuild(), lang = _dlgLang(), type = UI_DLG_ICON[item.type] ? item.type : 'info';
+            el.className = 'ui-dialog t-' + type;
+            el.querySelector('.ui-dialog-icon svg').innerHTML = UI_DLG_ICON[type];
+            el.querySelector('.ui-dialog-title').textContent = UI_DLG_TEXT[type][lang];
+            el.querySelector('.ui-dialog-msg').textContent = item.message;
+            el.querySelector('.ui-dialog-btn').textContent = UI_DLG_OK[lang];
+            _dlgOpen = true;
+            el.setAttribute('aria-hidden', 'false');
+            void el.offsetWidth;
+            el.classList.add('open');
+            if (navigator.vibrate && (type === 'error' || type === 'stock' || type === 'network')) { try { navigator.vibrate([18, 40, 18]); } catch (e) {} }
+            setTimeout(function () { var b = el.querySelector('.ui-dialog-btn'); if (b) b.focus({ preventScroll: true }); }, 60);
+        }
+        function uiDialogClose() {
+            if (!_dlgOpen || !_dlgEl) return;
+            _dlgEl.classList.remove('open');
+            _dlgEl.setAttribute('aria-hidden', 'true');
+            setTimeout(function () { _dlgOpen = false; _dlgLast = ''; _dlgNext(); }, 320);
+        }
+        function uiAlert(message, type) {
+            var msg = String(message == null ? '' : message);
+            if (!msg || msg === _dlgLast) return;   // ignore the same popup fired twice in a row
+            _dlgLast = msg;
+            _dlgQueue.push({ message: msg, type: type || 'info' });
+            _dlgNext();
+        }
+        window.alert = function (m) { uiAlert(m, 'info'); };   // safety net for any alert() left anywhere
     </script>
 </body>
 </html>
