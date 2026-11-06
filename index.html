@@ -1853,9 +1853,9 @@
                     
                     // HERE Maps raster tiles (key restricted to our domain in HERE platform)
                     const HERE_API_KEY = 'jKSBkCzNf2pzmEDQD_4775QIe-Y8PgjvlHohp66pV4s';
-                    const tiles = L.tileLayer('https://maps.hereapi.com/v3/base/mc/{z}/{x}/{y}/png?style=explore.night&size=512&ppi=400&apiKey=' + HERE_API_KEY, {
+                    const tiles = L.tileLayer('https://maps.hereapi.com/v3/base/mc/{z}/{x}/{y}/png?style=explore.night&size=512&scale=2&apiKey=' + HERE_API_KEY, {
                         maxZoom: 19, minZoom: 7,
-                        tileSize: 512, zoomOffset: -1,
+                        tileSize: 256,
                         attribution: '&copy; HERE'
                     }).addTo(freeMapObj);
                     const revealMap = () => { let w = document.getElementById('mapWrap'); if (w) w.classList.add('map-ready'); };
