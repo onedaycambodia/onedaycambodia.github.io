@@ -654,7 +654,7 @@ app.post('/api/payment-claim/:md5', async (req, res) => {
 // then ask Wing directly (inquiry API) whether that order was really paid for the right amount. A fake call
 // therefore cannot mark an order as paid. Always answer 200 quickly so Wing does not keep retrying.
 app.post('/webhook', async (req, res) => {
-    res.status(200).json({ received: true });
+    res.status(200).json({ code: '200', message: 'Push callback is successfully received.' }); // format from Wing's docs
     try {
         const body = req.body || {};
         const d = body.data && typeof body.data === 'object' ? body.data : body;
@@ -667,9 +667,14 @@ app.post('/webhook', async (req, res) => {
         const o = r.rows[0];
         if (o.status !== 'AWAITING_PAYMENT') return; // already handled
 
-        const c = await wing.checkPaid(o.wing_ref, o.pay_amount);
-        if (c.state === 'PAID') await markOrderPaid(o.id);
-        else console.warn(`Wing webhook: order ${o.id} not confirmed by Wing (${c.state} ${c.detail || ''})`);
+        // Wing sends the callback ONCE with no retry, so if the first check fails, try again a few times.
+        for (let i = 0; i < 4; i++) {
+            const c = await wing.checkPaid(o.wing_ref, o.pay_amount);
+            if (c.state === 'PAID') { await markOrderPaid(o.id); return; }
+            console.warn(`Wing webhook: order ${o.id} not confirmed yet (${c.state} ${c.detail || ''}), try ${i + 1}/4`);
+            await new Promise(r => setTimeout(r, 3000));
+        }
+        // still unconfirmed: the browser polling (/api/payment-status) will pick it up
     } catch (err) {
         console.error('Wing webhook error:', err);
     }
