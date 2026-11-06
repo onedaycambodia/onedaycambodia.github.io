@@ -835,6 +835,83 @@
             .modal-content, .model-3d-container, .toast-notification { transition-duration: .01s !important; transform: none; }
             button:active { transform: none !important; }
         }
+
+        /* ===== MAP PICKER MOTION ===== */
+        .map-wrap { background: linear-gradient(110deg, #1b2538 30%, #26334b 50%, #1b2538 70%); background-size: 200% 100%; animation: map-shimmer 1.4s linear infinite; }
+        .map-wrap.map-ready { animation: none; background: #1b2538; }
+        @keyframes map-shimmer { to { background-position: -200% 0; } }
+        #freeMap { opacity: 0; transform: scale(1.04); transition: opacity .5s ease, transform .7s var(--ease-out); background: #1b2538; }
+        .map-wrap.map-ready #freeMap { opacity: 1; transform: none; }
+
+        /* Pin: drops in, lifts while dragged, pulses on the ground */
+        .pin-wrap { position: relative; width: 36px; height: 46px; }
+        .pin-body { position: absolute; inset: 0; transform-origin: 50% 100%; filter: drop-shadow(0 4px 5px rgba(0,0,0,.45)); transition: transform .25s var(--spring); }
+        .pin-body svg { display: block; width: 36px; height: 46px; }
+        .pin-body path { fill: var(--accent); }
+        .pin-shadow { position: absolute; left: 50%; bottom: -3px; width: 14px; height: 5px; margin-left: -7px; border-radius: 50%; background: rgba(0,0,0,.5); filter: blur(1.5px); transition: transform .25s ease, opacity .25s ease; }
+        .pin-ring { position: absolute; left: 50%; bottom: -8px; width: 34px; height: 14px; margin-left: -17px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: pin-pulse 2.2s ease-out infinite; }
+        @keyframes pin-pulse { 0% { transform: scale(.3); opacity: .7; } 100% { transform: scale(1.9); opacity: 0; } }
+        @keyframes pin-drop {
+            0% { transform: translateY(-46px) scale(1, 1); opacity: 0; }
+            50% { transform: translateY(0) scale(1.12, .84); opacity: 1; }
+            72% { transform: translateY(-9px) scale(.96, 1.05); }
+            100% { transform: none; }
+        }
+        .pin-wrap.drop .pin-body { animation: pin-drop .65s cubic-bezier(.3, .9, .4, 1); }
+        .pin-wrap.lift .pin-body { transform: translateY(-14px) scale(1.1); }
+        .pin-wrap.lift .pin-shadow { transform: scale(.6); opacity: .35; }
+        .pin-wrap.lift .pin-ring { animation-play-state: paused; opacity: 0; }
+        .leaflet-marker-icon.pin-glide { transition: transform .4s var(--ease-out); }
+
+        /* Tap ripple on the map */
+        .map-ripple { position: absolute; z-index: 650; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2px solid var(--accent); background: rgba(2,132,199,.25); pointer-events: none; animation: map-ripple .65s ease-out forwards; }
+        @keyframes map-ripple { from { transform: scale(.3); opacity: .9; } to { transform: scale(4.2); opacity: 0; } }
+
+        /* Live coordinate chip */
+        .map-chip { position: absolute; z-index: 1000; top: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px;
+                    background: rgba(15, 23, 42, .72); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .2px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+                    box-shadow: 0 4px 14px rgba(0,0,0,.3); pointer-events: none; font-variant-numeric: tabular-nums; }
+        .map-chip .ico { width: 14px; height: 14px; color: #38bdf8; }
+        .map-chip.tick { animation: chip-tick .35s var(--ease-out); }
+        @keyframes chip-tick { 0% { transform: translateX(-50%) scale(.92); } 60% { transform: translateX(-50%) scale(1.06); } 100% { transform: translateX(-50%) scale(1); } }
+
+        /* Zoom buttons */
+        .leaflet-control-zoom { border: none !important; box-shadow: 0 4px 14px rgba(0,0,0,.3) !important; border-radius: 14px !important; overflow: hidden; }
+        .leaflet-control-zoom a { width: 38px !important; height: 38px !important; line-height: 38px !important; font-size: 20px !important; transition: background-color .2s ease, transform .15s ease; }
+        .leaflet-control-zoom a:active { transform: scale(.88); background: var(--accent-light, #e0f2fe); }
+
+        /* Locate button */
+        .map-locate { position: absolute; bottom: 20px; right: 15px; z-index: 1000; width: 46px; height: 46px; border-radius: 50%; border: none; background: #fff; color: var(--accent);
+                      box-shadow: 0 4px 14px rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; cursor: pointer;
+                      transition: transform .3s var(--spring), box-shadow .2s ease, background-color .2s ease; }
+        .map-locate:active { transform: scale(.88); }
+        .map-locate .ico { width: 22px; height: 22px; }
+        .map-locate::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; pointer-events: none; }
+        .map-locate.locating::after { animation: locate-pulse 1.1s ease-out infinite; }
+        .map-locate.locating .ico { animation: locate-spin 1.2s linear infinite; }
+        .map-locate.found { background: var(--accent); color: #fff; }
+        @keyframes locate-pulse { 0% { transform: scale(.85); opacity: .9; } 100% { transform: scale(1.6); opacity: 0; } }
+        @keyframes locate-spin { to { transform: rotate(360deg); } }
+
+        /* Accuracy circle from GPS */
+        .leaflet-overlay-pane path.gps-accuracy { transition: fill-opacity .6s ease; }
+
+        /* Confirm button */
+        #btnConfirmLoc { position: relative; overflow: hidden; }
+        #btnConfirmLoc::before { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent); transform: skewX(-20deg); animation: btn-shine 3.2s ease-in-out infinite; pointer-events: none; }
+        @keyframes btn-shine { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+        #btnConfirmLoc.ok { background: #16a34a !important; animation: added-flash .45s var(--ease-out); pointer-events: none; }
+        #btnConfirmLoc.ok::before { display: none; }
+        #btnConfirmLoc.ok .ico { stroke-width: 3; vertical-align: -0.18em; margin-right: 4px; }
+
+        /* Address field flashes when a location was set */
+        @keyframes field-ok { 0% { box-shadow: 0 0 0 0 rgba(22,163,74,.55); border-color: #16a34a; } 100% { box-shadow: 0 0 0 12px rgba(22,163,74,0); } }
+        .form-input.flash-ok { animation: field-ok .9s ease-out; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .map-wrap, .pin-ring, .map-ripple, .pin-wrap.drop .pin-body, .map-chip.tick, .map-locate.locating::after, .map-locate.locating .ico, #btnConfirmLoc::before, .form-input.flash-ok { animation: none !important; }
+            #freeMap { transition: none; opacity: 1; transform: none; }
+        }
     </style>
 </head>
 <body>
@@ -1087,16 +1164,17 @@
                 <button class="btn-close" onclick="closeModal('mapPickerModal')"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
             </div>
             
-            <div style="position: relative; flex-grow: 1; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color);">
+            <div class="map-wrap" id="mapWrap" style="position: relative; flex-grow: 1; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color);">
                 <div id="freeMap" style="width: 100%; height: 100%;"></div>
+                <div class="map-chip" id="mapChip"><svg class="ico" aria-hidden="true"><use href="#i-pin"/></svg><span id="mapChipText">--</span></div>
                 
-                <button type="button" onclick="locateUserGPS()" style="position: absolute; bottom: 20px; right: 15px; z-index: 1000; background: #ffffff; color: #0284c7; border: none; width: 44px; height: 44px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <button type="button" id="btnLocate" class="map-locate" onclick="locateUserGPS()" aria-label="My location">
                     <svg class="ico" style="width:22px;height:22px" aria-hidden="true"><use href="#i-locate"/></svg>
                 </button>
             </div>
 
             <div style="margin-top: 12px;">
-                <button onclick="confirmFreeLocation()" class="btn-modal-telegram" data-key="btn_confirm_location">
+                <button id="btnConfirmLoc" onclick="confirmFreeLocation()" class="btn-modal-telegram" data-key="btn_confirm_location">
                     បញ្ជាក់ទីតាំងនេះ
                 </button>
             </div>
@@ -1605,6 +1683,37 @@
             loadUserInfo();
         }
 
+        // ===== Map picker motion helpers =====
+        function pinIconHtml() {
+            return '<div class="pin-wrap"><div class="pin-ring"></div><div class="pin-shadow"></div><div class="pin-body">' +
+                   '<svg viewBox="0 0 32 42" aria-hidden="true"><path d="M16 0C7.2 0 0 7 0 15.7 0 27 16 42 16 42s16-15 16-26.3C32 7 24.8 0 16 0z"/><circle cx="16" cy="15.5" r="6" fill="#fff"/></svg></div></div>';
+        }
+        function pinWrap() { return freeMarker && freeMarker._icon ? freeMarker._icon.querySelector('.pin-wrap') : null; }
+        function dropPin() {
+            let w = pinWrap(); if (!w) return;
+            w.classList.remove('drop'); void w.offsetWidth; w.classList.add('drop');
+        }
+        function updateMapChip(pos) {
+            let chip = document.getElementById('mapChip'), txt = document.getElementById('mapChipText');
+            if (!chip || !txt) return;
+            txt.textContent = pos.lat.toFixed(5) + ', ' + pos.lng.toFixed(5);
+            chip.classList.remove('tick'); void chip.offsetWidth; chip.classList.add('tick');
+        }
+        function mapRipple(latlng) {
+            if (!freeMapObj) return;
+            let pt = freeMapObj.latLngToContainerPoint(latlng);
+            let r = document.createElement('div');
+            r.className = 'map-ripple';
+            r.style.left = pt.x + 'px'; r.style.top = pt.y + 'px';
+            freeMapObj.getContainer().appendChild(r);
+            setTimeout(() => r.remove(), 700);
+        }
+        function glideMarkerTo(latlng) {
+            let el = freeMarker && freeMarker._icon;
+            if (el) { el.classList.add('pin-glide'); setTimeout(() => el.classList.remove('pin-glide'), 450); }
+            freeMarker.setLatLng(latlng);
+        }
+
         function openMapModal() {
             openModal('mapPickerModal');
             setTimeout(() => {
@@ -1622,69 +1731,115 @@
                     
                     // HERE Maps raster tiles (key restricted to our domain in HERE platform)
                     const HERE_API_KEY = 'jKSBkCzNf2pzmEDQD_4775QIe-Y8PgjvlHohp66pV4s';
-                    L.tileLayer('https://maps.hereapi.com/v3/base/mc/{z}/{x}/{y}/png8?style=explore.night&size=512&apiKey=' + HERE_API_KEY, {
+                    const tiles = L.tileLayer('https://maps.hereapi.com/v3/base/mc/{z}/{x}/{y}/png8?style=explore.night&size=512&apiKey=' + HERE_API_KEY, {
                         maxZoom: 19, minZoom: 7,
                         tileSize: 512, zoomOffset: -1,
                         attribution: '&copy; HERE'
                     }).addTo(freeMapObj);
+                    const revealMap = () => { let w = document.getElementById('mapWrap'); if (w) w.classList.add('map-ready'); };
+                    tiles.once('load', revealMap);
+                    setTimeout(revealMap, 4000); // never leave the skeleton forever, even on a slow network
 
                     freeMapObj.attributionControl.setPrefix(false); // លាក់ពាក្យ Leaflet (រក្សា © HERE)
                     L.control.zoom({ position: 'topleft' }).addTo(freeMapObj);
                     const hereIcon = L.divIcon({
                         className: '',
-                        html: '<div style="width:22px;height:22px;background:#00AFAA;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.6)"></div>',
-                        iconSize: [22, 22], iconAnchor: [11, 11]
+                        html: pinIconHtml(),
+                        iconSize: [36, 46], iconAnchor: [18, 46]
                     });
                     freeMarker = L.marker([currentPos.lat, currentPos.lng], { draggable: true, icon: hereIcon }).addTo(freeMapObj);
 
                     freeMapObj.on('click', function(e) {
                         if (bounds.contains(e.latlng)) {
                             currentPos = { lat: e.latlng.lat, lng: e.latlng.lng };
-                            freeMarker.setLatLng(e.latlng);
+                            mapRipple(e.latlng);
+                            glideMarkerTo(e.latlng);
+                            dropPin();
+                            updateMapChip(currentPos);
                         }
                     });
 
+                    freeMarker.on('dragstart', function() {
+                        let w = pinWrap(); if (w) { w.classList.remove('drop'); w.classList.add('lift'); }
+                    });
+                    freeMarker.on('drag', function() {
+                        let p = freeMarker.getLatLng();
+                        updateMapChip({ lat: p.lat, lng: p.lng });
+                    });
                     freeMarker.on('dragend', function() {
+                        let w = pinWrap(); if (w) w.classList.remove('lift');
                         let position = freeMarker.getLatLng();
                         if (bounds.contains(position)) {
                             currentPos = { lat: position.lat, lng: position.lng };
+                            mapRipple(position);
                         } else {
-                            freeMarker.setLatLng([currentPos.lat, currentPos.lng]);
+                            glideMarkerTo([currentPos.lat, currentPos.lng]);
                         }
+                        dropPin();
+                        updateMapChip(currentPos);
                     });
 
+                    updateMapChip(currentPos);
+                    dropPin();
                     locateUserGPS();
                 } else {
                     freeMapObj.invalidateSize();
+                    updateMapChip(currentPos);
+                    dropPin();
                 }
+                // the modal is still springing open at this point, so measure the map once more when it settles
+                setTimeout(() => { if (freeMapObj) freeMapObj.invalidateSize(); }, 650);
+                let cb = document.getElementById('btnConfirmLoc');
+                if (cb && cb.dataset.orig) { cb.innerHTML = cb.dataset.orig; delete cb.dataset.orig; cb.classList.remove('ok'); }
             }, 300);
         }
 
+        let gpsCircle = null;
         function locateUserGPS() {
             let bounds = getCambodiaBounds();
+            let btn = document.getElementById('btnLocate');
             if (navigator.geolocation && bounds) {
+                if (btn) { btn.classList.remove('found'); btn.classList.add('locating'); }
                 navigator.geolocation.getCurrentPosition((position) => {
                     let lat = position.coords.latitude;
                     let lng = position.coords.longitude;
                     let targetLatLng = L.latLng(lat, lng);
-                    
+                    if (btn) btn.classList.remove('locating');
+
                     if (bounds.contains(targetLatLng)) {
                         currentPos = { lat, lng };
                         if (freeMapObj && freeMarker) {
-                            freeMapObj.setView([lat, lng], 15);
                             freeMarker.setLatLng([lat, lng]);
+                            freeMapObj.flyTo([lat, lng], 16, { duration: 1.1 });
+                            setTimeout(() => { dropPin(); mapRipple(targetLatLng); }, 900);
+                            updateMapChip(currentPos);
+                            if (gpsCircle) { freeMapObj.removeLayer(gpsCircle); gpsCircle = null; }
+                            let acc = Math.min(position.coords.accuracy || 0, 500);
+                            if (acc > 0) gpsCircle = L.circle([lat, lng], { radius: acc, className: 'gps-accuracy', color: '#0284c7', weight: 1, fillColor: '#0284c7', fillOpacity: 0.14, interactive: false }).addTo(freeMapObj);
                         }
+                        if (btn) { btn.classList.add('found'); setTimeout(() => btn.classList.remove('found'), 1600); }
                     } else {
-                        alert("ទីតាំងបច្ចុប្បន្នរបស់អ្នកនៅក្រៅប្រទេសកម្ពុជា!");
+                        alert("\u1791\u17b8\u178f\u17b6\u17c6\u1784\u1794\u1785\u17d2\u1785\u17bb\u1794\u17d2\u1794\u1793\u17d2\u1793\u179a\u1794\u179f\u17cb\u17a2\u17d2\u1793\u1780\u1793\u17c5\u1780\u17d2\u179a\u17c5\u1794\u17d2\u179a\u1791\u17c1\u179f\u1780\u1798\u17d2\u1796\u17bb\u1787\u17b6!");
                     }
-                }, () => {}, { enableHighAccuracy: true });
+                }, () => { if (btn) btn.classList.remove('locating'); }, { enableHighAccuracy: true, timeout: 15000 });
             }
         }
 
         function confirmFreeLocation() {
             let coordsText = `${currentPos.lat.toFixed(6)}, ${currentPos.lng.toFixed(6)}`;
-            document.getElementById('custMapUrl').value = coordsText;
-            closeModal('mapPickerModal');
+            let input = document.getElementById('custMapUrl');
+            input.value = coordsText;
+            let cb = document.getElementById('btnConfirmLoc');
+            if (cb && !cb.classList.contains('ok')) {
+                cb.dataset.orig = cb.innerHTML;
+                cb.innerHTML = ico('check') + cb.innerText.trim();
+                cb.classList.add('ok');
+            }
+            setTimeout(() => {
+                closeModal('mapPickerModal');
+                input.classList.remove('flash-ok'); void input.offsetWidth; input.classList.add('flash-ok');
+                setTimeout(() => input.classList.remove('flash-ok'), 1000);
+            }, 550);
         }
 
         function showProductsError() {
