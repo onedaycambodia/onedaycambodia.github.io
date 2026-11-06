@@ -912,6 +912,80 @@
             .map-wrap, .pin-ring, .map-ripple, .pin-wrap.drop .pin-body, .map-chip.tick, .map-locate.locating::after, .map-locate.locating .ico, #btnConfirmLoc::before, .form-input.flash-ok { animation: none !important; }
             #freeMap { transition: none; opacity: 1; transform: none; }
         }
+
+        /* ===== CHECKOUT FORM UI ===== */
+        .toast-notification { z-index: 3000; }
+        #checkoutModal .modal-header { border-bottom: none; padding-bottom: 10px; margin-bottom: 4px; position: relative; }
+        #checkoutModal .modal-header::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), transparent 85%); }
+        #checkoutModal .checkout-form { border-top: none; padding-top: 6px; margin-top: 0; gap: 14px; }
+
+        .field { position: relative; }
+        .field-ico { position: absolute; left: 14px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); color: var(--text-muted);
+                     fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none;
+                     transition: color .25s ease, transform .35s var(--spring); }
+        .field:focus-within .field-ico { color: var(--accent); transform: translateY(-50%) scale(1.15); }
+        .field .form-input { padding-left: 42px !important; }
+        .field:has(.form-input.error) .field-ico { color: #ef4444; }
+        .form-input.error { background: rgba(239, 68, 68, .08); }
+
+        @keyframes field-shake { 0%, 100% { transform: none; } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(2px); } }
+        .field.shake { animation: field-shake .42s ease; }
+
+        /* Map location row */
+        .map-row { display: flex; gap: 8px; align-items: stretch; }
+        .map-row .field { flex: 1; min-width: 0; }
+        #custMapUrl { cursor: pointer; text-overflow: ellipsis; padding-right: 40px !important; }
+        .field.has-loc .form-input { border-color: #16a34a; background: rgba(22, 163, 74, .08); font-weight: 700; }
+        .field.has-loc .field-ico { color: #16a34a; }
+        .map-clear { position: absolute; right: 8px; top: 50%; width: 26px; height: 26px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
+                     background: rgba(100, 116, 139, .2); color: var(--text-muted); opacity: 0; pointer-events: none; transform: translateY(-50%) scale(.5);
+                     transition: opacity .2s ease, transform .35s var(--spring); }
+        .map-clear .ico { width: 14px; height: 14px; }
+        .field.has-loc .map-clear { opacity: 1; pointer-events: auto; transform: translateY(-50%) scale(1); }
+        .map-btn { flex: none; padding: 0 14px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--accent-light); color: var(--accent);
+                   font-weight: 800; font-size: 12px; display: flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer; font-family: inherit; }
+        .map-btn svg { width: 18px; height: 18px; flex: none; }
+        @keyframes loc-set { 0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, .55); } 100% { box-shadow: 0 0 0 14px rgba(22, 163, 74, 0); } }
+        .field.loc-set .form-input { animation: loc-set .9s ease-out; }
+
+        /* Payment choices */
+        .pay-opt { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1.5px solid var(--border-color); border-radius: 14px; margin-top: 8px; cursor: pointer;
+                   font-size: 13px; font-weight: 700; color: var(--primary); background: var(--card-bg);
+                   transition: border-color .25s ease, background-color .25s ease, box-shadow .3s ease, transform .3s var(--spring); }
+        .pay-opt:active { transform: scale(.98); transition-duration: .08s; }
+        .pay-opt input { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; flex: none; margin: 0; border: 2px solid var(--border-color); border-radius: 50%;
+                         display: grid; place-content: center; background: transparent; transition: border-color .2s ease, background-color .2s ease; }
+        .pay-opt input::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff; transform: scale(0); transition: transform .35s var(--spring); }
+        .pay-opt input:checked { border-color: var(--accent); background: var(--accent); }
+        .pay-opt input:checked::before { transform: scale(1); }
+        .pay-opt:has(input:checked) { border-color: var(--accent); background: var(--accent-light); box-shadow: 0 4px 14px rgba(2, 132, 199, .16); }
+
+        /* Order button: shine + busy spinner */
+        #btnOrderNow { position: relative; overflow: hidden; }
+        #btnOrderNow::before { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; transform: skewX(-20deg); pointer-events: none;
+                               background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .3), transparent); animation: btn-shine 3.2s ease-in-out infinite; }
+        #btnOrderNow.busy { pointer-events: none; }
+        #btnOrderNow.busy > * { opacity: 0; }
+        #btnOrderNow.busy::before { display: none; }
+        #btnOrderNow.busy::after { content: ''; position: absolute; left: 50%; top: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%;
+                                   border: 3px solid rgba(255, 255, 255, .35); border-top-color: #fff; animation: locate-spin .7s linear infinite; }
+
+        /* Fields rise in one after another when the checkout opens */
+        @keyframes field-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+        #checkoutModal.active .checkout-form .form-group,
+        #checkoutModal.active #paymentMethodBox,
+        #checkoutModal.active .modal-footer { animation: field-in .5s var(--ease-out) backwards; }
+        #checkoutModal.active .checkout-form .form-group:nth-child(1) { animation-delay: .08s; }
+        #checkoutModal.active .checkout-form .form-group:nth-child(2) { animation-delay: .14s; }
+        #checkoutModal.active .checkout-form .form-group:nth-child(3) { animation-delay: .20s; }
+        #checkoutModal.active .checkout-form .form-group:nth-child(4) { animation-delay: .26s; }
+        #checkoutModal.active #paymentMethodBox { animation-delay: .32s; }
+        #checkoutModal.active .modal-footer { animation-delay: .38s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .field.shake, .field.loc-set .form-input, #btnOrderNow::before, #btnOrderNow.busy::after,
+            #checkoutModal.active .checkout-form .form-group, #checkoutModal.active #paymentMethodBox, #checkoutModal.active .modal-footer { animation: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -1084,23 +1158,26 @@
             <div class="checkout-form active">
                 <div class="form-group">
                     <label class="form-label" data-key="label_name">ឈ្មោះរបស់អ្នក (Name)</label>
-                    <input type="text" id="custName" class="form-input" data-placeholder-key="placeholder_name" placeholder="បំពេញឈ្មោះ..." oninput="clearError(this); saveUserInfo();">
+                    <div class="field"><svg class="field-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg><input type="text" id="custName" class="form-input" data-placeholder-key="placeholder_name" placeholder="បំពេញឈ្មោះ..." oninput="clearError(this); saveUserInfo();"></div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" data-key="label_phone">លេខទូរស័ព្ទ (Phone Number)</label>
-                    <input type="tel" id="custPhone" class="form-input" data-placeholder-key="placeholder_phone" placeholder="បំពេញលេខទូរស័ព្ទ (ឧ. 012345678)..." oninput="clearError(this); saveUserInfo();">
+                    <div class="field"><svg class="field-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><input type="tel" id="custPhone" class="form-input" data-placeholder-key="placeholder_phone" placeholder="បំពេញលេខទូរស័ព្ទ (ឧ. 012345678)..." oninput="clearError(this); saveUserInfo();"></div>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label" data-key="label_address">ទីតាំងទទួលទំនិញ (Delivery Location)</label>
-                    <input type="text" id="custAddress" class="form-input" data-placeholder-key="placeholder_address" placeholder="បំពេញអាសយដ្ឋាន (ឧ. ផ្ទះ..., ផ្លូវ...)" oninput="clearError(this); saveUserInfo();">
+                    <div class="field"><svg class="field-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg><input type="text" id="custAddress" class="form-input" data-placeholder-key="placeholder_address" placeholder="បំពេញអាសយដ្ឋាន (ឧ. ផ្ទះ..., ផ្លូវ...)" oninput="clearError(this); saveUserInfo();"></div>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" data-key="label_map">ទីតាំងលើ Map (Optional)</label>
-                    <div style="display: flex; gap: 6px;">
-                        <input type="text" id="custMapUrl" class="form-input" data-placeholder-key="placeholder_map" placeholder="ជ្រើសរើសទីតាំងលើ Map (បើមាន)..." readonly style="cursor: pointer;" onclick="openMapModal()">
-                        <button type="button" onclick="openMapModal()" style="background: var(--accent-light); color: var(--accent); border: 1px solid var(--border-color); padding: 0 12px; border-radius: 12px; font-weight:800; font-size:12px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:4px;">
+                    <div class="map-row">
+                        <div class="field" id="mapField"><svg class="field-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+                            <input type="text" id="custMapUrl" class="form-input" data-placeholder-key="placeholder_map" placeholder="ជ្រើសរើសទីតាំងលើ Map (បើមាន)..." readonly style="cursor: pointer;" onclick="openMapModal()">
+                            <button type="button" class="map-clear" onclick="clearMapLoc(event)" aria-label="Clear"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
+                        </div>
+                        <button type="button" class="map-btn" onclick="openMapModal()">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7 9 4z"/><path d="M9 4v13M15 7v13"/></svg><span data-key="btn_select_map">Select Map</span>
                         </button>
                     </div>
@@ -1110,15 +1187,15 @@
             <!-- Payment method (shown only when the server has Bakong configured) -->
             <div id="paymentMethodBox" style="display: none; margin-top: 12px;">
                 <label class="form-label" data-key="label_payment">វិធីបង់ប្រាក់ (Payment)</label>
-                <label id="payRowKhqr" style="display:none; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--border-color); border-radius:12px; margin-top:6px; cursor:pointer; font-size:13px; font-weight:700; color:var(--primary);">
+                <label id="payRowKhqr" class="pay-opt" style="display:none;">
                     <input type="radio" name="payMethod" value="khqr">
                     <img src="images/bakong.png" alt="Bakong" width="22" height="22" style="flex:none; border-radius:5px;"><span data-key="pay_khqr">បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)</span>
                 </label>
-                <label id="payRowWing" style="display:none; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--border-color); border-radius:12px; margin-top:6px; cursor:pointer; font-size:13px; font-weight:700; color:var(--primary);">
+                <label id="payRowWing" class="pay-opt" style="display:none;">
                     <input type="radio" name="payMethod" value="wing">
                     <span data-key="pay_wing"><svg class="ico ico-dot" aria-hidden="true"><use href="#i-dot"/></svg> បង់ប្រាក់ឥឡូវតាម Wing</span>
                 </label>
-                <label style="display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--border-color); border-radius:12px; margin-top:6px; cursor:pointer; font-size:13px; font-weight:700; color:var(--primary);">
+                <label class="pay-opt">
                     <input type="radio" name="payMethod" value="cod" id="payRadioCod" checked>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg><span data-key="pay_cod">កុម្មង់តាម Telegram (បង់ពេលទទួល)</span>
                 </label>
@@ -1132,7 +1209,7 @@
                         <span id="checkout-total-price">$0.00</span>
                     </div>
                 </div>
-                <button onclick="openTelegram()" class="btn-modal-telegram">
+                <button id="btnOrderNow" onclick="openTelegram()" class="btn-modal-telegram">
                     <img src="images/IMG_5838.png" alt="Order Icon" class="btn-order-img" loading="lazy">
                     <span data-key="btn_order_now">Order Now</span>
                 </button>
@@ -1829,6 +1906,7 @@
             let coordsText = `${currentPos.lat.toFixed(6)}, ${currentPos.lng.toFixed(6)}`;
             let input = document.getElementById('custMapUrl');
             input.value = coordsText;
+            syncMapField(true);
             let cb = document.getElementById('btnConfirmLoc');
             if (cb && !cb.classList.contains('ok')) {
                 cb.dataset.orig = cb.innerHTML;
@@ -2651,14 +2729,16 @@
             if (!address) { addressInput.classList.add('error'); hasError = true; }
 
             if (hasError) {
-                alert(translations[currentLang].alert_fill);
+                shakeErrors();
+                showToast(translations[currentLang].alert_fill);
                 return;
             }
 
             let cleanPhone = phone.replace(/[^0-9]/g, '');
             if (cleanPhone.length < 8) {
                 phoneInput.classList.add('error');
-                alert(translations[currentLang].alert_phone_invalid);
+                shakeErrors();
+                showToast(translations[currentLang].alert_phone_invalid);
                 return;
             }
 
@@ -2788,6 +2868,42 @@
                     tp.classList.add('tick');
                 }).observe(tp, { childList: true, characterData: true, subtree: true });
             }
+        })();
+
+        // ===== Checkout form helpers =====
+        function syncMapField(justSet) {
+            let f = document.getElementById('mapField'), i = document.getElementById('custMapUrl');
+            if (!f || !i) return;
+            f.classList.toggle('has-loc', i.value.trim() !== '');
+            if (justSet) { f.classList.remove('loc-set'); void f.offsetWidth; f.classList.add('loc-set'); setTimeout(() => f.classList.remove('loc-set'), 1000); }
+        }
+        function clearMapLoc(e) {
+            if (e) { e.stopPropagation(); e.preventDefault(); }
+            let i = document.getElementById('custMapUrl');
+            if (i) i.value = '';
+            syncMapField();
+        }
+        function shakeErrors() {
+            let bad = document.querySelectorAll('#checkoutModal .form-input.error');
+            bad.forEach(function (inp) {
+                let f = inp.closest('.field');
+                if (f) { f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake'); setTimeout(() => f.classList.remove('shake'), 500); }
+            });
+            if (bad[0]) { bad[0].scrollIntoView({ behavior: 'smooth', block: 'center' }); bad[0].focus({ preventScroll: true }); }
+        }
+        // refresh the map field when the checkout opens
+        (function () {
+            const _open = openModal;
+            openModal = function (id) { _open.apply(this, arguments); if (id === 'checkoutModal') syncMapField(); };
+            // order button shows a spinner while the order is being sent and ignores double taps
+            const _order = openTelegram;
+            openTelegram = async function () {
+                const b = document.getElementById('btnOrderNow');
+                if (b && b.classList.contains('busy')) return;
+                if (b) b.classList.add('busy');
+                try { return await _order.apply(this, arguments); }
+                finally { if (b) b.classList.remove('busy'); }
+            };
         })();
     </script>
 </body>
