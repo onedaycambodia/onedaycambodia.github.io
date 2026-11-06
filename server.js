@@ -439,9 +439,7 @@ async function sendOrderToAdmins(orderId, customer, itemsSummary, totalAmount, h
     if (mi) inlineKeyboard.push([{ text: "📍 បើក Map", url: mi.url }]);
     for (let adm of adminsRes.rows) {
         try {
-            const sent = await bot.telegram.sendMessage(adm.chat_id, msg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: inlineKeyboard } });
-            // a native map pin right under the order, so the admin can tap it and navigate
-            if (mi) { try { await bot.telegram.sendLocation(adm.chat_id, mi.lat, mi.lng, { reply_to_message_id: sent.message_id }); } catch (e) {} }
+            await bot.telegram.sendMessage(adm.chat_id, msg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: inlineKeyboard } });
         } catch (e) {}
     }
 }
@@ -871,11 +869,10 @@ app.post('/api/order', async (req, res) => {
             if (mi) inlineKeyboard.push([{ text: "📍 បើក Map", url: mi.url }]);
             for (let adm of adminsRes.rows) {
                 try {
-                    const sent = await bot.telegram.sendMessage(adm.chat_id, msg, {
+                    await bot.telegram.sendMessage(adm.chat_id, msg, {
                         parse_mode: 'Markdown',
                         reply_markup: { inline_keyboard: inlineKeyboard }
                     });
-                    if (mi) { try { await bot.telegram.sendLocation(adm.chat_id, mi.lat, mi.lng, { reply_to_message_id: sent.message_id }); } catch (e) {} }
                 } catch (e) {}
             }
         }
