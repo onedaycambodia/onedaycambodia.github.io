@@ -395,6 +395,18 @@ async function restoreStockForItems(db, items) {
     }
 }
 
+// The customer picks a spot on the map in the browser; it arrives as "lat, lng" in customer.mapUrl.
+// Validate it strictly (it ends up in a Telegram message and a button URL) and build the links the admins need.
+function mapInfo(customer) {
+    const raw = String((customer && (customer.mapUrl || customer.map)) || '').replace(/\s+/g, '');
+    const m = raw.match(/^(-?\d{1,3}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)$/);
+    if (!m) return null;
+    const lat = Number(m[1]), lng = Number(m[2]);
+    if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180)) return null;
+    const c = lat.toFixed(6) + ',' + lng.toFixed(6);
+    return { lat, lng, coords: lat.toFixed(6) + ', ' + lng.toFixed(6), url: 'https://www.google.com/maps?q=' + c };
+}
+
 async function sendOrderToAdmins(orderId, customer, itemsSummary, totalAmount, headerExtra) {
     let adminsRes = await pool.query("SELECT chat_id FROM admins WHERE chat_id IS NOT NULL");
     if (adminsRes.rows.length === 0) return;
@@ -409,6 +421,8 @@ async function sendOrderToAdmins(orderId, customer, itemsSummary, totalAmount, h
     msg += `👤 **ព័ត៌មានអតិថិជន:**\n- ឈ្មោះ: ${custName}\n- លេខទូរស័ព្ទ: ${custPhone}\n- អាសយដ្ឋាន: ${custAddress}\n`;
     if (userId) msg += `- Telegram ID: \`${userId}\`\n`;
     if (username) msg += `- Username: @${username}\n`;
+    const mi = mapInfo(customer);
+    if (mi) msg += `📍 **ទីតាំង Map:** ${mi.coords}\n🗺 ${mi.url}\n`;
     msg += `\n🛒 **ទំនិញកុម្មង់:**\n`;
     itemsSummary.forEach((it, idx) => {
         msg += `${idx + 1}. Ref: ${it.ref} - ${it.title} (Size: ${it.size}) x ${it.qty} = $${Number(it.total).toFixed(2)}\n`;
@@ -422,9 +436,12 @@ async function sendOrderToAdmins(orderId, customer, itemsSummary, totalAmount, h
     if (userId) inlineKeyboard.push([{ text: '💬 ឆាតទៅកាន់អតិថិជន', url: `tg://user?id=${userId}` }]);
     else if (username) inlineKeyboard.push([{ text: '💬 ឆាតទៅកាន់អតិថិជន', url: `https://t.me/${username}` }]);
 
+    if (mi) inlineKeyboard.push([{ text: "📍 បើក Map", url: mi.url }]);
     for (let adm of adminsRes.rows) {
         try {
-            await bot.telegram.sendMessage(adm.chat_id, msg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: inlineKeyboard } });
+            const sent = await bot.telegram.sendMessage(adm.chat_id, msg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: inlineKeyboard } });
+            // a native map pin right under the order, so the admin can tap it and navigate
+            if (mi) { try { await bot.telegram.sendLocation(adm.chat_id, mi.lat, mi.lng, { reply_to_message_id: sent.message_id }); } catch (e) {} }
         } catch (e) {}
     }
 }
@@ -490,6 +507,7 @@ async function notifyManualReview(o, reason) {
             `💵 ទឹកប្រាក់: $${Number(o.pay_amount).toFixed(2)} (${o.payment_method === 'WING' ? 'Wing' : 'KHQR Bakong'})\n` +
             `🧾 Bill number: OD${o.id}\n` +
             `👤 ${customer.name || customer.fullName || '-'} | ${customer.phone || customer.phoneNumber || '-'}\n` +
+            (mapInfo(customer) ? `🗺 ${mapInfo(customer).url}\n` : '') +
             (lines.length ? `🛒 ទំនិញ:\n${lines.join('\n')}\n` : '') +
             `\nមូលហេតុ: ${reason}\n\n` +
             `សូមបើកកម្មវិធី Bakong/ធនាគាររបស់អ្នក ពិនិត្យថាបានទទួលប្រាក់ពិតមែនឬអត់ មុនចុចប៊ូតុង។`;
@@ -827,6 +845,8 @@ app.post('/api/order', async (req, res) => {
             msg += `- អាសយដ្ឋាន: ${custAddress}\n`;
             if (userId) msg += `- Telegram ID: \`${userId}\`\n`;
             if (username) msg += `- Username: @${username}\n`;
+            const mi = mapInfo(customer);
+            if (mi) msg += `📍 **ទីតាំង Map:** ${mi.coords}\n🗺 ${mi.url}\n`;
 
             msg += `\n🛒 **ទំនិញកុម្មង់:**\n`;
             itemsSummary.forEach((it, idx) => {
@@ -848,12 +868,14 @@ app.post('/api/order', async (req, res) => {
                 inlineKeyboard.push([{ text: '💬 ឆាតទៅកាន់អតិថិជន', url: `https://t.me/${username}` }]);
             }
 
+            if (mi) inlineKeyboard.push([{ text: "📍 បើក Map", url: mi.url }]);
             for (let adm of adminsRes.rows) {
                 try {
-                    await bot.telegram.sendMessage(adm.chat_id, msg, {
+                    const sent = await bot.telegram.sendMessage(adm.chat_id, msg, {
                         parse_mode: 'Markdown',
                         reply_markup: { inline_keyboard: inlineKeyboard }
                     });
+                    if (mi) { try { await bot.telegram.sendLocation(adm.chat_id, mi.lat, mi.lng, { reply_to_message_id: sent.message_id }); } catch (e) {} }
                 } catch (e) {}
             }
         }
@@ -942,6 +964,7 @@ bot.command('orders', async (ctx) => {
             let msg = `📦 **Order ID: #${order.id}** (Status: PENDING)\n`;
             msg += `👤 ឈ្មោះ: ${cust?.name || 'អនាមិក'} (${cust?.phone || 'គ្មានលេខ'})\n`;
             msg += `📍 អាសយដ្ឋាន: ${cust?.address || 'គ្មាន'}\n`;
+            { const mi = mapInfo(cust); if (mi) msg += `🗺 ${mi.url}\n`; }
             msg += `🛒 ទំនិញ:\n`;
             for (let key in items) {
                 let it = items[key];
@@ -956,6 +979,7 @@ bot.command('orders', async (ctx) => {
                 ]
             ];
 
+            { const mi2 = mapInfo(cust); if (mi2) inlineKeyboard.push([{ text: "📍 បើក Map", url: mi2.url }]); }
             await ctx.reply(msg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: inlineKeyboard } });
         }
     } catch (err) {
