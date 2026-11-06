@@ -37,6 +37,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Wing sends the customer here when they cancel the payment
+app.get('/payment-cancel.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'payment-cancel.html'));
+});
+
 // 🔒 ផ្លូវទី ២: សម្រាប់ Telegram Mini App (Admin គ្រប់គ្រងស្តុក)
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
@@ -644,6 +649,32 @@ app.post('/api/payment-claim/:md5', async (req, res) => {
     }
 });
 
+// ---- Wing callback (webhook) ----------------------------------------------------------------------
+// Wing calls this when a payment finishes. We NEVER trust the body: we only read the order reference from it,
+// then ask Wing directly (inquiry API) whether that order was really paid for the right amount. A fake call
+// therefore cannot mark an order as paid. Always answer 200 quickly so Wing does not keep retrying.
+app.post('/webhook', async (req, res) => {
+    res.status(200).json({ received: true });
+    try {
+        const body = req.body || {};
+        const d = body.data && typeof body.data === 'object' ? body.data : body;
+        const ref = d.order_reference_no || d.orderReferenceNo || d.order_ref || d.reference_no || body.order_reference_no;
+        console.log('Wing webhook received, ref =', ref);
+        if (!ref || typeof ref !== 'string' || ref.length > 60 || !wing.isEnabled()) return;
+
+        const r = await pool.query("SELECT * FROM orders WHERE wing_ref = $1", [ref]);
+        if (r.rows.length === 0) return console.warn('Wing webhook: unknown order ref', ref);
+        const o = r.rows[0];
+        if (o.status !== 'AWAITING_PAYMENT') return; // already handled
+
+        const c = await wing.checkPaid(o.wing_ref, o.pay_amount);
+        if (c.state === 'PAID') await markOrderPaid(o.id);
+        else console.warn(`Wing webhook: order ${o.id} not confirmed by Wing (${c.state} ${c.detail || ''})`);
+    } catch (err) {
+        console.error('Wing webhook error:', err);
+    }
+});
+
 // ---- Central Bakong poller ------------------------------------------------------------------------
 // ONE batched Bakong call covers every waiting order. Nothing is called when nobody is waiting.
 // Schedule per order (age = time since the QR was made); orders whose page is no longer open are checked rarely.
@@ -801,7 +832,7 @@ app.post('/api/order', async (req, res) => {
                     amount: payAmount,
                     orderRef: wingRef,
                     returnUrl,
-                    cancelUrl: returnUrl,
+                    cancelUrl: process.env.WING_CANCEL_URL || (RAILWAY_HOST + '/payment-cancel.html'),
                     merchantName: process.env.WING_MERCHANT_NAME || process.env.BAKONG_MERCHANT_NAME || 'Oneday Clothing'
                 });
                 khqrResult = { md5: crypto.randomBytes(16).toString('hex'), wingUrl: page.url };
