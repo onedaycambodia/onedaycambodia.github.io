@@ -487,7 +487,7 @@ async function expireOrder(orderId) {
 }
 
 app.get('/api/payment-config', (req, res) => {
-    res.json({ khqr_enabled: bakong.isEnabled(), wing_enabled: wing.isEnabled(), expire_minutes: KHQR_EXPIRE_MINUTES });
+    res.json({ khqr_enabled: bakong.isEnabled(), wing_enabled: wing.isAvailable(), expire_minutes: KHQR_EXPIRE_MINUTES });
 });
 
 // ---- Manual-confirmation fallback -------------------------------------------------------------
@@ -748,6 +748,10 @@ app.post('/api/order', async (req, res) => {
     const isKhqr = payment_method === 'khqr' || isWing; // "pay online" (Bakong KHQR or Wing)
 
     if (isKhqr) {
+        if (isWing && wing.isEnabled() && !wing.isAvailable()) {
+            // Wing was unreachable a moment ago: send the customer to KHQR instead of making them wait for another error
+            return res.json({ success: false, wing_down: true, message: 'Wing មិនអាចប្រើបានពេលនេះទេ សូមជ្រើស KHQR (Bakong) ជំនួស។' });
+        }
         if (!(isWing ? wing.isEnabled() : bakong.isEnabled())) return res.json({ success: false, message: 'This payment method is not available right now.' });
         if (khqrRateLimited(req.ip)) return res.status(429).json({ success: false, message: 'ព្យាយាមច្រើនពេក សូមរង់ចាំបន្តិចសិន។' });
     }
@@ -932,10 +936,12 @@ app.post('/api/order', async (req, res) => {
         try { await client.query('ROLLBACK'); } catch (e) {}
         client.release();
         console.error('order error:', err);
+        const wingDown = isWing && err && err.wingNetwork;
         res.status(500).json({
             success: false,
             error: err.message,
-            message: isKhqr ? 'មិនអាចបង្កើតការបង់ប្រាក់បានទេ សូមសាកល្បងម្តងទៀត ឬជ្រើសវិធីបង់ប្រាក់ផ្សេង។' : undefined
+            wing_down: wingDown || undefined,
+            message: wingDown ? 'Wing មិនអាចប្រើបានពេលនេះទេ សូមជ្រើស KHQR (Bakong) ជំនួស។' : isKhqr ? 'មិនអាចបង្កើតការបង់ប្រាក់បានទេ សូមសាកល្បងម្តងទៀត ឬជ្រើសវិធីបង់ប្រាក់ផ្សេង។' : undefined
         });
     }
 });
