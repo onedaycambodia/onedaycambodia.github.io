@@ -8,12 +8,106 @@
 //   WING_API_URL          optional, default https://prodint-gateway.wingbank.com.kh
 
 const crypto = require('crypto');
+const dns = require('dns').promises;
+const net = require('net');
+const tls = require('tls');
 
 const HOST = (process.env.WING_API_URL || 'https://prodint-gateway.wingbank.com.kh').replace(/\/+$/, '');
 const SERVICE = HOST + '/onlinesdk-khqr/v4';
 const DEVICE_ID = crypto.randomUUID(); // keeps Wing from revoking the token early (per their docs)
 
 let tokenCache = { token: null, expiresAt: 0 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Network diagnosis. Runs once at startup and (at most every 5 minutes) after a failed Wing call, and prints a
+// plain verdict in the Railway Deploy Logs: look for lines starting with [WING-DIAG].
+// ---------------------------------------------------------------------------------------------------------------
+function causeText(err) {
+    const c = (err && err.cause) || err || {};
+    return [c.code, c.syscall, c.address ? (c.address + (c.port ? ':' + c.port : '')) : '', c.message && !c.code ? c.message : '']
+        .filter(Boolean).join(' ');
+}
+
+function step(name, fn) {
+    const t0 = Date.now();
+    return Promise.resolve().then(fn).then(
+        (info) => ({ name, ok: true, ms: Date.now() - t0, info: info || '' }),
+        (err) => ({ name, ok: false, ms: Date.now() - t0, info: causeText(err) || String(err && err.message || err) })
+    );
+}
+
+function tcpConnect(host, port, ms) {
+    return new Promise((resolve, reject) => {
+        const sock = net.connect({ host, port });
+        const timer = setTimeout(() => { sock.destroy(); reject(Object.assign(new Error('timeout'), { code: 'TIMEOUT' })); }, ms);
+        sock.once('connect', () => { clearTimeout(timer); sock.end(); resolve(`connected to ${sock.remoteAddress}:${port}`); });
+        sock.once('error', (e) => { clearTimeout(timer); reject(e); });
+    });
+}
+
+function tlsHandshake(host, port, ms) {
+    return new Promise((resolve, reject) => {
+        const sock = tls.connect({ host, port, servername: host });
+        const timer = setTimeout(() => { sock.destroy(); reject(Object.assign(new Error('timeout'), { code: 'TIMEOUT' })); }, ms);
+        sock.once('secureConnect', () => { clearTimeout(timer); const v = sock.getProtocol(); sock.end(); resolve(v); });
+        sock.once('error', (e) => { clearTimeout(timer); reject(e); });
+    });
+}
+
+let lastDiagAt = 0;
+let diagRunning = false;
+async function diagnose(reason) {
+    if (diagRunning) return;
+    diagRunning = true;
+    lastDiagAt = Date.now();
+    try {
+        const host = new URL(HOST).hostname;
+        const out = [];
+        const log = (...a) => console.log('[WING-DIAG]', ...a);
+        log(`start (${reason || 'manual'}) target=${host}`);
+
+        const ip = await step('my public IP (give this to Wing for whitelist)', async () => {
+            const r = await fetch('https://api.ipify.org', { signal: AbortSignal.timeout(6000) });
+            return (await r.text()).trim();
+        });
+        const dnsR = await step('DNS lookup', async () => {
+            const r = await dns.lookup(host, { all: true });
+            return r.map(x => x.address).join(', ');
+        });
+        const tcpR = dnsR.ok ? await step('TCP connect :443', () => tcpConnect(host, 443, 6000)) : null;
+        const tlsR = tcpR && tcpR.ok ? await step('TLS handshake', () => tlsHandshake(host, 443, 6000)) : null;
+        const httpR = tlsR && tlsR.ok ? await step('HTTPS request', async () => {
+            const r = await fetch(HOST, { signal: AbortSignal.timeout(8000) });
+            return 'HTTP ' + r.status;
+        }) : null;
+
+        for (const r of [ip, dnsR, tcpR, tlsR, httpR]) {
+            if (r) log(`${r.ok ? 'OK  ' : 'FAIL'} ${r.name}: ${r.info} (${r.ms} ms)`);
+            else out.push('skipped');
+        }
+
+        let verdict;
+        if (!dnsR.ok) verdict = 'DNS cannot resolve the Wing host. Check WING_API_URL spelling or Railway DNS/network.';
+        else if (!tcpR.ok && /TIMEOUT|ETIMEDOUT/.test(tcpR.info)) verdict = 'TCP connection times out: a firewall is silently dropping packets from this server. Most likely Wing only allows whitelisted IPs, or Railway has a network problem. Send the public IP above to Wing.';
+        else if (!tcpR.ok && /ECONNREFUSED/.test(tcpR.info)) verdict = 'Port 443 refused: wrong host/URL, or Wing gateway is down.';
+        else if (!tcpR.ok) verdict = 'TCP connection failed (' + tcpR.info + '): network path to Wing is blocked.';
+        else if (!tlsR.ok && /ECONNRESET/.test(tlsR.info)) verdict = 'TCP connects but Wing resets the connection during TLS: Wing is rejecting this server (IP not whitelisted or country/IP block). Send the public IP above to Wing. It is NOT a code or credentials problem.';
+        else if (!tlsR.ok) verdict = 'TLS handshake failed (' + tlsR.info + ').';
+        else if (!httpR.ok) verdict = 'TLS works but the HTTPS request fails (' + httpR.info + '): Wing resets after connect, likely IP/WAF block.';
+        else verdict = 'Network path to Wing is OK (' + httpR.info + '). If orders still fail, the problem is the request itself (credentials, hash, URL path).';
+        if (!ip.ok) verdict += ' (Also: general outbound internet check failed, so Railway outbound network may be broken.)';
+        log('VERDICT:', verdict);
+    } catch (e) {
+        console.log('[WING-DIAG] diagnose crashed:', e && e.message);
+    } finally {
+        diagRunning = false;
+    }
+}
+
+function scheduleDiag(reason) {
+    if (Date.now() - lastDiagAt < 5 * 60 * 1000) return;
+    diagnose(reason).catch(() => {});
+}
 
 // Circuit breaker: if Wing cannot be reached (ECONNRESET, timeout, DNS...), stop offering Wing for a few minutes
 // so customers use KHQR (Bakong) instead of hitting an error. It resets by itself after the pause.
@@ -28,9 +122,10 @@ async function wfetch(url, opts) {
         return res;
     } catch (err) {
         downUntil = Date.now() + DOWN_PAUSE_MS;
-        const c = err && err.cause ? (err.cause.code || err.cause.message) : '';
+        const c = causeText(err);
         const e = new Error(`cannot reach Wing (${new URL(url).host}): ${err.message}${c ? ' - ' + c : ''}`);
         e.wingNetwork = true;
+        scheduleDiag('failed call to ' + new URL(url).pathname);
         throw e;
     }
 }
@@ -208,4 +303,7 @@ async function checkPaid(orderRef, expectedAmount) {
     }
 }
 
-module.exports = { isEnabled, isAvailable, createPayment, checkPaid, _internal: { aesGcmBase64, payloadHash } };
+// Startup self-test: shows the verdict in the Deploy Logs a few seconds after every deploy.
+if (isEnabled()) setTimeout(() => scheduleDiag('startup'), 5000);
+
+module.exports = { isEnabled, isAvailable, diagnose, createPayment, checkPaid, _internal: { aesGcmBase64, payloadHash } };
