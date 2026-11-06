@@ -31,13 +31,17 @@ function isEnabled() {
 
 // AES-256-GCM exactly as the docs describe: IV = first 12 chars of client_id,
 // key = client_id padded/truncated to 32 chars. Output = base64(ciphertext + auth tag).
-function aesGcmBase64(plain, clientId) {
+function aesGcmRaw(plain, clientId) {
     if (clientId.length < 12) throw new Error('WING_CLIENT_ID is too short (needs at least 12 characters)');
     const iv = Buffer.from(clientId.slice(0, 12), 'utf8');
     const key = Buffer.from(clientId.padEnd(32, '0').slice(0, 32), 'utf8');
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-    const enc = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final(), cipher.getAuthTag()]);
-    return enc.toString('base64');
+    const body = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()]);
+    return { body, tag: cipher.getAuthTag() };
+}
+function aesGcmBase64(plain, clientId) {
+    const { body, tag } = aesGcmRaw(plain, clientId);
+    return Buffer.concat([body, tag]).toString('base64');
 }
 
 // X-Payload-Hash = SHA256( B64( AES256( B64( client_id#amount#currency#order_ref#return_url#cancel_url#timestamp ) ) ) )
@@ -46,6 +50,28 @@ function payloadHash({ clientId, amount, currency, orderRef, returnUrl, cancelUr
     const step2 = Buffer.from(joined, 'utf8').toString('base64');
     const step4 = aesGcmBase64(step2, clientId);
     return crypto.createHash('sha256').update(step4).digest('hex');
+}
+
+// Wing answered "Invalid hash" for the documented recipe, so we also try a few close variants (and the optional
+// WING_CIPHER_KEY from the credential PDF) and remember whichever one Wing accepts.
+let winningHash = null;
+function hashCandidates({ clientId, amount, currency, orderRef, returnUrl, cancelUrl, timestamp }) {
+    const joined = [clientId, amount, currency, orderRef, returnUrl, cancelUrl, timestamp].join('#');
+    const b64 = Buffer.from(joined, 'utf8').toString('base64');
+    const sha = (x) => crypto.createHash('sha256').update(x).digest('hex');
+    const keys = [['client_id', clientId]];
+    if (process.env.WING_CIPHER_KEY) keys.push(['cipher_key', process.env.WING_CIPHER_KEY.trim()]);
+    const out = [];
+    for (const [kn, k] of keys) {
+        const a = aesGcmRaw(b64, k);          // documented: AES(B64(joined))
+        const b = aesGcmRaw(joined, k);       // without the inner base64
+        out.push({ name: `${kn}/doc`,          hash: sha(Buffer.concat([a.body, a.tag]).toString('base64')) });
+        out.push({ name: `${kn}/no-tag`,       hash: sha(a.body.toString('base64')) });
+        out.push({ name: `${kn}/raw-bytes`,    hash: sha(Buffer.concat([a.body, a.tag])) });
+        out.push({ name: `${kn}/no-inner-b64`, hash: sha(Buffer.concat([b.body, b.tag]).toString('base64')) });
+    }
+    if (winningHash) out.sort((x, y) => (y.name === winningHash) - (x.name === winningHash));
+    return out;
 }
 
 async function getToken(force) {
@@ -91,29 +117,38 @@ async function createPayment({ amount, orderRef, returnUrl, cancelUrl, merchantN
         merchant_name: merchantName,
         timestamp
     };
-    const hash = payloadHash({ clientId, amount: amountStr, currency, orderRef, returnUrl, cancelUrl, timestamp });
+    const candidates = hashCandidates({ clientId, amount: amountStr, currency, orderRef, returnUrl, cancelUrl, timestamp });
     const reqBody = JSON.stringify({ payload: aesGcmBase64(JSON.stringify(payload), clientId) });
 
     for (let attempt = 0; attempt < 2; attempt++) {
         const token = await getToken(attempt > 0);
-        const res = await wfetch(SERVICE + '/generate/khqr', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                'X-Payload-Hash': hash
-            },
-            body: reqBody,
-            signal: AbortSignal.timeout(10000)
-        });
-        if (res.status === 401 && attempt === 0) continue; // token expired, retry once with a fresh one
-        const json = await res.json().catch(() => null);
-        const url = json && json.data && json.data.web_payment_url;
-        if (!res.ok || !url) {
-            throw new Error(`Wing generate failed: HTTP ${res.status} ${json ? (json.message || json.code || '') : ''} trace=${json && json.trace_id}`);
+        let unauthorized = false;
+        let lastErr = '';
+        for (const cand of candidates) {
+            const res = await wfetch(SERVICE + '/generate/khqr', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'X-Payload-Hash': cand.hash
+                },
+                body: reqBody,
+                signal: AbortSignal.timeout(10000)
+            });
+            if (res.status === 401 && attempt === 0) { unauthorized = true; break; } // token expired, retry once
+            const json = await res.json().catch(() => null);
+            const url = json && json.data && json.data.web_payment_url;
+            if (res.ok && url) {
+                if (winningHash !== cand.name) { winningHash = cand.name; console.log('Wing hash variant accepted:', cand.name); }
+                return { url };
+            }
+            lastErr = `Wing generate failed: HTTP ${res.status} ${json ? (json.message || json.code || '') : ''} trace=${json && json.trace_id}`;
+            if (!/hash/i.test(lastErr)) throw new Error(lastErr); // some other problem: stop trying variants
         }
-        return { url };
+        if (unauthorized) continue;
+        console.error('Wing hash input (no secrets):', [amountStr, currency, orderRef, returnUrl, cancelUrl, timestamp].join('#'));
+        throw new Error(lastErr + ` (tried ${candidates.map(c => c.name).join(', ')})`);
     }
     throw new Error('Wing generate failed: unauthorized');
 }
