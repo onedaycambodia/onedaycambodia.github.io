@@ -15,18 +15,33 @@ const DEVICE_ID = crypto.randomUUID(); // keeps Wing from revoking the token ear
 
 let tokenCache = { token: null, expiresAt: 0 };
 
+// Circuit breaker: if Wing cannot be reached (ECONNRESET, timeout, DNS...), stop offering Wing for a few minutes
+// so customers use KHQR (Bakong) instead of hitting an error. It resets by itself after the pause.
+const DOWN_PAUSE_MS = 3 * 60 * 1000;
+let downUntil = 0;
+
 // Node's fetch only says "fetch failed"; the real reason (DNS, timeout, refused, TLS) is in err.cause.
 async function wfetch(url, opts) {
     try {
-        return await fetch(url, opts);
+        const res = await fetch(url, opts);
+        downUntil = 0; // Wing answered, so the network path works
+        return res;
     } catch (err) {
+        downUntil = Date.now() + DOWN_PAUSE_MS;
         const c = err && err.cause ? (err.cause.code || err.cause.message) : '';
-        throw new Error(`cannot reach Wing (${new URL(url).host}): ${err.message}${c ? ' - ' + c : ''}`);
+        const e = new Error(`cannot reach Wing (${new URL(url).host}): ${err.message}${c ? ' - ' + c : ''}`);
+        e.wingNetwork = true;
+        throw e;
     }
 }
 
 function isEnabled() {
     return Boolean(process.env.WING_CLIENT_ID && process.env.WING_CLIENT_SECRET);
+}
+
+// Enabled AND not paused because of a recent network failure. Use this to decide whether to offer Wing to customers.
+function isAvailable() {
+    return isEnabled() && Date.now() >= downUntil;
 }
 
 // AES-256-GCM exactly as the docs describe: IV = first 12 chars of client_id,
@@ -87,7 +102,7 @@ async function getToken(force) {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body,
-        signal: AbortSignal.timeout(10000)
+        signal: AbortSignal.timeout(6000)
     });
     const json = await res.json().catch(() => null);
     if (!res.ok || !json || !json.access_token) {
@@ -134,7 +149,7 @@ async function createPayment({ amount, orderRef, returnUrl, cancelUrl, merchantN
                     'X-Payload-Hash': cand.hash
                 },
                 body: reqBody,
-                signal: AbortSignal.timeout(10000)
+                signal: AbortSignal.timeout(8000)
             });
             if (res.status === 401 && attempt === 0) { unauthorized = true; break; } // token expired, retry once
             const json = await res.json().catch(() => null);
@@ -193,4 +208,4 @@ async function checkPaid(orderRef, expectedAmount) {
     }
 }
 
-module.exports = { isEnabled, createPayment, checkPaid, _internal: { aesGcmBase64, payloadHash } };
+module.exports = { isEnabled, isAvailable, createPayment, checkPaid, _internal: { aesGcmBase64, payloadHash } };
