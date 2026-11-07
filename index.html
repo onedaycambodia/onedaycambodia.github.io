@@ -1713,7 +1713,8 @@
         }
 
         function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
-        function closeModal(modalId) { 
+        function closeModal(modalId) {
+            setTimeout(resetZoom, 60); 
             let modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove('active');
@@ -1837,7 +1838,20 @@
             freeMarker.setLatLng(latlng);
         }
 
+        // iOS Safari zooms the page when an input is focused and never zooms back by itself.
+        // Briefly locking the viewport scale forces it back to normal (the user can still pinch-zoom afterwards).
+        function resetZoom() {
+            const m = document.querySelector('meta[name="viewport"]');
+            if (!m) return;
+            const orig = m.getAttribute('content');
+            m.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1');
+            setTimeout(() => m.setAttribute('content', orig), 350);
+        }
+        document.addEventListener('focusout', () => setTimeout(resetZoom, 60));
+
         function openMapModal() {
+            if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+            resetZoom();
             openModal('mapPickerModal');
             setTimeout(() => {
                 let bounds = getCambodiaBounds();
