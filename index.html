@@ -1050,7 +1050,12 @@
         .au-link { background:none; border:none; color:var(--accent); font-weight:700; font-size:13px; cursor:pointer; padding:8px 4px; display:inline-flex; align-items:center; gap:6px; }
         .au-link:disabled { color:var(--text-muted); cursor:default; }
         .au-row { display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
-        .au-hero { display:flex; align-items:center; gap:14px; padding:6px 0 16px; }
+        .au-hero { display:flex; align-items:center; gap:12px; padding:6px 0 14px; }
+        .au-who { min-width:0; flex:1; } .au-who b, .au-who span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .au-btn2.au-out { width:auto; flex:none; padding:9px 12px; margin:0; gap:8px; font-size:13px; }
+        .au-btn2.au-out .ico { width:18px; height:18px; }
+        .au-sec { display:flex; align-items:center; gap:8px; font-weight:800; font-size:14px; margin:2px 0 10px; padding-top:12px; border-top:1px solid var(--border-color); }
+        .au-sec .ico { width:18px; height:18px; color:var(--accent); }
         .au-avatar { width:52px; height:52px; border-radius:50%; background:var(--accent-light); color:var(--accent); display:flex; align-items:center; justify-content:center; flex:none; }
         .au-avatar .ico { width:28px; height:28px; }
         .au-hero b { display:block; font-size:16px; } .au-hero span { color:var(--text-muted); font-size:13px; }
@@ -1062,7 +1067,7 @@
         #authModal .au-sso img { width:20px; height:20px; display:block; flex:none; }
         #authModal #auGoogleBox { width:100%; max-width:400px; margin:0 auto; }
         #authModal .btn-modal-telegram .ico { width:18px; height:18px; margin-right:6px; }
-        .od-list { max-height:65vh; overflow:auto; display:flex; flex-direction:column; gap:12px; padding:2px 2px 6px; }
+        .od-list { max-height:48vh; overflow:auto; display:flex; flex-direction:column; gap:12px; padding:2px 2px 6px; }
         .od-card { border:1.5px solid var(--border-color); border-radius:16px; padding:14px; background:var(--card-bg); }
         .od-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px; }
         .od-id { font-weight:800; font-size:15px; } .od-date { color:var(--text-muted); font-size:12px; margin-top:2px; }
@@ -1397,19 +1402,11 @@
                 <div class="modal-title"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg><span data-at="account">គណនី</span></div>
                 <button class="btn-close" onclick="closeModal('acctModal')"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
             </div>
-            <div class="au-hero"><div class="au-avatar"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg></div><div><b id="acName"></b><span id="acPhone"></span></div></div>
-            <button class="au-btn2" onclick="closeModal('acctModal'); openOrders()"><svg class="ico" aria-hidden="true"><use href="#i-receipt"/></svg><span data-at="my_orders">ការកុម្មង់របស់ខ្ញុំ</span></button>
-            <button class="au-btn2 danger" onclick="authLogout()"><svg class="ico" aria-hidden="true"><use href="#i-logout"/></svg><span data-at="logout">ចាកចេញ</span></button>
-        </div>
-    </div>
-
-    <!-- 👤 My orders -->
-    <div class="modal-overlay" id="ordersModal" onclick="handleModalClick(event, 'ordersModal')">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title"><svg class="ico" aria-hidden="true"><use href="#i-receipt"/></svg><span data-at="my_orders">ការកុម្មង់របស់ខ្ញុំ</span></div>
-                <button class="btn-close" onclick="closeModal('ordersModal')"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
+            <div class="au-hero">
+                <button class="au-btn2 danger au-out" onclick="authLogout()"><svg class="ico" aria-hidden="true"><use href="#i-logout"/></svg><span data-at="logout">ចាកចេញ</span></button>
+                <div class="au-who"><b id="acName"></b><span id="acPhone"></span></div>
             </div>
+            <div class="au-sec"><svg class="ico" aria-hidden="true"><use href="#i-receipt"/></svg><span data-at="my_orders">ការកុម្មង់របស់ខ្ញុំ</span></div>
             <div id="ordersBody" class="od-list"></div>
         </div>
     </div>
@@ -3202,7 +3199,7 @@
             if (!authEnabled) return;
             authMeta = null;
             applyAuthLang();
-            if (authToken) { updateAcctUi(); openModal('acctModal'); } else openAuth();
+            if (authToken) { updateAcctUi(); openModal('acctModal'); openOrders(); } else openAuth();
         }
         function openAuth(after) {
             authPending = after || null;
@@ -3289,10 +3286,9 @@
             applyAuthLang();
             const body = document.getElementById('ordersBody');
             body.innerHTML = `<div class="od-empty"><svg class="ico" aria-hidden="true"><use href="#i-spinner"/></svg>${esc(at('loading'))}</div>`;
-            openModal('ordersModal');
             try {
                 const r = await fetch(`${RAILWAY_API_URL}/api/my/orders`, { headers: authHeaders(), cache: 'no-store' });
-                if (r.status === 401) { clearAuth(); closeModal('ordersModal'); return openAuth(openOrders); }
+                if (r.status === 401) { clearAuth(); closeModal('acctModal'); return openAuth(); }
                 const j = await r.json();
                 const list = j.orders || [];
                 if (!list.length) { body.innerHTML = `<div class="od-empty"><svg class="ico" aria-hidden="true"><use href="#i-box"/></svg>${esc(at('no_orders'))}</div>`; return; }
