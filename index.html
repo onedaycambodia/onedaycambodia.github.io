@@ -1381,6 +1381,10 @@
                 <div id="auGoogleBtn" style="display:flex;justify-content:center;min-height:44px"></div>
                 <div class="au-err" id="auErrGg"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg><span></span></div>
             </div>
+            <div id="auFbBox" style="display:none">
+                <div class="au-err" id="auErrFb"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg><span></span></div>
+                <button id="auFbBtn" class="btn-modal-telegram au-sso" onclick="fbStart()"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1877F2" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07c0 6.02 4.39 11.02 10.13 11.93v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.88v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.09 24 12.07z"/></svg><span data-at="fb_btn"></span></button>
+            </div>
             <div id="auStepTg" style="display:none">
                 <div class="au-err" id="auErrTg"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg><span></span></div>
                 <button id="auTgBtn" class="btn-modal-telegram au-sso" style="display:none" onclick="tgStart()"><img src="data:image/png;base64,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" alt="" width="20" height="20"><span id="auTgTxt" data-at="tg_btn"></span></button>
@@ -3148,17 +3152,17 @@
         const AUTH_T = {
             km: { login_title:'ចូលគណនី', login_sub:'បញ្ចូលឈ្មោះ និងលេខទូរស័ព្ទ យើងនឹងផ្ញើកូដ ៤ ខ្ទង់ទៅ Telegram របស់អ្នក', name:'ឈ្មោះរបស់អ្នក', phone:'លេខទូរស័ព្ទ (Telegram)', next:'បន្ទាប់', code_sub:'កូដ ៤ ខ្ទង់ត្រូវបានផ្ញើទៅ Telegram នៃលេខ', verify:'បញ្ជាក់', resend:'ផ្ញើកូដម្តងទៀត', resend_in:'ផ្ញើម្តងទៀតក្នុង ', back:'ត្រឡប់ក្រោយ',
                 err_name:'សូមបញ្ចូលឈ្មោះ', err_phone:'លេខទូរស័ព្ទមិនត្រឹមត្រូវ', err_no_tg:'លេខនេះមិនមាន Telegram ទេ សូមប្រើលេខដែលមាន Telegram', err_wait:'សូមរង់ចាំបន្តិច មុនផ្ញើកូដម្តងទៀត', err_many:'ព្យាយាមច្រើនពេក សូមរង់ចាំ', err_send:'មិនអាចផ្ញើកូដបានទេ សូមសាកល្បងម្តងទៀត', err_wrong:'កូដមិនត្រឹមត្រូវ', err_expired:'កូដផុតកំណត់ សូមផ្ញើម្តងទៀត', err_locked:'ខុសច្រើនដង សូមផ្ញើកូដថ្មី', err_net:'មិនអាចភ្ជាប់ Server បានទេ',
-                account:'គណនី', my_orders:'ការកុម្មង់របស់ខ្ញុំ', logout:'ចាកចេញ', saved:'បានរក្សាទុក', err_save:'រក្សាទុកមិនបាន សូមសាកល្បងម្តងទៀត', no_orders:'មិនទាន់មានការកុម្មង់ទេ', loading:'កំពុងផ្ទុក...', tg_sub:'ចុចប៊ូតុងខាងក្រោម រួចចុច Accept ក្នុង Telegram ជាការស្រេច — មិនបាច់វាយលេខ ឬកូដទេ។', tg_btn:'បន្តដោយប្រើ Telegram', tg_wait:'កំពុងរង់ចាំ Telegram...', err_tg_phone:'Telegram មិនបានផ្តល់លេខទូរស័ព្ទ សូមអនុញ្ញាត (Allow) ការចូលមើលលេខទូរស័ព្ទ', err_tg:'Login មិនបានសម្រេច សូមសាកល្បងម្តងទៀត',
+                account:'គណនី', my_orders:'ការកុម្មង់របស់ខ្ញុំ', logout:'ចាកចេញ', saved:'បានរក្សាទុក', err_save:'រក្សាទុកមិនបាន សូមសាកល្បងម្តងទៀត', no_orders:'មិនទាន់មានការកុម្មង់ទេ', loading:'កំពុងផ្ទុក...', tg_sub:'ចុចប៊ូតុងខាងក្រោម រួចចុច Accept ក្នុង Telegram ជាការស្រេច — មិនបាច់វាយលេខ ឬកូដទេ។', fb_btn:'បន្តជាមួយ Facebook', tg_btn:'បន្តដោយប្រើ Telegram', tg_wait:'កំពុងរង់ចាំ Telegram...', err_tg_phone:'Telegram មិនបានផ្តល់លេខទូរស័ព្ទ សូមអនុញ្ញាត (Allow) ការចូលមើលលេខទូរស័ព្ទ', err_tg:'Login មិនបានសម្រេច សូមសាកល្បងម្តងទៀត',
                 st_PENDING:'រង់ចាំបញ្ជាក់', st_CONFIRMED:'ហាងបានបញ្ជាក់', st_AWAITING_PAYMENT:'រង់ចាំបង់ប្រាក់', st_CANCELLED:'បានលុបចោល', st_EXPIRED:'ផុតកំណត់',
                 pay_paid:'បង់ប្រាក់រួច', pay_unpaid:'មិនទាន់បង់', pay_cod:'បង់ពេលទទួល', pay_none:'មិនបានបង់', total:'សរុប', order:'កុម្មង់ #' },
             en: { login_title:'Sign in', login_sub:'Enter your name and phone number. We will send a 4-digit code to your Telegram.', name:'Your name', phone:'Phone number (Telegram)', next:'Next', code_sub:'A 4-digit code was sent to the Telegram of', verify:'Verify', resend:'Resend code', resend_in:'Resend in ', back:'Back',
                 err_name:'Please enter your name', err_phone:'Invalid phone number', err_no_tg:'This number is not on Telegram. Please use a Telegram number.', err_wait:'Please wait a moment before resending', err_many:'Too many attempts, please wait', err_send:'Could not send the code, please try again', err_wrong:'Wrong code', err_expired:'Code expired, please resend', err_locked:'Too many wrong tries, request a new code', err_net:'Cannot reach the server',
-                account:'Account', my_orders:'My orders', logout:'Log out', saved:'Saved', err_save:'Could not save, please try again', no_orders:'No orders yet', loading:'Loading...', tg_sub:'Tap the button below, then tap Accept in Telegram. No typing, no code.', tg_btn:'Continue with Telegram', tg_wait:'Waiting for Telegram...', err_tg_phone:'Telegram did not share your phone number. Please allow phone access.', err_tg:'Login failed, please try again',
+                account:'Account', my_orders:'My orders', logout:'Log out', saved:'Saved', err_save:'Could not save, please try again', no_orders:'No orders yet', loading:'Loading...', tg_sub:'Tap the button below, then tap Accept in Telegram. No typing, no code.', fb_btn:'Continue with Facebook', tg_btn:'Continue with Telegram', tg_wait:'Waiting for Telegram...', err_tg_phone:'Telegram did not share your phone number. Please allow phone access.', err_tg:'Login failed, please try again',
                 st_PENDING:'Awaiting confirmation', st_CONFIRMED:'Confirmed', st_AWAITING_PAYMENT:'Awaiting payment', st_CANCELLED:'Cancelled', st_EXPIRED:'Expired',
                 pay_paid:'Paid', pay_unpaid:'Unpaid', pay_cod:'Pay on delivery', pay_none:'Not paid', total:'Total', order:'Order #' },
             zh: { login_title:'登录', login_sub:'请输入姓名和手机号，我们会向您的 Telegram 发送 4 位验证码。', name:'您的姓名', phone:'手机号 (Telegram)', next:'下一步', code_sub:'4 位验证码已发送至以下号码的 Telegram：', verify:'确认', resend:'重新发送', resend_in:'重新发送：', back:'返回',
                 err_name:'请输入姓名', err_phone:'手机号无效', err_no_tg:'该号码未注册 Telegram，请使用 Telegram 号码', err_wait:'请稍候再重新发送', err_many:'尝试次数过多，请稍候', err_send:'验证码发送失败，请重试', err_wrong:'验证码错误', err_expired:'验证码已过期，请重新发送', err_locked:'错误次数过多，请重新获取', err_net:'无法连接服务器',
-                account:'账户', my_orders:'我的订单', logout:'退出登录', saved:'已保存', err_save:'保存失败，请重试', no_orders:'暂无订单', loading:'加载中...', tg_sub:'点击下方按钮，然后在 Telegram 中点击“接受”即可，无需输入号码或验证码。', tg_btn:'使用 Telegram 继续', tg_wait:'等待 Telegram...', err_tg_phone:'Telegram 未提供手机号，请允许访问手机号。', err_tg:'登录失败，请重试',
+                account:'账户', my_orders:'我的订单', logout:'退出登录', saved:'已保存', err_save:'保存失败，请重试', no_orders:'暂无订单', loading:'加载中...', tg_sub:'点击下方按钮，然后在 Telegram 中点击“接受”即可，无需输入号码或验证码。', fb_btn:'使用 Facebook 继续', tg_btn:'使用 Telegram 继续', tg_wait:'等待 Telegram...', err_tg_phone:'Telegram 未提供手机号，请允许访问手机号。', err_tg:'登录失败，请重试',
                 st_PENDING:'等待确认', st_CONFIRMED:'商家已确认', st_AWAITING_PAYMENT:'等待付款', st_CANCELLED:'已取消', st_EXPIRED:'已过期',
                 pay_paid:'已付款', pay_unpaid:'未付款', pay_cod:'货到付款', pay_none:'未付款', total:'合计', order:'订单 #' }
         };
@@ -3170,7 +3174,7 @@
         (function () { const _cl = changeLanguage; changeLanguage = function () { const r = _cl.apply(this, arguments); applyAuthLang(); return r; }; })();
 
         const AUTH_LS = 'oneday_auth_token', AUTH_COOKIE = 'oneday_t';
-        let authProvider = null, tgClientId = '', googleClientId = '', ggReady = false, authEnabled = false, authToken = null, authCust = null, authPending = null, auPhoneVal = '', auTimer = null;
+        let authProvider = null, tgClientId = '', googleClientId = '', fbAppId = '', ggReady = false, authEnabled = false, authToken = null, authCust = null, authPending = null, auPhoneVal = '', auTimer = null;
 
         function authStoreGet() {
             let t = null;
@@ -3198,7 +3202,7 @@
             authToken = authStoreGet();
             try {
                 const r = await fetchRetry(`${RAILWAY_API_URL}/api/auth/config`, 2);
-                const cfg = await r.json(); authEnabled = !!cfg.enabled; authProvider = cfg.provider || null; tgClientId = cfg.client_id || ''; googleClientId = cfg.google_client_id || '';
+                const cfg = await r.json(); authEnabled = !!cfg.enabled; authProvider = cfg.provider || null; tgClientId = cfg.client_id || ''; googleClientId = cfg.google_client_id || ''; fbAppId = cfg.facebook_app_id || '';
             } catch (e) { authEnabled = false; }
             const btn = document.getElementById('accountBtn'); if (btn) btn.style.display = authEnabled ? 'flex' : 'none';
             if (authEnabled && authToken) {
@@ -3229,6 +3233,7 @@
             document.getElementById('auStepTg').style.display = (n === 0 && tgOn) ? '' : 'none';
             document.getElementById('auTgBtn').style.display = tgOn ? '' : 'none';
             document.getElementById('auGoogleBox').style.display = (googleClientId && n !== 2) ? '' : 'none';
+            document.getElementById('auFbBox').style.display = (fbAppId && n !== 2) ? '' : 'none';
             document.getElementById('auStep1').style.display = n === 1 ? '' : 'none';
             document.getElementById('auStep2').style.display = n === 2 ? '' : 'none';
             auClear();
@@ -3460,6 +3465,36 @@
                 } else auErr('Gg', at('err_tg'));
             } catch (e) { auErr('Gg', at('err_net')); }
         }
+        /* ---- Continue with Facebook (redirect OAuth, same redirect URI as Telegram: https://site/) ---- */
+        const FB_PENDING = 'oneday_fb_pending';
+        function fbStart() {
+            auClear();
+            try {
+                const state = 'fb.' + rnd(16);
+                try { localStorage.setItem(FB_PENDING, JSON.stringify({ state, t: Date.now() })); } catch (e) {}
+                saveCartForRedirect();
+                location.href = 'https://www.facebook.com/v21.0/dialog/oauth?' + new URLSearchParams({
+                    client_id: fbAppId, redirect_uri: tgRedirect(), state, response_type: 'code', scope: 'public_profile,email'
+                }).toString();
+            } catch (e) { auErr('Fb', at('err_tg')); }
+        }
+        async function fbFinish(code, state) {
+            let p = null;
+            try { p = JSON.parse(localStorage.getItem(FB_PENDING) || 'null'); } catch (e) {}
+            try { localStorage.removeItem(FB_PENDING); } catch (e) {}
+            if (!p || p.state !== state || Date.now() - p.t > 15 * 60 * 1000) return;
+            try {
+                const r = await fetch(`${RAILWAY_API_URL}/api/auth/facebook`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, redirect_uri: tgRedirect() }) });
+                const j = await r.json().catch(() => ({}));
+                if (j.ok) {
+                    authToken = j.token; authCust = j.customer; authStoreSet(authToken); updateAcctUi();
+                    try { localStorage.setItem('oneday_cust_name', authCust.name || ''); } catch (e) {}
+                    closeModal('authModal');
+                    const f = authPending; authPending = null; if (f) setTimeout(f, 250);
+                    restoreCartAfterLogin();
+                } else { openModal('authModal'); auShowStep(0); auErr('Fb', at('err_tg')); }
+            } catch (e) { openModal('authModal'); auShowStep(0); auErr('Fb', at('err_net')); }
+        }
         async function tgStart() {
             auClear(); tgBusy(true);
             try {
@@ -3513,7 +3548,7 @@
             }
             return r.code ? r : null;
         })();
-        authInit().then(() => { if (window.__tgReturn && window.__tgReturn !== 'popup') tgFinish(window.__tgReturn.code, window.__tgReturn.state); });
+        authInit().then(() => { const R = window.__tgReturn; if (R && R !== 'popup') { if (String(R.state).indexOf('fb.') === 0) fbFinish(R.code, R.state); else tgFinish(R.code, R.state); } });
     </script>
 </body>
 </html>

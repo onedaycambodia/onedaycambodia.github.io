@@ -30,7 +30,10 @@ module.exports = function (app, { pool }) {
     const TG_SECRET = String(process.env.TG_CLIENT_SECRET || '').trim();
     // 'telegram' = "Log in with Telegram" (free)  |  'gateway' = 4-digit code via Telegram Gateway (paid)  |  null = off
     const GOOGLE_ID = String(process.env.GOOGLE_CLIENT_ID || '').trim();   // "Continue with Google" (Gmail)
-    const provider = (TG_ID && TG_SECRET) ? 'telegram' : (TOKEN ? 'gateway' : (GOOGLE_ID ? 'google' : null));
+    const FB_ID = String(process.env.FB_APP_ID || '').trim();             // "Continue with Facebook"
+    const FB_SECRET = String(process.env.FB_APP_SECRET || '').trim();
+    const FB_ON = !!(FB_ID && FB_SECRET);
+    const provider = (TG_ID && TG_SECRET) ? 'telegram' : (TOKEN ? 'gateway' : ((GOOGLE_ID || FB_ON) ? 'google' : null));
     const enabled = !!provider;
     const SECRET = process.env.AUTH_SECRET || crypto.randomBytes(24).toString('hex');
 
@@ -64,6 +67,8 @@ module.exports = function (app, { pool }) {
             await pool.query(`ALTER TABLE customers ALTER COLUMN phone DROP NOT NULL`);
             await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS email VARCHAR(255)`);
             await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS google_sub VARCHAR(64)`);
+            await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS fb_id VARCHAR(64)`);
+            await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_fb_id ON customers (fb_id) WHERE fb_id IS NOT NULL`);
             await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS avatar TEXT`);
             await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_google_sub ON customers (google_sub) WHERE google_sub IS NOT NULL`);
             await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_email ON customers (LOWER(email)) WHERE email IS NOT NULL`);
@@ -132,7 +137,7 @@ module.exports = function (app, { pool }) {
     }
 
     // ---------- API ----------
-    app.get('/api/auth/config', (req, res) => res.json({ enabled, provider, client_id: provider === 'telegram' ? TG_ID : undefined, google_client_id: GOOGLE_ID || undefined }));
+    app.get('/api/auth/config', (req, res) => res.json({ enabled, provider, client_id: provider === 'telegram' ? TG_ID : undefined, google_client_id: GOOGLE_ID || undefined, facebook_app_id: FB_ON ? FB_ID : undefined }));
 
     app.post('/api/auth/request', async (req, res) => {
         if (provider !== 'gateway') return res.status(503).json({ status: 'disabled' });
@@ -335,6 +340,49 @@ module.exports = function (app, { pool }) {
             res.json({ ok: true, token, customer: publicCustomer(await fullCustomer(cu.rows[0].id)) });
         } catch (e) {
             console.error('auth/google:', e.message);
+            res.status(400).json({ ok: false, error: 'invalid' });
+        }
+    });
+
+
+    // ---------- Facebook login: exchange the ?code= from Facebook, read the profile ----------
+    app.post('/api/auth/facebook', async (req, res) => {
+        if (!FB_ON) return res.status(503).json({ ok: false, error: 'disabled' });
+        if (limited('fb:' + req.ip, 20, 10 * 60 * 1000)) return res.status(429).json({ ok: false, error: 'too_many' });
+        try {
+            const code = String((req.body && req.body.code) || '').slice(0, 1000);
+            const redirectUri = String((req.body && req.body.redirect_uri) || '').slice(0, 300);
+            if (!code || !/^https:\/\/[^\s]+$/.test(redirectUri)) throw new Error('bad request');
+            const tr = await fetch('https://graph.facebook.com/v21.0/oauth/access_token?' + new URLSearchParams({
+                client_id: FB_ID, client_secret: FB_SECRET, redirect_uri: redirectUri, code }).toString());
+            const tj = await tr.json().catch(() => ({}));
+            if (!tj.access_token) throw new Error('token: ' + JSON.stringify(tj.error || tj).slice(0, 200));
+            const pr = await fetch('https://graph.facebook.com/v21.0/me?' + new URLSearchParams({
+                fields: 'id,name,email,picture.type(large)', access_token: tj.access_token }).toString());
+            const p = await pr.json().catch(() => ({}));
+            if (!p.id) throw new Error('profile: ' + JSON.stringify(p.error || p).slice(0, 200));
+            const fid = String(p.id).slice(0, 64);
+            const email = p.email ? String(p.email).toLowerCase().slice(0, 255) : null;
+            const name = String(p.name || (email ? email.split('@')[0] : 'Facebook user')).trim().slice(0, 100);
+            // same Facebook account (id) or same email = same customer
+            let cu = await pool.query(`SELECT id FROM customers WHERE fb_id = $1 OR ($2::text IS NOT NULL AND LOWER(email) = $2) ORDER BY (fb_id = $1) DESC LIMIT 1`, [fid, email]);
+            if (cu.rows.length) {
+                cu = await pool.query(
+                    `UPDATE customers SET fb_id = COALESCE(fb_id, $2), email = COALESCE(email, $3),
+                     name = COALESCE(NULLIF(name, ''), $4), last_login_at = NOW() WHERE id = $1 RETURNING id`,
+                    [cu.rows[0].id, fid, email, name]);
+            } else {
+                cu = await pool.query(
+                    `INSERT INTO customers (phone, name, email, fb_id) VALUES (NULL, $1, $2, $3) RETURNING id`,
+                    [name, email, fid]);
+            }
+            await setPicture(cu.rows[0].id, p.picture && p.picture.data && p.picture.data.url);
+            const token = crypto.randomBytes(32).toString('base64url');
+            await pool.query(`INSERT INTO customer_sessions (token_hash, customer_id, expires_at) VALUES ($1, $2, NOW() + make_interval(days => $3))`,
+                [sha(token), cu.rows[0].id, SESSION_DAYS]);
+            res.json({ ok: true, token, customer: publicCustomer(await fullCustomer(cu.rows[0].id)) });
+        } catch (e) {
+            console.error('auth/facebook:', e.message);
             res.status(400).json({ ok: false, error: 'invalid' });
         }
     });
