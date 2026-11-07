@@ -30,8 +30,11 @@ module.exports = function (app, { pool }) {
     const TG_SECRET = String(process.env.TG_CLIENT_SECRET || '').trim();
     // 'telegram' = "Log in with Telegram" (free)  |  'gateway' = 4-digit code via Telegram Gateway (paid)  |  null = off
     const GOOGLE_ID = String(process.env.GOOGLE_CLIENT_ID || '').trim();   // "Continue with Google" (Gmail)
+    const TT_KEY = String(process.env.TIKTOK_CLIENT_KEY || '').trim();       // "Continue with TikTok" (Login Kit)
+    const TT_SECRET = String(process.env.TIKTOK_CLIENT_SECRET || '').trim();
+    const TT_ON = !!(TT_KEY && TT_SECRET);
     const provider = (TG_ID && TG_SECRET) ? 'telegram' : (TOKEN ? 'gateway' : (GOOGLE_ID ? 'google' : null));
-    const enabled = !!provider;
+    const enabled = !!provider || TT_ON;
     const SECRET = process.env.AUTH_SECRET || crypto.randomBytes(24).toString('hex');
 
     // ---------- tiny in-memory rate limiter ----------
@@ -67,6 +70,8 @@ module.exports = function (app, { pool }) {
             await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS avatar TEXT`);
             await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_google_sub ON customers (google_sub) WHERE google_sub IS NOT NULL`);
             await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_email ON customers (LOWER(email)) WHERE email IS NOT NULL`);
+            await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS tiktok_open_id VARCHAR(64)`);
+            await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_tiktok ON customers (tiktok_open_id) WHERE tiktok_open_id IS NOT NULL`);
             await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id INTEGER`);
             await pool.query(`CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders (customer_id)`);
             console.log('Customer accounts ready. Login provider:', provider || 'OFF (set TG_CLIENT_ID + TG_CLIENT_SECRET)');
@@ -132,7 +137,7 @@ module.exports = function (app, { pool }) {
     }
 
     // ---------- API ----------
-    app.get('/api/auth/config', (req, res) => res.json({ enabled, provider, client_id: provider === 'telegram' ? TG_ID : undefined, google_client_id: GOOGLE_ID || undefined }));
+    app.get('/api/auth/config', (req, res) => res.json({ enabled, provider, client_id: provider === 'telegram' ? TG_ID : undefined, google_client_id: GOOGLE_ID || undefined, tiktok_client_key: TT_ON ? TT_KEY : undefined }));
 
     app.post('/api/auth/request', async (req, res) => {
         if (provider !== 'gateway') return res.status(503).json({ status: 'disabled' });
@@ -364,6 +369,47 @@ module.exports = function (app, { pool }) {
             await pool.query('UPDATE customers SET ' + sets.join(', ') + ' WHERE id = $' + vals.length, vals);
             res.json({ ok: true, customer: publicCustomer(await fullCustomer(c.id)) });
         } catch (e) { console.error('my/profile:', e.message); res.status(500).json({ ok: false }); }
+    });
+
+    // ---------- Continue with TikTok (Login Kit, web) ----------
+    app.post('/api/auth/tiktok', async (req, res) => {
+        if (!TT_ON) return res.status(503).json({ ok: false, error: 'disabled' });
+        if (limited('tt:' + req.ip, 20, 10 * 60 * 1000)) return res.status(429).json({ ok: false, error: 'too_many' });
+        const b = req.body || {};
+        const code = String(b.code || ''), redirect = String(b.redirect_uri || '');
+        if (!/^\S{10,2000}$/.test(code) || !/^https:\/\/[^\s]{3,300}$/.test(redirect))
+            return res.status(400).json({ ok: false, error: 'bad_request' });
+        try {
+            const tr = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Cache-Control': 'no-cache' },
+                body: new URLSearchParams({ client_key: TT_KEY, client_secret: TT_SECRET, code, grant_type: 'authorization_code', redirect_uri: redirect }).toString()
+            });
+            const tj = await tr.json().catch(() => ({}));
+            if (!tj.access_token) { console.error('tiktok token exchange failed:', tr.status, JSON.stringify(tj).slice(0, 200)); return res.status(400).json({ ok: false, error: 'exchange_failed' }); }
+            const ur = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,avatar_url,display_name', {
+                headers: { Authorization: 'Bearer ' + tj.access_token }
+            });
+            const uj = await ur.json().catch(() => ({}));
+            const user = (uj && uj.data && uj.data.user) || {};
+            const openId = String(user.open_id || tj.open_id || '').slice(0, 64);
+            if (!openId) { console.error('tiktok user info failed:', ur.status, JSON.stringify(uj).slice(0, 200)); return res.status(400).json({ ok: false, error: 'no_user' }); }
+            const name = String(user.display_name || 'TikTok user').trim().slice(0, 100);
+            let cu = await pool.query('SELECT id FROM customers WHERE tiktok_open_id = $1', [openId]);
+            if (cu.rows.length) {
+                cu = await pool.query(`UPDATE customers SET name = COALESCE(NULLIF(name, ''), $2), last_login_at = NOW() WHERE id = $1 RETURNING id`, [cu.rows[0].id, name]);
+            } else {
+                cu = await pool.query(`INSERT INTO customers (phone, name, tiktok_open_id) VALUES (NULL, $1, $2) RETURNING id`, [name, openId]);
+            }
+            await setPicture(cu.rows[0].id, user.avatar_url);
+            const token = crypto.randomBytes(32).toString('base64url');
+            await pool.query(`INSERT INTO customer_sessions (token_hash, customer_id, expires_at) VALUES ($1, $2, NOW() + make_interval(days => $3))`,
+                [sha(token), cu.rows[0].id, SESSION_DAYS]);
+            res.json({ ok: true, token, customer: publicCustomer(await fullCustomer(cu.rows[0].id)) });
+        } catch (e) {
+            console.error('auth/tiktok:', e.message);
+            res.status(400).json({ ok: false, error: 'invalid' });
+        }
     });
 
     app.get('/api/auth/me', async (req, res) => {
