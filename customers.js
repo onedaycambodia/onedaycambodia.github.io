@@ -64,6 +64,7 @@ module.exports = function (app, { pool }) {
             await pool.query(`ALTER TABLE customers ALTER COLUMN phone DROP NOT NULL`);
             await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS email VARCHAR(255)`);
             await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS google_sub VARCHAR(64)`);
+            await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS avatar TEXT`);
             await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_google_sub ON customers (google_sub) WHERE google_sub IS NOT NULL`);
             await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_email ON customers (LOWER(email)) WHERE email IS NOT NULL`);
             await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id INTEGER`);
@@ -90,7 +91,7 @@ module.exports = function (app, { pool }) {
         if (!tok) return null;
         try {
             const r = await pool.query(
-                `SELECT c.id, c.name, c.phone, c.email, s.last_seen FROM customer_sessions s JOIN customers c ON c.id = s.customer_id
+                `SELECT c.id, c.name, c.phone, c.email, c.avatar, s.last_seen FROM customer_sessions s JOIN customers c ON c.id = s.customer_id
                  WHERE s.token_hash = $1 AND s.expires_at > NOW()`, [sha(tok)]);
             if (!r.rows.length) return null;
             const c = r.rows[0];
@@ -98,10 +99,19 @@ module.exports = function (app, { pool }) {
                 pool.query(`UPDATE customer_sessions SET last_seen = NOW(), expires_at = NOW() + make_interval(days => $2) WHERE token_hash = $1`,
                     [sha(tok), SESSION_DAYS]).catch(() => {});
             }
-            return { id: c.id, name: c.name, phone: c.phone, email: c.email };
+            return { id: c.id, name: c.name, phone: c.phone, email: c.email, avatar: c.avatar };
         } catch (e) { console.error('authCustomer:', e.message); return null; }
     }
-    const publicCustomer = (c) => ({ name: c.name, phone: c.phone ? showPhone(c.phone) : '', email: c.email || '' });
+    const publicCustomer = (c) => ({ name: c.name, phone: c.phone ? showPhone(c.phone) : '', email: c.email || '', avatar: c.avatar || '' });
+    async function fullCustomer(id) {
+        const r = await pool.query('SELECT id, name, phone, email, avatar FROM customers WHERE id = $1', [id]);
+        return r.rows[0];
+    }
+    // profile picture from Google / Telegram: only used while the customer has not uploaded their own
+    async function setPicture(id, url) {
+        if (typeof url !== 'string' || !/^https:\/\/[^\s'"<>]{5,500}$/.test(url)) return;
+        await pool.query("UPDATE customers SET avatar = $1 WHERE id = $2 AND (avatar IS NULL OR avatar LIKE 'http%')", [url, id]).catch(() => {});
+    }
 
     // ---------- Telegram Gateway ----------
     async function sendCode(phone, code) {
@@ -188,7 +198,7 @@ module.exports = function (app, { pool }) {
                 `INSERT INTO customer_sessions (token_hash, customer_id, expires_at) VALUES ($1, $2, NOW() + make_interval(days => $3))`,
                 [sha(token), cu.rows[0].id, SESSION_DAYS]);
             await client.query('COMMIT');
-            res.json({ ok: true, token, customer: publicCustomer(cu.rows[0]) });
+            res.json({ ok: true, token, customer: publicCustomer(await fullCustomer(cu.rows[0].id)) });
         } catch (e) {
             try { await client.query('ROLLBACK'); } catch (_) {}
             console.error('auth/verify:', e.message);
@@ -259,10 +269,11 @@ module.exports = function (app, { pool }) {
                 `INSERT INTO customers (phone, name, tg_id) VALUES ($1, $2, $3)
                  ON CONFLICT (phone) DO UPDATE SET name = COALESCE(NULLIF($2, ''), customers.name), tg_id = COALESCE($3, customers.tg_id), last_login_at = NOW()
                  RETURNING id, name, phone`, [phone, name, tgId]);
+            await setPicture(cu.rows[0].id, claims.picture);
             const token = crypto.randomBytes(32).toString('base64url');
             await pool.query(`INSERT INTO customer_sessions (token_hash, customer_id, expires_at) VALUES ($1, $2, NOW() + make_interval(days => $3))`,
                 [sha(token), cu.rows[0].id, SESSION_DAYS]);
-            res.json({ ok: true, token, customer: publicCustomer(cu.rows[0]) });
+            res.json({ ok: true, token, customer: publicCustomer(await fullCustomer(cu.rows[0].id)) });
         } catch (e) {
             console.error('auth/telegram:', e.message);
             res.status(400).json({ ok: false, error: 'invalid' });
@@ -317,14 +328,41 @@ module.exports = function (app, { pool }) {
                     `INSERT INTO customers (phone, name, email, google_sub) VALUES (NULL, $1, $2, $3) RETURNING id, name, phone, email`,
                     [name, email, sub]);
             }
+            await setPicture(cu.rows[0].id, claims.picture);
             const token = crypto.randomBytes(32).toString('base64url');
             await pool.query(`INSERT INTO customer_sessions (token_hash, customer_id, expires_at) VALUES ($1, $2, NOW() + make_interval(days => $3))`,
                 [sha(token), cu.rows[0].id, SESSION_DAYS]);
-            res.json({ ok: true, token, customer: publicCustomer(cu.rows[0]) });
+            res.json({ ok: true, token, customer: publicCustomer(await fullCustomer(cu.rows[0].id)) });
         } catch (e) {
             console.error('auth/google:', e.message);
             res.status(400).json({ ok: false, error: 'invalid' });
         }
+    });
+
+    // ---------- edit own profile (name / photo) ----------
+    app.post('/api/my/profile', async (req, res) => {
+        const c = await authCustomer(req);
+        if (!c) return res.status(401).json({ ok: false, error: 'need_login' });
+        if (limited('prof:' + c.id, 30, 10 * 60 * 1000)) return res.status(429).json({ ok: false, error: 'too_many' });
+        const b = req.body || {};
+        const sets = [], vals = [];
+        if (b.name !== undefined) {
+            const name = String(b.name).replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 100);
+            if (!name) return res.status(400).json({ ok: false, error: 'bad_name' });
+            vals.push(name); sets.push('name = $' + vals.length);
+        }
+        if (b.avatar !== undefined) {
+            const a = String(b.avatar);
+            if (a === '') { vals.push(null); sets.push('avatar = $' + vals.length); }
+            else if (/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(a) && a.length <= 70000) { vals.push(a); sets.push('avatar = $' + vals.length); }
+            else return res.status(400).json({ ok: false, error: 'bad_avatar' });
+        }
+        if (!sets.length) return res.status(400).json({ ok: false, error: 'nothing' });
+        try {
+            vals.push(c.id);
+            await pool.query('UPDATE customers SET ' + sets.join(', ') + ' WHERE id = $' + vals.length, vals);
+            res.json({ ok: true, customer: publicCustomer(await fullCustomer(c.id)) });
+        } catch (e) { console.error('my/profile:', e.message); res.status(500).json({ ok: false }); }
     });
 
     app.get('/api/auth/me', async (req, res) => {
