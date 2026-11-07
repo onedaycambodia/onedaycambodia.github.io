@@ -6,7 +6,6 @@ const cloudinary = require('cloudinary').v2;
 const path = require('path');
 const translate = require('translate-google'); // 📦 Library សម្រាប់បកប្រែស្វ័យប្រវត្តិ
 const bakong = require('./bakong'); // 💳 Bakong KHQR payments
-const wing = require('./wing');     // 🟢 Wing KHQR payments
 const crypto = require('crypto');
 
 const app = express();
@@ -26,20 +25,22 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/videos', express.static(path.join(__dirname, 'videos')));
 
 // ☁️ កំណត់តម្លៃ Cloudinary ជាមួយ API Key ដែលបានកែតម្រូវត្រឹមត្រូវ (មានលេខ 7 ពីរដង)
-cloudinary.config({
-    cloud_name: 'r7l6lhkr',
-    api_key: '259777257922487',
-    api_secret: 's6A8nNZLtl3hPYYgyqr_IF_eB_Y'
-});
+// 🔒 Secrets come from environment variables ONLY (set them on Railway). Never commit them to Git.
+//   CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET   (or a single CLOUDINARY_URL)
+if (process.env.CLOUDINARY_API_SECRET) {
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+        secure: true
+    });
+} else if (!process.env.CLOUDINARY_URL) {
+    console.error('⚠️ Cloudinary មិនទាន់កំណត់ (CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET)!');
+}
 
 // 🌐 ផ្លូវទី ១: សម្រាប់ Website ធម្មតា (អតិថិជនចូលមើល និងកុម្មង់ទំនិញ)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Wing sends the customer here when they cancel the payment
-app.get('/payment-cancel.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'payment-cancel.html'));
 });
 
 // 🔒 ផ្លូវទី ២: សម្រាប់ Telegram Mini App (Admin គ្រប់គ្រងស្តុក)
@@ -60,6 +61,35 @@ if (!BOT_TOKEN) {
 }
 const bot = new Telegraf(BOT_TOKEN || 'NO_TOKEN_PROVIDED');
 
+// A dropped DB connection must not crash the whole server.
+pool.on('error', (err) => console.error('Postgres pool error:', err.message));
+// Without this, ONE error inside any bot handler stops Telegram polling completely.
+bot.catch((err, ctx) => console.error('Bot handler error:', err && err.message ? err.message : err));
+
+// Escape text that is inserted into legacy-Markdown Telegram messages (a single "_" in a name/username
+// used to make Telegram reject the whole message, so the admins never saw the order).
+const escMd = (v) => String(v == null ? '' : v).replace(/([_*`\[\]])/g, '\\$1');
+const isHttpsUrl = (v) => /^https:\/\/\S+$/i.test(String(v || '').trim());
+const cleanTgUsername = (v) => { v = String(v || '').replace(/^@/, ''); return /^[A-Za-z0-9_]{3,32}$/.test(v) ? v : ''; };
+const cleanTgId = (v) => { v = String(v || ''); return /^\d{1,15}$/.test(v) ? v : ''; };
+
+// ⛔ Every inline-button press is admin-only (before, anybody could trigger e.g. confirm_order_N).
+bot.use(async (ctx, next) => {
+    if (ctx.callbackQuery) {
+        const ok = ctx.from && await isAdminUser(ctx.from.id, ctx.from.username || '');
+        if (!ok) { try { await ctx.answerCbQuery('⛔️ គ្មានសិទ្ធិ!', { show_alert: true }); } catch (e) {} return; }
+    }
+    return next();
+});
+
+// Bot registration password: set BOT_PASSWORD on Railway (never in code).
+const BOT_PASSWORD = process.env.BOT_PASSWORD || '';
+const pwFails = new Map(); // chatId -> { n, until }
+function safeStrEq(a, b) {
+    const x = Buffer.from(String(a)), y = Buffer.from(String(b));
+    return x.length === y.length && crypto.timingSafeEqual(x, y);
+}
+
 const RAILWAY_HOST = process.env.RAILWAY_PUBLIC_DOMAIN 
     ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` 
     : 'https://control-stock-production-a855.up.railway.app';
@@ -71,7 +101,7 @@ let userStates = {};
 async function isAdminUser(chatId, username) {
     try {
         let check = await pool.query(
-            "SELECT * FROM admins WHERE chat_id = $1 OR (username != '' AND LOWER(username) = LOWER($2))",
+            "SELECT * FROM admins WHERE chat_id = $1 OR (chat_id < 0 AND username != '' AND LOWER(username) = LOWER($2))",
             [chatId || 0, username || '']
         );
         return check.rows.length > 0;
@@ -85,7 +115,7 @@ async function isAdminUser(chatId, username) {
 async function isOwnerUser(chatId, username) {
     try {
         let check = await pool.query(
-            "SELECT * FROM admins WHERE (chat_id = $1 OR LOWER(username) = LOWER($2)) AND is_owner = TRUE",
+            "SELECT * FROM admins WHERE (chat_id = $1 OR (chat_id < 0 AND username != '' AND LOWER(username) = LOWER($2))) AND is_owner = TRUE",
             [chatId || 0, username || '']
         );
         return check.rows.length > 0;
@@ -114,9 +144,6 @@ async function uploadTelegramFileToCloudinary(ctx, fileId, folderName = 'oneday_
     let fileUrl = typeof linkObj === 'string' ? linkObj : (linkObj.href || linkObj.toString());
     
     let uploadResult = await cloudinary.uploader.upload(fileUrl, {
-        cloud_name: 'r7l6lhkr',
-        api_key: '259777257922487',
-        api_secret: 's6A8nNZLtl3hPYYgyqr_IF_eB_Y',
         folder: folderName,
         resource_type: 'auto'
     });
@@ -125,20 +152,20 @@ async function uploadTelegramFileToCloudinary(ctx, fileId, folderName = 'oneday_
 }
 
 // 🗑️ Helper Function: លុប File ចេញពី Cloudinary តាមរយៈ URL ចាស់
+// (ដឹង resource_type ពី URL: image / video / raw — មុននេះវីដេអូមិនដែលត្រូវបានលុបទេ ព្រោះប្រើ image ជានិច្ច)
 async function deleteCloudinaryFileByUrl(url) {
-    if (!url || !url.includes('cloudinary.com')) return;
+    if (!url || !/^https:\/\/res\.cloudinary\.com\//i.test(url)) return;
     try {
-        let parts = url.split('/');
-        let publicIdWithFolder = parts.slice(parts.indexOf('upload') + 2, parts.length).join('/');
-        let publicId = publicIdWithFolder.substring(0, publicIdWithFolder.lastIndexOf('.'));
-        if (!publicId) {
-            publicId = publicIdWithFolder;
-        }
-        await cloudinary.uploader.destroy(publicId, {
-            cloud_name: 'r7l6lhkr',
-            api_key: '259777257922487',
-            api_secret: 's6A8nNZLtl3hPYYgyqr_IF_eB_Y'
-        });
+        const m = url.split('?')[0].match(/\/(image|video|raw)\/upload\/(.+)$/);
+        if (!m) return;
+        const resourceType = m[1];
+        let segs = m[2].split('/');
+        const vi = segs.findIndex(x => /^v\d+$/.test(x));
+        if (vi >= 0) segs = segs.slice(vi + 1);      // drop transformations + version
+        let publicId = decodeURIComponent(segs.join('/'));
+        if (resourceType !== 'raw') publicId = publicId.replace(/\.[^./]+$/, '');
+        if (!publicId) return;
+        await cloudinary.uploader.destroy(publicId, { resource_type: resourceType, invalidate: true });
         console.log("Deleted old file from Cloudinary:", publicId);
     } catch (err) {
         console.error("Failed to delete from Cloudinary:", err);
@@ -254,7 +281,6 @@ async function initDB() {
             ALTER TABLE orders
                 ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20) DEFAULT 'COD',
                 ADD COLUMN IF NOT EXISTS khqr_md5 VARCHAR(64),
-                ADD COLUMN IF NOT EXISTS wing_ref VARCHAR(40),
                 ADD COLUMN IF NOT EXISTS pay_amount DECIMAL(10,2),
                 ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP,
                 ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP,
@@ -279,7 +305,7 @@ app.get('/api/website-settings', async (req, res) => {
         result.rows.forEach(r => settings[r.key] = r.value);
         res.json(settings);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('api error:', err.message); res.status(500).json({ error: 'Server error' });
     }
 });
 
@@ -288,7 +314,7 @@ app.get('/api/website-covers', async (req, res) => {
         let result = await pool.query("SELECT * FROM website_covers ORDER BY id ASC");
         res.json(result.rows);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('api error:', err.message); res.status(500).json({ error: 'Server error' });
     }
 });
 
@@ -298,15 +324,16 @@ app.get('/api/delivery-fee', async (req, res) => {
         let fee = result.rows.length > 0 ? result.rows[0].value : '2.00';
         res.json({ delivery_fee: fee });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('api error:', err.message); res.status(500).json({ error: 'Server error' });
     }
 });
 
 app.get('/api/products', async (req, res) => {
     try {
         const query = `
-            SELECT p.*, 
-                   json_agg(json_build_object('size', s.size, 'stock_qty', s.stock_qty)) as sizes
+            SELECT p.ref, p.title_km, p.title_en, p.title_zh, p.desc_km, p.desc_en, p.desc_zh,
+                   p.gender, p.type, p.video_url, p.model_3d_url, p.price,
+                   COALESCE(json_agg(json_build_object('size', s.size, 'stock_qty', s.stock_qty)) FILTER (WHERE s.size IS NOT NULL), '[]') as sizes
             FROM products p
             LEFT JOIN stock s ON p.ref = s.ref
             GROUP BY p.ref
@@ -315,26 +342,26 @@ app.get('/api/products', async (req, res) => {
         let result = await pool.query(query);
         res.json(result.rows);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('api error:', err.message); res.status(500).json({ error: 'Server error' });
     }
 });
 
 app.get('/api/stock', async (req, res) => {
     try {
-        let result = await pool.query("SELECT * FROM stock ORDER BY NULLIF(regexp_replace(ref, '\\D', '', 'g'), '')::NUMERIC ASC NULLS LAST, ref ASC, size");
+        let result = await pool.query("SELECT id, ref, size, stock_qty, price FROM stock ORDER BY NULLIF(regexp_replace(ref, '\\D', '', 'g'), '')::NUMERIC ASC NULLS LAST, ref ASC, size");
         res.json(result.rows);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('api error:', err.message); res.status(500).json({ error: 'Server error' });
     }
 });
 
 app.post('/api/check-admin', async (req, res) => {
-    let { telegramId, username } = req.body;
     try {
-        let authorized = await isAdminUser(telegramId, username);
-        res.json({ authorized });
+        const who = await webAdmin.authorize(req); // verifies the signed Telegram initData / session cookie
+        res.json({ authorized: !!who });
     } catch (err) {
-        res.status(500).json({ authorized: false, error: err.message });
+        console.error('check-admin error:', err.message);
+        res.status(500).json({ authorized: false });
     }
 });
 
@@ -344,15 +371,16 @@ app.post('/api/admin/update-stock', async (req, res) => {
         if (!(await webAdmin.authorize(req))) return res.status(401).json({ success: false, error: 'Unauthorized' });
         qty = parseInt(qty, 10);
         if (!Number.isInteger(qty) || qty < 0 || qty > 100000) return res.status(400).json({ success: false, error: 'Invalid qty' });
-        let cleanRef = ref.replace(/ref:?\s*/i, '').trim().toUpperCase();
-        let cleanSize = size.trim().toUpperCase();
+        let cleanRef = String(ref || '').replace(/ref:?\s*/i, '').trim().toUpperCase();
+        let cleanSize = String(size || '').trim().toUpperCase();
         await pool.query(
             "UPDATE stock SET stock_qty = $1 WHERE UPPER(ref) = $2 AND UPPER(size) = $3",
             [qty, cleanRef, cleanSize]
         );
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error('update-stock error:', err.message);
+        res.status(500).json({ success: false, error: 'Server error' });
     }
 });
 
@@ -374,11 +402,22 @@ function khqrRateLimited(ip) {
     return false;
 }
 
-// Ask the right provider (Bakong or Wing) whether this order has been paid.
+// general per-IP limiter (used for orders / claims) + periodic cleanup so the Maps do not grow forever
+const ipHits = new Map();
+function ipLimited(key, max, windowMs) {
+    const now = Date.now();
+    const hits = (ipHits.get(key) || []).filter(t => now - t < windowMs);
+    hits.push(now);
+    ipHits.set(key, hits);
+    return hits.length > max;
+}
+setInterval(() => {
+    const now = Date.now();
+    for (const m of [khqrRateMap, ipHits]) for (const [k, v] of m) if (!v.length || now - v[v.length - 1] > 3600000) m.delete(k);
+}, 10 * 60 * 1000).unref();
+
+// Ask Bakong whether this order has been paid.
 async function checkOrderPaid(o, priority = 'auto') {
-    if (o.payment_method === 'WING') {
-        return wing.isEnabled() ? wing.checkPaid(o.wing_ref, o.pay_amount) : { state: 'UNPAID' };
-    }
     return bakong.isEnabled() ? bakong.checkPaid(o.khqr_md5, o.pay_amount, priority) : { state: 'UNPAID' };
 }
 
@@ -416,21 +455,21 @@ async function sendOrderToAdmins(orderId, customer, itemsSummary, totalAmount, h
     let adminsRes = await pool.query("SELECT chat_id FROM admins WHERE chat_id IS NOT NULL");
     if (adminsRes.rows.length === 0) return;
     customer = customer || {};
-    let custName = customer.name || customer.fullName || 'អតិថិជនមិនបញ្ចេញឈ្មោះ';
-    let custPhone = customer.phone || customer.phoneNumber || 'គ្មានលេខទូរស័ព្ទ';
-    let custAddress = customer.address || customer.location || 'គ្មានអាសយដ្ឋាន';
-    let userId = customer.userId || customer.telegramId || '';
-    let username = customer.username || '';
+    let custName = escMd(customer.name || customer.fullName || 'អតិថិជនមិនបញ្ចេញឈ្មោះ');
+    let custPhone = escMd(customer.phone || customer.phoneNumber || 'គ្មានលេខទូរស័ព្ទ');
+    let custAddress = escMd(customer.address || customer.location || 'គ្មានអាសយដ្ឋាន');
+    let userId = cleanTgId(customer.userId || customer.telegramId);
+    let username = cleanTgUsername(customer.username);
 
     let msg = `📦 **មានការកុម្មង់ទំនិញថ្មី!** (#Order ID: ${orderId})\n${headerExtra || ''}\n`;
     msg += `👤 **ព័ត៌មានអតិថិជន:**\n- ឈ្មោះ: ${custName}\n- លេខទូរស័ព្ទ: ${custPhone}\n- អាសយដ្ឋាន: ${custAddress}\n`;
     if (userId) msg += `- Telegram ID: \`${userId}\`\n`;
-    if (username) msg += `- Username: @${username}\n`;
+    if (username) msg += `- Username: @${escMd(username)}\n`;
     const mi = mapInfo(customer);
     if (mi) msg += `📍 **ទីតាំង Map:** ${mi.coords}\n🗺 ${mi.url}\n`;
     msg += `\n🛒 **ទំនិញកុម្មង់:**\n`;
-    itemsSummary.forEach((it, idx) => {
-        msg += `${idx + 1}. Ref: ${it.ref} - ${it.title} (Size: ${it.size}) x ${it.qty} = $${Number(it.total).toFixed(2)}\n`;
+    (Array.isArray(itemsSummary) ? itemsSummary : Object.values(itemsSummary || {})).forEach((it, idx) => {
+        msg += `${idx + 1}. Ref: ${escMd(it.ref)} - ${escMd(it.title)} (Size: ${escMd(it.size)}) x ${it.qty} = $${Number(it.total).toFixed(2)}\n`;
     });
     msg += `\n💵 **សរុបទឹកប្រាក់:** $${Number(totalAmount).toFixed(2)}`;
 
@@ -445,7 +484,11 @@ async function sendOrderToAdmins(orderId, customer, itemsSummary, totalAmount, h
     for (let adm of adminsRes.rows) {
         try {
             await bot.telegram.sendMessage(adm.chat_id, msg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: inlineKeyboard } });
-        } catch (e) {}
+        } catch (e) {
+            // last resort: plain text, so an odd character can never hide a paid order from the admins
+            try { await bot.telegram.sendMessage(adm.chat_id, msg.replace(/\\([_*`\[\]])/g, '$1').replace(/\*/g, ''), { reply_markup: { inline_keyboard: inlineKeyboard } }); }
+            catch (e2) { console.error('order notify failed:', e2.message); }
+        }
     }
 }
 
@@ -460,7 +503,7 @@ async function markOrderPaid(orderId) {
     console.log(`Payment received: order ${o.id} via ${o.payment_method} $${o.pay_amount}`);
     const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items;
     const customer = typeof o.customer === 'string' ? JSON.parse(o.customer) : o.customer;
-    await sendOrderToAdmins(o.id, customer, items, o.pay_amount || o.total, `✅ **បង់ប្រាក់រួចរាល់តាម ${o.payment_method === 'WING' ? 'Wing KHQR' : 'KHQR (Bakong)'} $${Number(o.pay_amount).toFixed(2)}**\n`);
+    await sendOrderToAdmins(o.id, customer, items, o.pay_amount || o.total, `✅ **បង់ប្រាក់រួចរាល់តាម KHQR (Bakong) $${Number(o.pay_amount).toFixed(2)}**\n`);
     return true;
 }
 
@@ -487,7 +530,7 @@ async function expireOrder(orderId) {
 }
 
 app.get('/api/payment-config', (req, res) => {
-    res.json({ khqr_enabled: bakong.isEnabled(), wing_enabled: wing.isAvailable(), expire_minutes: KHQR_EXPIRE_MINUTES });
+    res.json({ khqr_enabled: bakong.isEnabled(), expire_minutes: KHQR_EXPIRE_MINUTES });
 });
 
 // ---- Manual-confirmation fallback -------------------------------------------------------------
@@ -507,7 +550,7 @@ async function notifyManualReview(o, reason) {
         for (const k in items) lines.push(`- ${items[k].ref} (${items[k].size}) x ${items[k].qty}`);
         const msg =
             `⚠️ ត្រូវការបញ្ជាក់ការបង់ប្រាក់ដោយដៃ (Order #${o.id})\n\n` +
-            `💵 ទឹកប្រាក់: $${Number(o.pay_amount).toFixed(2)} (${o.payment_method === 'WING' ? 'Wing' : 'KHQR Bakong'})\n` +
+            `💵 ទឹកប្រាក់: $${Number(o.pay_amount).toFixed(2)} (KHQR Bakong)\n` +
             `🧾 Bill number: OD${o.id}\n` +
             `👤 ${customer.name || customer.fullName || '-'} | ${customer.phone || customer.phoneNumber || '-'}\n` +
             (mapInfo(customer) ? `🗺 ${mapInfo(customer).url}\n` : '') +
@@ -593,7 +636,7 @@ app.get('/api/payment-status/:md5', async (req, res) => {
         const md5 = String(req.params.md5).toLowerCase();
         if (!/^[a-f0-9]{32}$/.test(md5)) return res.status(400).json({ status: 'INVALID' });
 
-        const r = await pool.query("SELECT id, status, pay_amount, expires_at, payment_method, khqr_md5, wing_ref, manual_review, created_at FROM orders WHERE khqr_md5 = $1", [md5]);
+        const r = await pool.query("SELECT id, status, pay_amount, expires_at, payment_method, khqr_md5, manual_review, created_at FROM orders WHERE khqr_md5 = $1", [md5]);
         if (r.rows.length === 0) return res.status(404).json({ status: 'NOT_FOUND' });
         const o = r.rows[0];
 
@@ -609,21 +652,14 @@ app.get('/api/payment-status/:md5', async (req, res) => {
 
             const now = Date.now();
             const sinceLast = now - (khqrLastChecked.get(md5) || 0);
-            if (o.payment_method === 'WING') {
-                if (sinceLast >= 3000) { // Wing has no known tiny quota, but still never hit it more than once per 3 s per order
-                    khqrLastChecked.set(md5, now);
-                    const c = await checkOrderPaid(o);
-                    if (c.state === 'PAID') { await markOrderPaid(o.id); return res.json({ status: 'PAID', order_id: o.id }); }
-                    if (c.state === 'ERROR') console.error(`WING check error (order ${o.id}):`, c.detail);
-                }
-            } else if (req.query.force === '1' && !o.manual_review && sinceLast >= 8000) {
+            if (req.query.force === '1' && !o.manual_review && sinceLast >= 8000) {
                 // the customer pressed "I have paid - check again": one extra check (may use the reserve), 8 s cooldown per order
                 khqrLastChecked.set(md5, now);
                 const c = await checkOrderPaid(o, 'manual');
                 if (c.state === 'PAID') { await markOrderPaid(o.id); return res.json({ status: 'PAID', order_id: o.id }); }
                 if (c.state !== 'UNPAID') console.error(`KHQR manual check (order ${o.id}): ${c.state} ${c.detail || ''}`);
             }
-            return res.json({ status: 'WAITING', manual: !!o.manual_review, degraded: o.payment_method === 'WING' ? false : bakong.degraded() });
+            return res.json({ status: 'WAITING', manual: !!o.manual_review, degraded: bakong.degraded() });
         }
         // PENDING/CONFIRMED with paid_at = paid; anything else = expired or cancelled
         if (o.status === 'PENDING' || o.status === 'CONFIRMED') return res.json({ status: 'PAID', order_id: o.id });
@@ -646,37 +682,6 @@ app.post('/api/payment-claim/:md5', async (req, res) => {
     } catch (err) {
         console.error('payment-claim error:', err);
         res.status(500).json({ ok: false });
-    }
-});
-
-// ---- Wing callback (webhook) ----------------------------------------------------------------------
-// Wing calls this when a payment finishes. We NEVER trust the body: we only read the order reference from it,
-// then ask Wing directly (inquiry API) whether that order was really paid for the right amount. A fake call
-// therefore cannot mark an order as paid. Always answer 200 quickly so Wing does not keep retrying.
-app.post('/webhook', async (req, res) => {
-    res.status(200).json({ code: '200', message: 'Push callback is successfully received.' }); // format from Wing's docs
-    try {
-        const body = req.body || {};
-        const d = body.data && typeof body.data === 'object' ? body.data : body;
-        const ref = d.order_reference_no || d.orderReferenceNo || d.order_ref || d.reference_no || body.order_reference_no;
-        console.log('Wing webhook received, ref =', ref);
-        if (!ref || typeof ref !== 'string' || ref.length > 60 || !wing.isEnabled()) return;
-
-        const r = await pool.query("SELECT * FROM orders WHERE wing_ref = $1", [ref]);
-        if (r.rows.length === 0) return console.warn('Wing webhook: unknown order ref', ref);
-        const o = r.rows[0];
-        if (o.status !== 'AWAITING_PAYMENT') return; // already handled
-
-        // Wing sends the callback ONCE with no retry, so if the first check fails, try again a few times.
-        for (let i = 0; i < 4; i++) {
-            const c = await wing.checkPaid(o.wing_ref, o.pay_amount);
-            if (c.state === 'PAID') { await markOrderPaid(o.id); return; }
-            console.warn(`Wing webhook: order ${o.id} not confirmed yet (${c.state} ${c.detail || ''}), try ${i + 1}/4`);
-            await new Promise(r => setTimeout(r, 3000));
-        }
-        // still unconfirmed: the browser polling (/api/payment-status) will pick it up
-    } catch (err) {
-        console.error('Wing webhook error:', err);
     }
 });
 
@@ -735,215 +740,151 @@ setInterval(async () => {
 // Safety net: every minute, settle orders past their deadline (last check, then PAID / EXPIRED / manual review).
 setInterval(async () => {
     try {
-        const r = await pool.query("SELECT id, customer, items, khqr_md5, pay_amount, payment_method, wing_ref, manual_review, created_at FROM orders WHERE status = 'AWAITING_PAYMENT' AND expires_at <= NOW()");
+        const r = await pool.query("SELECT id, customer, items, khqr_md5, pay_amount, payment_method, manual_review, created_at FROM orders WHERE status = 'AWAITING_PAYMENT' AND expires_at <= NOW()");
         for (const o of r.rows) await settleExpired(o);
     } catch (err) {
         console.error('expire sweeper error:', err.message);
     }
 }, 60 * 1000);
 
+const MAX_QTY_PER_LINE = 20;
+const MAX_ORDER_LINES = 30;
+
 app.post('/api/order', async (req, res) => {
-    let { customer, items, payment_method } = req.body;
-    const isWing = payment_method === 'wing';
-    const isKhqr = payment_method === 'khqr' || isWing; // "pay online" (Bakong KHQR or Wing)
+    const body = req.body || {};
+    let { customer, items, payment_method } = body;
+    const isKhqr = payment_method === 'khqr'; // "pay online" (Bakong KHQR)
+
+    // ---- validate input (never trust the browser) ----
+    if (ipLimited('order:' + req.ip, 15, 10 * 60 * 1000)) return res.status(429).json({ success: false, message: 'ព្យាយាមច្រើនពេក សូមរង់ចាំបន្តិចសិន។' });
+    if (!items || typeof items !== 'object') return res.status(400).json({ success: false, message: 'Invalid order' });
+    if (!customer || typeof customer !== 'object' || Array.isArray(customer)) customer = {};
+    const cut = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
+    customer = {
+        name: cut(customer.name || customer.fullName, 100),
+        phone: cut(customer.phone || customer.phoneNumber, 30),
+        address: cut(customer.address || customer.location, 500),
+        mapUrl: cut(customer.mapUrl || customer.map, 60),
+        userId: cleanTgId(customer.userId || customer.telegramId),
+        username: cleanTgUsername(customer.username)
+    };
+
+    // merge duplicate lines (same ref + size) so stock is checked against the TOTAL quantity
+    const lines = new Map();
+    const rawItems = Array.isArray(items) ? items : Object.values(items);
+    if (rawItems.length === 0 || rawItems.length > MAX_ORDER_LINES) return res.status(400).json({ success: false, message: 'Invalid order' });
+    for (const item of rawItems) {
+        if (!item || typeof item.ref !== 'string' || typeof item.size !== 'string') return res.status(400).json({ success: false, message: 'Invalid order' });
+        const qty = Number(item.qty);
+        if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY_PER_LINE) return res.status(400).json({ success: false, message: 'ចំនួនមិនត្រឹមត្រូវ!' });
+        const cleanRef = item.ref.replace(/ref:?\s*/i, '').trim().toUpperCase();
+        const cleanSize = item.size.trim().toUpperCase();
+        if (!cleanRef || !cleanSize) return res.status(400).json({ success: false, message: 'Invalid order' });
+        const k = cleanRef + '\u0000' + cleanSize;
+        const prev = lines.get(k);
+        if (prev) prev.qty += qty; else lines.set(k, { ref: cleanRef, size: cleanSize, qty });
+    }
 
     if (isKhqr) {
-        if (isWing && wing.isEnabled() && !wing.isAvailable()) {
-            // Wing was unreachable a moment ago: send the customer to KHQR instead of making them wait for another error
-            return res.json({ success: false, wing_down: true, message: 'Wing មិនអាចប្រើបានពេលនេះទេ សូមជ្រើស KHQR (Bakong) ជំនួស។' });
-        }
-        if (!(isWing ? wing.isEnabled() : bakong.isEnabled())) return res.json({ success: false, message: 'This payment method is not available right now.' });
+        if (!bakong.isEnabled()) return res.json({ success: false, message: 'This payment method is not available right now.' });
         if (khqrRateLimited(req.ip)) return res.status(429).json({ success: false, message: 'ព្យាយាមច្រើនពេក សូមរង់ចាំបន្តិចសិន។' });
     }
 
     const client = await pool.connect();
+    let released = false;
+    const release = () => { if (!released) { released = true; client.release(); } };
+    let committed = false;
+    let orderId, itemsSummary = [], totalAmount = 0, payAmount = 0, expiresAt = null, khqrResult = null;
 
     try {
         await client.query('BEGIN');
 
-        let totalAmount = 0;
-        let itemsSummary = [];
-
-        for (let key in items) {
-            let item = items[key];
-            let cleanRef = item.ref.replace(/ref:?\s*/i, '').trim().toUpperCase();
-            let cleanSize = item.size.trim().toUpperCase();
-            let qty = parseInt(item.qty) || 1;
-            
-            let check = await client.query(
-                "SELECT s.stock_qty, p.title_km, p.price, p.cost_price FROM stock s JOIN products p ON s.ref = p.ref WHERE UPPER(s.ref) = $1 AND UPPER(s.size) = $2 FOR UPDATE",
-                [cleanRef, cleanSize]
+        for (const line of lines.values()) {
+            // FOR UPDATE locks the row until COMMIT; lines are unique so stock can never be oversold
+            const check = await client.query(
+                "SELECT s.stock_qty, p.title_km, p.price, p.cost_price FROM stock s JOIN products p ON s.ref = p.ref WHERE UPPER(s.ref) = $1 AND UPPER(s.size) = $2 FOR UPDATE OF s",
+                [line.ref, line.size]
             );
-            
-            if (check.rows.length > 0) {
-                let currentStock = check.rows[0].stock_qty;
-                if (currentStock < qty) {
-                    await client.query('ROLLBACK');
-                    client.release();
-                    return res.json({ 
-                        success: false, 
-                        message: `សូមអភ័យទោស! ទំនិញ Ref ${cleanRef} Size ${cleanSize} ដាច់ស្តុក!` 
-                    });
-                }
-                let sellPrice = parseFloat(check.rows[0].price);
-                let costPrice = parseFloat(check.rows[0].cost_price || 0);
-                let itemTotal = sellPrice * qty;
-                let itemProfit = (sellPrice - costPrice) * qty;
-
-                totalAmount += itemTotal;
-                itemsSummary.push({
-                    ref: cleanRef,
-                    title: check.rows[0].title_km,
-                    size: cleanSize,
-                    qty: qty,
-                    price: sellPrice,
-                    cost_price: costPrice,
-                    total: itemTotal,
-                    profit: itemProfit
-                });
-            } else {
-                await client.query('ROLLBACK');
-                client.release();
-                return res.json({ success: false, message: `រកមិនឃើញទំនិញ Ref ${cleanRef} Size ${cleanSize} ឡើយ!` });
+            if (check.rows.length === 0) {
+                await client.query('ROLLBACK'); release();
+                return res.json({ success: false, message: `រកមិនឃើញទំនិញ Ref ${line.ref} Size ${line.size} ឡើយ!` });
             }
+            if (check.rows[0].stock_qty < line.qty) {
+                await client.query('ROLLBACK'); release();
+                return res.json({ success: false, message: `សូមអភ័យទោស! ទំនិញ Ref ${line.ref} Size ${line.size} ដាច់ស្តុក!` });
+            }
+            const sellPrice = parseFloat(check.rows[0].price);
+            const costPrice = parseFloat(check.rows[0].cost_price || 0);
+            if (!(sellPrice >= 0)) throw new Error('bad price for ' + line.ref);
+            const itemTotal = sellPrice * line.qty;
+            totalAmount += itemTotal;
+            itemsSummary.push({
+                ref: line.ref, title: check.rows[0].title_km, size: line.size, qty: line.qty,
+                price: sellPrice, cost_price: costPrice, total: itemTotal, profit: (sellPrice - costPrice) * line.qty
+            });
         }
 
         // For KHQR the customer pays items + delivery fee; the amount is always computed here, never trusted from the browser.
-        let payAmount = 0;
-        let expiresAt = null;
         if (isKhqr) {
             payAmount = Number((totalAmount + await getDeliveryFeeNumber()).toFixed(2));
             if (!(payAmount > 0)) {
-                await client.query('ROLLBACK');
-                client.release();
+                await client.query('ROLLBACK'); release();
                 return res.json({ success: false, message: 'ចំនួនទឹកប្រាក់មិនត្រឹមត្រូវ!' });
             }
             expiresAt = new Date(Date.now() + KHQR_EXPIRE_MINUTES * 60 * 1000);
         }
 
-        let orderRes = await client.query(
+        const orderRes = await client.query(
             `INSERT INTO orders (customer, items, total, status, payment_method, pay_amount, expires_at)
              VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-            [JSON.stringify(customer || {}), JSON.stringify(itemsSummary), totalAmount,
-             isKhqr ? 'AWAITING_PAYMENT' : 'PENDING', isWing ? 'WING' : isKhqr ? 'KHQR' : 'COD', isKhqr ? payAmount : null, expiresAt]
+            [JSON.stringify(customer), JSON.stringify(itemsSummary), totalAmount,
+             isKhqr ? 'AWAITING_PAYMENT' : 'PENDING', isKhqr ? 'KHQR' : 'COD', isKhqr ? payAmount : null, expiresAt]
         );
-        let orderId = orderRes.rows[0].id;
+        orderId = orderRes.rows[0].id;
 
-        let khqrResult = null;
         if (isKhqr) {
             // If QR generation throws, the catch below rolls back the order AND the stock deduction.
-            if (isWing) {
-                // Wing identifies the payment by our order reference (max 24 chars, must be unique).
-                // The browser polls with a random key instead, so strangers cannot guess it from the order id.
-                const wingRef = `OD${orderId}W${Date.now().toString(36)}`.slice(0, 24);
-                const returnUrl = process.env.WING_RETURN_URL || (RAILWAY_HOST + '/');
-                const page = await wing.createPayment({
-                    amount: payAmount,
-                    orderRef: wingRef,
-                    returnUrl,
-                    cancelUrl: process.env.WING_CANCEL_URL || (RAILWAY_HOST + '/payment-cancel.html'),
-                    merchantName: process.env.WING_MERCHANT_NAME || process.env.BAKONG_MERCHANT_NAME || 'Oneday Clothing'
-                });
-                khqrResult = { md5: crypto.randomBytes(16).toString('hex'), wingUrl: page.url };
-                await client.query("UPDATE orders SET khqr_md5 = $1, wing_ref = $2 WHERE id = $3", [khqrResult.md5, wingRef, orderId]);
-            } else {
-                khqrResult = bakong.createKhqr({ amount: payAmount, billNumber: `OD${orderId}`, expiresAt: expiresAt.getTime() });
-                await client.query("UPDATE orders SET khqr_md5 = $1 WHERE id = $2", [khqrResult.md5, orderId]);
-            }
+            khqrResult = bakong.createKhqr({ amount: payAmount, billNumber: `OD${orderId}`, expiresAt: expiresAt.getTime() });
+            await client.query("UPDATE orders SET khqr_md5 = $1 WHERE id = $2", [khqrResult.md5, orderId]);
         }
 
-        for (let key in items) {
-            let item = items[key];
-            let cleanRef = item.ref.replace(/ref:?\s*/i, '').trim().toUpperCase();
-            let cleanSize = item.size.trim().toUpperCase();
-            let qty = parseInt(item.qty) || 1;
-            
-            await client.query(
-                "UPDATE stock SET stock_qty = stock_qty - $1 WHERE UPPER(ref) = $2 AND UPPER(size) = $3",
-                [qty, cleanRef, cleanSize]
+        for (const line of lines.values()) {
+            const u = await client.query(
+                "UPDATE stock SET stock_qty = stock_qty - $1 WHERE UPPER(ref) = $2 AND UPPER(size) = $3 AND stock_qty >= $1",
+                [line.qty, line.ref, line.size]
             );
+            if (u.rowCount !== 1) throw new Error('stock changed during checkout');
         }
 
         await client.query('COMMIT');
-        client.release();
-
-        // KHQR orders notify the admins only after the money arrives (markOrderPaid)
-        let adminsRes = isKhqr ? { rows: [] } : await pool.query("SELECT chat_id FROM admins WHERE chat_id IS NOT NULL");
-        if (adminsRes.rows.length > 0) {
-            let custName = customer?.name || customer?.fullName || 'អតិថិជនមិនបញ្ចេញឈ្មោះ';
-            let custPhone = customer?.phone || customer?.phoneNumber || 'គ្មានលេខទូរស័ព្ទ';
-            let custAddress = customer?.address || customer?.location || 'គ្មានអាសយដ្ឋាន';
-            let userId = customer?.userId || customer?.telegramId || '';
-            let username = customer?.username || '';
-
-            let msg = `📦 **មានការកុម្មង់ទំនិញថ្មី!** (#Order ID: ${orderId})\n\n`;
-            msg += `👤 **ព័ត៌មានអតិថិជន:**\n`;
-            msg += `- ឈ្មោះ: ${custName}\n`;
-            msg += `- លេខទូរស័ព្ទ: ${custPhone}\n`;
-            msg += `- អាសយដ្ឋាន: ${custAddress}\n`;
-            if (userId) msg += `- Telegram ID: \`${userId}\`\n`;
-            if (username) msg += `- Username: @${username}\n`;
-            const mi = mapInfo(customer);
-            if (mi) msg += `📍 **ទីតាំង Map:** ${mi.coords}\n🗺 ${mi.url}\n`;
-
-            msg += `\n🛒 **ទំនិញកុម្មង់:**\n`;
-            itemsSummary.forEach((it, idx) => {
-                msg += `${idx + 1}. Ref: ${it.ref} - ${it.title} (Size: ${it.size}) x ${it.qty} = $${Number(it.total).toFixed(2)}\n`;
-            });
-
-            msg += `\n💵 **សរុបទឹកប្រាក់:** $${Number(totalAmount).toFixed(2)}`;
-
-            let inlineKeyboard = [
-                [
-                    { text: '✅ Confirm Order', callback_data: `confirm_order_${orderId}` },
-                    { text: '❌ Cancel & Restore Stock', callback_data: `cancel_order_${orderId}` }
-                ]
-            ];
-
-            if (userId) {
-                inlineKeyboard.push([{ text: '💬 ឆាតទៅកាន់អតិថិជន', url: `tg://user?id=${userId}` }]);
-            } else if (username) {
-                inlineKeyboard.push([{ text: '💬 ឆាតទៅកាន់អតិថិជន', url: `https://t.me/${username}` }]);
-            }
-
-            if (mi) inlineKeyboard.push([{ text: "📍 បើក Map", url: mi.url }]);
-            for (let adm of adminsRes.rows) {
-                try {
-                    await bot.telegram.sendMessage(adm.chat_id, msg, {
-                        parse_mode: 'Markdown',
-                        reply_markup: { inline_keyboard: inlineKeyboard }
-                    });
-                } catch (e) {}
-            }
-        }
-
-        if (isKhqr) {
-            return res.json({
-                success: true,
-                payment: isWing ? 'wing' : 'khqr',
-                order_id: orderId,
-                qr: khqrResult.qr,
-                wing_url: khqrResult.wingUrl,
-                md5: khqrResult.md5,
-                amount: payAmount,
-                expires_at: expiresAt.getTime()
-            });
-        }
-
-        res.json({ success: true, message: "ការកុម្មង់បានជោគជ័យ និងកាត់ស្តុកស្វ័យប្រវត្តិរួចរាល់!" });
-
+        committed = true;
+        release();
     } catch (err) {
-        try { await client.query('ROLLBACK'); } catch (e) {}
-        client.release();
+        if (!committed) { try { await client.query('ROLLBACK'); } catch (e) {} }
+        release();
         console.error('order error:', err);
-        const wingDown = isWing && err && err.wingNetwork;
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
-            error: err.message,
-            wing_down: wingDown || undefined,
-            message: wingDown ? 'Wing មិនអាចប្រើបានពេលនេះទេ សូមជ្រើស KHQR (Bakong) ជំនួស។' : isKhqr ? 'មិនអាចបង្កើតការបង់ប្រាក់បានទេ សូមសាកល្បងម្តងទៀត ឬជ្រើសវិធីបង់ប្រាក់ផ្សេង។' : undefined
+            message: isKhqr ? 'មិនអាចបង្កើតការបង់ប្រាក់បានទេ សូមសាកល្បងម្តងទៀត ឬជ្រើសវិធីបង់ប្រាក់ផ្សេង។' : 'មានបញ្ហា សូមសាកល្បងម្តងទៀត។'
         });
     }
+
+    // The order is saved. From here on nothing may turn the answer into an error (the customer would re-order).
+    if (!isKhqr) {
+        try { await sendOrderToAdmins(orderId, customer, itemsSummary, totalAmount, ''); }
+        catch (e) { console.error('notify admins failed:', e.message); }
+        return res.json({ success: true, message: "ការកុម្មង់បានជោគជ័យ និងកាត់ស្តុកស្វ័យប្រវត្តិរួចរាល់!" });
+    }
+    // KHQR orders notify the admins only after the money arrives (markOrderPaid)
+    return res.json({
+        success: true,
+        payment: 'khqr',
+        order_id: orderId,
+        qr: khqrResult.qr,
+        md5: khqrResult.md5,
+        amount: payAmount,
+        expires_at: expiresAt.getTime()
+    });
 });
 
 // --- TELEGRAM BOT COMMANDS & CALLBACKS ---
@@ -955,7 +896,7 @@ bot.start(async (ctx) => {
     let authorized = await isAdminUser(chatId, username);
     if (authorized) {
         if (username) {
-            await pool.query("UPDATE admins SET chat_id = $1 WHERE LOWER(username) = LOWER($2)", [chatId, username]);
+            await pool.query("UPDATE admins SET chat_id = $1 WHERE chat_id < 0 AND LOWER(username) = LOWER($2) AND NOT EXISTS (SELECT 1 FROM admins WHERE chat_id = $1)", [chatId, username]);
         }
         return ctx.reply('👋 សួស្តី Admin! ប្រព័ន្ធគ្រប់គ្រងស្តុក OneDay Clothing ដំណើរការធម្មតា (Cloudinary Connected)។');
     }
@@ -1001,13 +942,13 @@ bot.command('orders', async (ctx) => {
             let items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
 
             let msg = `📦 **Order ID: #${order.id}** (Status: PENDING)\n`;
-            msg += `👤 ឈ្មោះ: ${cust?.name || 'អនាមិក'} (${cust?.phone || 'គ្មានលេខ'})\n`;
-            msg += `📍 អាសយដ្ឋាន: ${cust?.address || 'គ្មាន'}\n`;
+            msg += `👤 ឈ្មោះ: ${escMd(cust?.name || 'អនាមិក')} (${escMd(cust?.phone || 'គ្មានលេខ')})\n`;
+            msg += `📍 អាសយដ្ឋាន: ${escMd(cust?.address || 'គ្មាន')}\n`;
             { const mi = mapInfo(cust); if (mi) msg += `🗺 ${mi.url}\n`; }
             msg += `🛒 ទំនិញ:\n`;
             for (let key in items) {
                 let it = items[key];
-                msg += `• Ref ${it.ref} (Size ${it.size}) x ${it.qty} = $${Number(it.price * it.qty).toFixed(2)}\n`;
+                msg += `• Ref ${escMd(it.ref)} (Size ${escMd(it.size)}) x ${it.qty} = $${Number(it.price * it.qty).toFixed(2)}\n`;
             }
             msg += `💵 សរុប: $${Number(order.total).toFixed(2)}`;
 
@@ -1026,7 +967,7 @@ bot.command('orders', async (ctx) => {
     }
 });
 
-bot.hears(/^\/search\s*(.+)/i, async (ctx) => {
+bot.hears(/^\/search\s+(.+)/i, async (ctx) => {
     const chatId = ctx.chat.id;
     const username = ctx.from.username || '';
     if (!await isAdminUser(chatId, username)) return ctx.reply('⛔️ គ្មានសិទ្ធិ!');
@@ -1043,13 +984,13 @@ bot.hears(/^\/search\s*(.+)/i, async (ctx) => {
         let stockText = stockRes.rows.map(s => `${s.size}: ${s.stock_qty}`).join(' | ');
 
         let msg = `🔍 **ព័ត៌មានទំនិញ Ref : ${cleanRef}**\n\n`;
-        msg += `• ឈ្មោះ: ${prod.title_km}\n`;
+        msg += `• ឈ្មោះ: ${escMd(prod.title_km)}\n`;
         msg += `• តម្លៃ: $${prod.price}\n`;
         msg += `• ភេទ: ${prod.gender}\n`;
         msg += `• ប្រភេទ: ${prod.type}\n`;
         msg += `• មាន 3D: ${prod.model_3d_url ? '✅ មាន' : '❌ គ្មាន'}\n`;
         msg += `• ស្តុក: [ ${stockText} ]\n`;
-        if (prod.desc_km) msg += `• ការបរិយាយ: ${prod.desc_km}\n`;
+        if (prod.desc_km) msg += `• ការបរិយាយ: ${escMd(prod.desc_km)}\n`;
 
         ctx.reply(msg, { parse_mode: 'Markdown' });
     } catch (err) {
@@ -1289,6 +1230,9 @@ bot.command('setmeowner', async (ctx) => {
     try {
         let checkOwner = await pool.query("SELECT * FROM admins WHERE is_owner = TRUE");
         if (checkOwner.rows.length > 0) return ctx.reply('⛔️ ប្រព័ន្ធមាន Owner ផ្លូវការរួចរាល់ហើយ!');
+        // Only an existing admin, or the Telegram id in OWNER_CHAT_ID, may claim ownership (was: any stranger).
+        const envOwner = String(process.env.OWNER_CHAT_ID || '');
+        if (!(envOwner && envOwner === String(chatId)) && !(await isAdminUser(chatId, username))) return ctx.reply('⛔️ គ្មានសិទ្ធិ!');
 
         await pool.query(
             "INSERT INTO admins (chat_id, username, is_owner) VALUES ($1, $2, TRUE) ON CONFLICT (chat_id) DO UPDATE SET is_owner = TRUE, username = $2",
@@ -1355,8 +1299,16 @@ bot.action(/^transfer_own_(.+)$/, async (ctx) => {
     if (!await isOwnerUser(chatId, username)) return ctx.answerCbQuery('⛔️ គ្មានសិទ្ធិ!', { show_alert: true });
 
     try {
-        await pool.query("UPDATE admins SET is_owner = FALSE WHERE chat_id = $1 OR LOWER(username) = LOWER($2)", [chatId, username]);
-        await pool.query("UPDATE admins SET is_owner = TRUE WHERE LOWER(username) = LOWER($1) OR chat_id::text = $1", [target, target]);
+        const c = await pool.connect();
+        try {
+            await c.query('BEGIN');
+            const t = await c.query("SELECT id FROM admins WHERE LOWER(username) = LOWER($1) OR chat_id::text = $1 LIMIT 1", [target]);
+            if (t.rows.length === 0) { await c.query('ROLLBACK'); return ctx.answerCbQuery('❌ រកមិនឃើញ Admin!', { show_alert: true }); }
+            await c.query("UPDATE admins SET is_owner = FALSE WHERE is_owner = TRUE");
+            await c.query("UPDATE admins SET is_owner = TRUE WHERE id = $1", [t.rows[0].id]);
+            await c.query('COMMIT');
+        } catch (e) { try { await c.query('ROLLBACK'); } catch (e2) {} throw e; }
+        finally { c.release(); }
 
         await ctx.answerCbQuery('✅ ផ្ទេរ Owner ជោគជ័យ!');
         await ctx.editMessageText(`👑 បានផ្ទេរអំណាចជា Owner ទៅឱ្យ **@${target}** រួចរាល់ហើយ!`, { parse_mode: 'Markdown' });
@@ -1390,7 +1342,7 @@ bot.action(/^kick_adm_(.+)$/, async (ctx) => {
     }
 });
 
-bot.hears(/^\/add\s*@?([a-zA-Z0-9_]+)/i, async (ctx) => {
+bot.hears(/^\/add\s+@?([a-zA-Z0-9_]{3,32})\s*$/i, async (ctx) => {
     const chatId = ctx.chat.id;
     const username = ctx.from.username || '';
 
@@ -1414,7 +1366,7 @@ bot.hears(/^\/add\s*@?([a-zA-Z0-9_]+)/i, async (ctx) => {
     }
 });
 
-bot.hears(/^\/un\s*@?([a-zA-Z0-9_]+)/i, async (ctx) => {
+bot.hears(/^\/un\s+@?([a-zA-Z0-9_]{3,32})\s*$/i, async (ctx) => {
     const chatId = ctx.chat.id;
     const username = ctx.from.username || '';
 
@@ -1478,6 +1430,8 @@ bot.command('change', async (ctx) => {
     const username = ctx.from.username || '';
     if (!await isAdminUser(chatId, username)) return ctx.reply('⛔️ គ្មានសិទ្ធិ!');
 
+    const arg = String(ctx.payload || '').replace(/ref:?\s*/i, '').trim().toUpperCase();
+    if (arg) return handleEditRefSelection(ctx, chatId, arg);
     userStates[chatId] = { action: 'CHANGE', step: 'GET_REF' };
     ctx.reply('✏️️ សូមសរសេរបញ្ចូលលេខ Ref របស់ទំនិញដែលចង់កែប្រែ:');
 });
@@ -1577,7 +1531,7 @@ bot.action(/^update_gender_(men|women)_(.+)$/, async (ctx) => {
 });
 
 // 🗑️ មុខងារលុប Ref ជាមួយ Cloudinary Deletion
-bot.hears(/^\/deleteref\s*(.+)/i, async (ctx) => {
+bot.hears(/^\/deleteref\s+(.+)/i, async (ctx) => {
     const chatId = ctx.chat.id;
     const username = ctx.from.username || '';
     if (!await isAdminUser(chatId, username)) return ctx.reply('⛔ គ្មានសិទ្ធិ!');
@@ -1590,6 +1544,7 @@ bot.hears(/^\/deleteref\s*(.+)/i, async (ctx) => {
         if (part.includes('-')) {
             let range = part.split('-').map(r => parseInt(r.trim()));
             if (!isNaN(range[0]) && !isNaN(range[1])) {
+                if (range[1] - range[0] > 200) return ctx.reply('⚠️ ជួរធំពេក (អតិបរមា ២០០ Ref ក្នុងមួយដង)!');
                 for (let i = range[0]; i <= range[1]; i++) {
                     refsToDelete.push(String(i));
                 }
@@ -1678,42 +1633,43 @@ bot.action(/^manual_cancel_(\d+)$/, async (ctx) => {
     }
 });
 
-bot.action(/^confirm_order_(.+)$/, async (ctx) => {
-    let orderId = ctx.match[1];
+bot.action(/^confirm_order_(\d+)$/, async (ctx) => {
+    let orderId = parseInt(ctx.match[1], 10);
     try {
-        await pool.query("UPDATE orders SET status = 'CONFIRMED' WHERE id = $1", [orderId]);
+        // only a PENDING order can be confirmed (before, a CANCELLED / unpaid order could be "confirmed" too)
+        const r = await pool.query("UPDATE orders SET status = 'CONFIRMED' WHERE id = $1 AND status = 'PENDING' RETURNING id", [orderId]);
+        if (r.rows.length === 0) return ctx.answerCbQuery('⚠ ការកុម្មង់នេះមិនស្ថិតក្នុងស្ថានភាព PENDING ទេ!', { show_alert: true });
         await ctx.answerCbQuery('✅ បានបញ្ជាក់ការកុម្មង់!');
         let originalText = ctx.callbackQuery.message.text;
         await ctx.editMessageText(originalText + '\n\nstatus: ✅ Confirmed', { reply_markup: { inline_keyboard: [] } });
     } catch (err) {
+        console.error('confirm_order error:', err.message);
         await ctx.answerCbQuery('❌ មានបញ្ហា', { show_alert: true });
     }
 });
 
-bot.action(/^cancel_order_(.+)$/, async (ctx) => {
-    let orderId = ctx.match[1];
+bot.action(/^cancel_order_(\d+)$/, async (ctx) => {
+    let orderId = parseInt(ctx.match[1], 10);
+    const client = await pool.connect();
     try {
-        let orderRes = await pool.query("SELECT * FROM orders WHERE id = $1", [orderId]);
-        if (orderRes.rows.length === 0) return ctx.answerCbQuery('❌ រកមិនឃើញ!');
-        let order = orderRes.rows[0];
-        if (order.status === 'CANCELLED' || order.status === 'EXPIRED') return ctx.answerCbQuery('⚠ លុបចោលរួចហើយ!');
-        if (order.status === 'AWAITING_PAYMENT') return ctx.answerCbQuery('⏳ កំពុងរង់ចាំការបង់ប្រាក់!');
-
-        let items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
-        for (let key in items) {
-            let item = items[key];
-            await pool.query(
-                "UPDATE stock SET stock_qty = stock_qty + $1 WHERE UPPER(ref) = $2 AND UPPER(size) = $3",
-                [parseInt(item.qty) || 0, String(item.ref).toUpperCase(), String(item.size).toUpperCase()]
-            );
+        await client.query('BEGIN');
+        // status-guarded UPDATE: a double tap can no longer restore the stock twice
+        const r = await client.query("UPDATE orders SET status = 'CANCELLED' WHERE id = $1 AND status IN ('PENDING','CONFIRMED') RETURNING items", [orderId]);
+        if (r.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return ctx.answerCbQuery('⚠ មិនអាចលុបចោលការកុម្មង់នេះបានទេ (លុបរួច / កំពុងរង់ចាំបង់ប្រាក់)!', { show_alert: true });
         }
-
-        await pool.query("UPDATE orders SET status = 'CANCELLED' WHERE id = $1", [orderId]);
+        await restoreStockForItems(client, r.rows[0].items);
+        await client.query('COMMIT');
         await ctx.answerCbQuery('❌ បានបដិសេធ និងសងស្តុកចូលវិញ!');
         let originalText = ctx.callbackQuery.message.text;
         await ctx.editMessageText(originalText + '\n\nstatus: ❌ Cancelled & Stock Restored', { reply_markup: { inline_keyboard: [] } });
     } catch (err) {
-        await ctx.answerCbQuery('❌ មានបញ្ហា', { show_alert: true });
+        try { await client.query('ROLLBACK'); } catch (e) {}
+        console.error('cancel_order error:', err.message);
+        try { await ctx.answerCbQuery('❌ មានបញ្ហា', { show_alert: true }); } catch (e) {}
+    } finally {
+        client.release();
     }
 });
 
@@ -1834,7 +1790,13 @@ bot.on('message', async (ctx) => {
             return ctx.reply('⛔️ អ្នកត្រូវបានគេដកសិទ្ធិ (Ban) ពីប្រព័ន្ធហើយ!');
         }
 
-        if (text.trim() === 'onedaybyday') {
+        const failed = pwFails.get(chatId) || { n: 0, until: 0 };
+        if (Date.now() < failed.until) return ctx.reply('⏳ ព្យាយាមច្រើនពេក សូមរង់ចាំ ១៥ នាទី។');
+        if (!BOT_PASSWORD) return ctx.reply('⚠️ ប្រព័ន្ធមិនទាន់កំណត់ BOT_PASSWORD ទេ សូមទាក់ទង Owner។');
+
+        if (safeStrEq(text.trim(), BOT_PASSWORD)) {
+            pwFails.delete(chatId);
+            try { await ctx.deleteMessage(); } catch (e) {} // do not leave the password sitting in the chat
             let checkAdmins = await pool.query("SELECT COUNT(*) FROM admins");
             let isFirst = parseInt(checkAdmins.rows[0].count) === 0;
 
@@ -1845,6 +1807,9 @@ bot.on('message', async (ctx) => {
             delete userStates[chatId];
             return ctx.reply(isFirst ? '👑 Password ត្រឹមត្រូវ! អ្នកជា Owner ផ្លូវការ!' : '✅ Password ត្រឹមត្រូវ! សូមផ្ញើ /start សារថ្មី。');
         } else {
+            failed.n++;
+            if (failed.n >= 5) { failed.n = 0; failed.until = Date.now() + 15 * 60 * 1000; }
+            pwFails.set(chatId, failed);
             return ctx.reply('❌ Password មិនត្រឹមត្រូវទេ!');
         }
     }
@@ -1889,7 +1854,7 @@ bot.on('message', async (ctx) => {
             } catch (err) {
                 return ctx.reply(`❌ Upload ទៅ Cloudinary បរាជ័យ: ${err.message}`);
             }
-        } else if (text.trim().startsWith('http')) {
+        } else if (isHttpsUrl(text)) {
             uploadedUrl = text.trim();
         } else {
             return ctx.reply('⚠️ សូម Upload វីដេអូ រូបភាព ឬផ្ញើ Link លីងឱ្យបានត្រឹមត្រូវ!');
@@ -1941,7 +1906,7 @@ bot.on('message', async (ctx) => {
         }
         if (state.step === 'UPDATE_PRICE') {
             let newPrice = parseFloat(text);
-            if (isNaN(newPrice)) return ctx.reply('⚠️ សូមបញ្ចូលតម្លៃលក់ជាតួលេខ!');
+            if (isNaN(newPrice) || newPrice < 0 || newPrice > 100000) return ctx.reply('⚠️ សូមបញ្ចូលតម្លៃលក់ជាតួលេខ (0 - 100000)!');
             await pool.query("UPDATE products SET price = $1 WHERE UPPER(ref) = $2", [newPrice, ref]);
             await pool.query("UPDATE stock SET price = $1 WHERE UPPER(ref) = $2", [newPrice, ref]);
             delete userStates[chatId];
@@ -1963,10 +1928,10 @@ bot.on('message', async (ctx) => {
                 } catch (err) {
                     return ctx.reply(`❌ បរាជ័យ: ${err.message}`);
                 }
-            } else if (text.trim()) {
+            } else if (isHttpsUrl(text)) {
                 videoUrl = text.trim();
             } else {
-                return ctx.reply('⚠️ សូម Upload Video ឬ រូបភាព (Image) ឱ្យបានត្រឹមត្រូវ!');
+                return ctx.reply('⚠️ សូម Upload Video ឬ រូបភាព (Image) ឬ Link https:// ឱ្យបានត្រឹមត្រូវ!');
             }
 
             try {
@@ -1997,10 +1962,10 @@ bot.on('message', async (ctx) => {
                 } catch (err) {
                     return ctx.reply(`❌ បរាជ័យ: ${err.message}`);
                 }
-            } else if (text.trim()) {
+            } else if (isHttpsUrl(text)) {
                 model3dUrl = text.trim();
             } else {
-                return ctx.reply('⚠️ សូម Upload វីដេអូ 3D ឬพิมพ์ "none" ដើម្បីលុបចេញ!');
+                return ctx.reply('⚠️ សូម Upload វីដេអូ 3D, Link https:// ឬវាយ "none" ដើម្បីលុបចេញ!');
             }
 
             try {
@@ -2059,10 +2024,10 @@ bot.on('message', async (ctx) => {
                 } catch (err) {
                     return ctx.reply(`❌ Upload ទៅ Cloudinary បរាជ័យ: ${err.message}`);
                 }
-            } else if (text.trim()) {
+            } else if (isHttpsUrl(text)) {
                 videoUrl = text.trim();
             } else {
-                return ctx.reply('⚠️ សូម Upload Video ឬ រូបភាព (Image) ឱ្យបានត្រឹមត្រូវ!');
+                return ctx.reply('⚠️ សូម Upload Video ឬ រូបភាព (Image) ឬ Link https:// ឱ្យបានត្រឹមត្រូវ!');
             }
 
             state.data.video_url = videoUrl;
@@ -2089,10 +2054,10 @@ bot.on('message', async (ctx) => {
                 } catch (err) {
                     return ctx.reply(`❌ Upload 3D ទៅ Cloudinary បរាជ័យ: ${err.message}`);
                 }
-            } else if (text.trim()) {
+            } else if (isHttpsUrl(text)) {
                 model3dUrl = text.trim();
             } else {
-                return ctx.reply('⚠️ សូម Upload វីដេអូ 3D ឱ្យបានត្រឹមត្រូវ!');
+                return ctx.reply('⚠️ សូម Upload វីដេអូ 3D ឬ Link https:// ឱ្យបានត្រឹមត្រូវ!');
             }
 
             state.data.model_3d_url = model3dUrl;

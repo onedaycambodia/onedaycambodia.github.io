@@ -71,7 +71,7 @@
         }
 
         html, body {
-            touch-action: pan-x pan-y pinch-zoom;
+            touch-action: pan-x pan-y;
             -webkit-text-size-adjust: 100%;
             overflow-x: hidden;
             width: 100%;
@@ -1236,10 +1236,6 @@
                     <input type="radio" name="payMethod" value="khqr">
                     <img src="images/bakong.png" alt="Bakong" width="22" height="22" style="flex:none; border-radius:5px;"><span data-key="pay_khqr">បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)</span>
                 </label>
-                <label id="payRowWing" class="pay-opt" style="display:none;">
-                    <input type="radio" name="payMethod" value="wing">
-                    <span data-key="pay_wing"><svg class="ico ico-dot" aria-hidden="true"><use href="#i-dot"/></svg> បង់ប្រាក់ឥឡូវតាម Wing</span>
-                </label>
                 <label class="pay-opt">
                     <input type="radio" name="payMethod" value="cod" id="payRadioCod" checked>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg><span data-key="pay_cod">កុម្មង់តាម Telegram (បង់ពេលទទួល)</span>
@@ -1325,6 +1321,11 @@
         
         // GitHub Pages API Endpoint Connected to Railway
         const RAILWAY_API_URL = "https://onedaycambodiagithubio-production.up.railway.app";
+
+        // 🔒 Anything that comes from the database / admins is escaped before it goes into innerHTML (stored-XSS fix).
+        // esc() = text or attribute value; jsq() = a JS string literal that is safe inside onclick="..."
+        function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+        function jsq(v) { return esc(JSON.stringify(String(v == null ? '' : v))); }
 
         let stockData = {};
         let priceData = {};
@@ -1475,25 +1476,25 @@
         // KHQR texts (added on top of the dictionaries above)
         Object.assign(translations.km, {
                 ty_title: "អរគុណច្រើន!",
-            label_payment: "វិធីបង់ប្រាក់ (Payment)", pay_wing: "{{dot}} បង់ប្រាក់ឥឡូវតាម Wing", wing_open: "{{dot}} បើកទំព័រ Wing ដើម្បីបង់ប្រាក់", wing_hint: "ចុចប៊ូតុងខាងលើដើម្បីបង់ក្នុង Wing (ឬស្កេន QR នេះដោយទូរស័ព្ទ)។ ទុកទំព័រនេះបើកចោល រហូតដល់ឃើញថាបង់ជោគជ័យ។", pay_khqr: "បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)", pay_cod: "កុម្មង់តាម Telegram (បង់ពេលទទួល)",
+            label_payment: "វិធីបង់ប្រាក់ (Payment)", pay_khqr: "បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)", pay_cod: "កុម្មង់តាម Telegram (បង់ពេលទទួល)",
             khqr_title: "ស្កេនដើម្បីបង់ប្រាក់", khqr_waiting: "{{spinner}} កំពុងរង់ចាំការបង់ប្រាក់...", khqr_expires_in: "ផុតកំណត់ក្នុង",
-            khqr_hint: "បើកកម្មវិធីធនាគារណាមួយ (ABA, ACLEDA, Wing...) រួចស្កេន QR នេះ។ កុំបិទទំព័រនេះ រហូតដល់ឃើញថាបង់ជោគជ័យ។", khqr_close: "បិទ", khqr_check: "{{refresh}} ខ្ញុំបានបង់រួចហើយ - ពិនិត្យម្តងទៀត",
+            khqr_hint: "បើកកម្មវិធីធនាគារណាមួយ (ABA, ACLEDA...) រួចស្កេន QR នេះ។ កុំបិទទំព័រនេះ រហូតដល់ឃើញថាបង់ជោគជ័យ។", khqr_close: "បិទ", khqr_check: "{{refresh}} ខ្ញុំបានបង់រួចហើយ - ពិនិត្យម្តងទៀត",
             khqr_paid: "{{check}} បង់ប្រាក់ជោគជ័យ! យើងនឹងទាក់ទងអ្នកឆាប់ៗនេះ។", khqr_expired: "{{hourglass}} QR ផុតកំណត់ហើយ។ ប្រសិនបើអ្នកបានបង់រួច សូមទាក់ទងហាង។ បើមិនទាន់ សូមកុម្មង់ម្តងទៀត។",
             khqr_degraded: "{{alert}} ប្រព័ន្ធពិនិត្យការបង់ប្រាក់ស្វ័យប្រវត្តិមានបញ្ហាបណ្តោះអាសន្ន។ បើអ្នកបានបង់រួចហើយ សូមចុចប៊ូតុងខាងក្រោម ដើម្បីឱ្យហាងបញ្ជាក់ដោយដៃ។", khqr_claim: "{{message}} ខ្ញុំបានបង់រួចហើយ - ជូនដំណឹងដល់ហាង", khqr_manual: "{{mail}} ហាងបានទទួលសំណើរបស់អ្នកហើយ។ យើងនឹងពិនិត្យ និងបញ្ជាក់ដោយដៃឆាប់ៗ។ សូមកុំបង់ម្តងទៀត។"
         });
         Object.assign(translations.en, {
                 ty_title: "Thank you!",
-            label_payment: "Payment Method", pay_wing: "{{dot}} Pay now with Wing", wing_open: "{{dot}} Open Wing to pay", wing_hint: "Tap the button above to pay in Wing (or scan this QR with your phone). Keep this page open until you see the payment succeed.", pay_khqr: "Pay now with KHQR (Bakong)", pay_cod: "Order via Telegram (pay on delivery)",
+            label_payment: "Payment Method", pay_khqr: "Pay now with KHQR (Bakong)", pay_cod: "Order via Telegram (pay on delivery)",
             khqr_title: "Scan to Pay", khqr_waiting: "{{spinner}} Waiting for payment...", khqr_expires_in: "Expires in",
-            khqr_hint: "Open any banking app (ABA, ACLEDA, Wing...) and scan this QR. Keep this page open until you see the payment succeed.", khqr_close: "Close", khqr_check: "{{refresh}} I have paid - check again",
+            khqr_hint: "Open any banking app (ABA, ACLEDA...) and scan this QR. Keep this page open until you see the payment succeed.", khqr_close: "Close", khqr_check: "{{refresh}} I have paid - check again",
             khqr_paid: "{{check}} Payment received! We will contact you shortly.", khqr_expired: "{{hourglass}} This QR has expired. If you already paid, please contact the shop. Otherwise please order again.",
             khqr_degraded: "{{alert}} Automatic payment checking is temporarily unavailable. If you have already paid, tap the button below so the shop can confirm it manually.", khqr_claim: "{{message}} I have paid - notify the shop", khqr_manual: "{{mail}} The shop has received your request and will confirm your payment manually soon. Please do not pay again."
         });
         Object.assign(translations.zh, {
                 ty_title: "非常感谢！",
-            label_payment: "支付方式", pay_wing: "{{dot}} 立即使用 Wing 支付", wing_open: "{{dot}} 打开 Wing 付款", wing_hint: "点击上方按钮在 Wing 中付款（或用手机扫描此二维码）。付款成功前请勿关闭本页面。", pay_khqr: "立即使用 KHQR (Bakong) 支付", pay_cod: "通过 Telegram 下单 (货到付款)",
+            label_payment: "支付方式", pay_khqr: "立即使用 KHQR (Bakong) 支付", pay_cod: "通过 Telegram 下单 (货到付款)",
             khqr_title: "扫码支付", khqr_waiting: "{{spinner}} 等待付款...", khqr_expires_in: "剩余时间",
-            khqr_hint: "打开任意银行应用 (ABA, ACLEDA, Wing...) 扫描此二维码。付款成功前请勿关闭本页面。", khqr_close: "关闭", khqr_check: "{{refresh}} 我已付款 - 重新检查",
+            khqr_hint: "打开任意银行应用 (ABA, ACLEDA...) 扫描此二维码。付款成功前请勿关闭本页面。", khqr_close: "关闭", khqr_check: "{{refresh}} 我已付款 - 重新检查",
             khqr_paid: "{{check}} 付款成功！我们会尽快联系您。", khqr_expired: "{{hourglass}} 二维码已过期。如已付款请联系商店，否则请重新下单。",
             khqr_degraded: "{{alert}} 自动支付检查暂时不可用。如果您已付款，请点击下方按钮，由商店手动确认。", khqr_claim: "{{message}} 我已付款 - 通知商店", khqr_manual: "{{mail}} 商店已收到您的请求，将尽快手动确认付款。请勿重复付款。"
         });
@@ -1552,7 +1553,7 @@
                             sliderHtml += `
                                 <div class="cover-slide-item">
                                     <div class="cover-image-box">
-                                        <img src="${imgUrl}" alt="Cover ${idx + 1}" ${idx === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} style="width:100%; height:100%; object-fit:cover; display:block;">
+                                        <img src="${esc(imgUrl)}" alt="Cover ${idx + 1}" ${idx === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} style="width:100%; height:100%; object-fit:cover; display:block;">
                                     </div>
                                 </div>`;
                         } else {
@@ -1561,7 +1562,7 @@
                                 <div class="cover-slide-item">
                                     <div class="cover-image-box">
                                         <video autoplay loop muted playsinline webkit-playsinline preload="${idx === 0 ? 'auto' : 'metadata'}" style="width:100%; height:100%; object-fit:cover; display:block;">
-                                            <source src="${vidUrl}" type="video/mp4">
+                                            <source src="${esc(vidUrl)}" type="video/mp4">
                                         </video>
                                     </div>
                                 </div>`;
@@ -1739,7 +1740,7 @@
             let videoPlayer = document.getElementById('popupVideoPlayer');
             let imagePlayer = document.getElementById('popupImagePlayer');
             
-            if (!mediaUrl) return;
+            if (!mediaUrl || !/^https:\/\//i.test(mediaUrl)) return;
 
             if (isImageUrl(mediaUrl)) {
                 if (videoPlayer) {
@@ -1853,9 +1854,9 @@
                     
                     // HERE Maps raster tiles (key restricted to our domain in HERE platform)
                     const HERE_API_KEY = 'jKSBkCzNf2pzmEDQD_4775QIe-Y8PgjvlHohp66pV4s';
-                    const tiles = L.tileLayer('https://maps.hereapi.com/v3/base/mc/{z}/{x}/{y}/png?style=explore.night&size=512&scale=2&apiKey=' + HERE_API_KEY, {
+                    const tiles = L.tileLayer('https://maps.hereapi.com/v3/base/mc/{z}/{x}/{y}/png8?style=explore.night&size=512&apiKey=' + HERE_API_KEY, {
                         maxZoom: 19, minZoom: 7,
-                        tileSize: 256,
+                        tileSize: 512, zoomOffset: -1,
                         attribution: '&copy; HERE'
                     }).addTo(freeMapObj);
                     const revealMap = () => { let w = document.getElementById('mapWrap'); if (w) w.classList.add('map-ready'); };
@@ -2058,7 +2059,7 @@
                 let sizeButtonsHtml = '';
                 sizes.forEach((s) => {
                     let isActive = (s.size.toUpperCase() === defaultSizeName) ? 'active' : '';
-                    sizeButtonsHtml += `<button class="size-btn ${isActive}" onclick="selectSize(this, 'prod-${ref}', '${ref}')">${s.size}</button>`;
+                    sizeButtonsHtml += `<button class="size-btn ${isActive}" onclick="selectSize(this, ${jsq('prod-' + ref)}, ${jsq(ref)})">${esc(s.size)}</button>`;
                 });
 
                 let defaultKey = `${String(ref).trim().toUpperCase()}_${defaultSizeName}`;
@@ -2085,35 +2086,35 @@
                 let imgBoxClickAction = '';
 
                 if (isImageUrl(mediaUrl)) {
-                    imgBoxClickAction = `onclick="openProductVideoPopup('${mediaUrl}')"`;
-                    mediaHtml = `<img src="${optimizeMediaUrl(mediaUrl, false)}" alt="${displayTitle}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover;">`;
+                    imgBoxClickAction = `onclick="openProductVideoPopup(${jsq(mediaUrl)})"`;
+                    mediaHtml = `<img src="${esc(optimizeMediaUrl(mediaUrl, false))}" alt="${esc(displayTitle)}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover;">`;
                 } else if (mediaUrl) {
-                    imgBoxClickAction = `onclick="openProductVideoPopup('${mediaUrl}')"`;
+                    imgBoxClickAction = `onclick="openProductVideoPopup(${jsq(mediaUrl)})"`;
                     mediaHtml = `
                         <video loop muted playsinline webkit-playsinline preload="metadata" controlslist="nodownload" disablepictureinpicture oncontextmenu="return false;">
-                            <source src="${optimizeMediaUrl(mediaUrl, true)}#t=0.1" type="video/mp4">
+                            <source src="${esc(optimizeMediaUrl(mediaUrl, true))}#t=0.1" type="video/mp4">
                         </video>`;
                 }
 
                 let btn3dHtml = '';
                 if (prod.model_3d_url && prod.model_3d_url.trim() !== '') {
                     btn3dHtml = `
-                        <button class="btn-3d-toggle" onclick="openProductVideoPopup('${prod.model_3d_url}'); event.stopPropagation();">
+                        <button class="btn-3d-toggle" onclick="openProductVideoPopup(${jsq(prod.model_3d_url)}); event.stopPropagation();">
                             ${ico('video')} View 3D
                         </button>
                     `;
                 }
 
                 allHtml += `
-                    <div class="card" id="prod-${ref}" data-gender="${prod.gender || 'men'}" data-type="${prod.type || 'tops'}">
-                        <span class="badge">Ref: ${ref}</span>
+                    <div class="card" id="prod-${esc(ref)}" data-gender="${esc(prod.gender || 'men')}" data-type="${esc(prod.type || 'tops')}">
+                        <span class="badge">Ref: ${esc(ref)}</span>
                         <div class="img-box" ${imgBoxClickAction} style="position: relative;">
                             ${mediaHtml}
                             ${btn3dHtml}
                         </div>
                         <div>
-                            <div class="prod-title">${displayTitle}</div>
-                            <div class="prod-desc">${displayDesc}</div>
+                            <div class="prod-title">${esc(displayTitle)}</div>
+                            <div class="prod-desc">${esc(displayDesc)}</div>
                             <div class="price-box">
                                 <img src="images/IMG_5837.png" alt="Price Icon" class="price-icon" loading="lazy">
                                 <div class="price">$${parseFloat(prod.price).toFixed(2)}</div>
@@ -2124,11 +2125,11 @@
                             <div class="size-grid">
                                 ${sizeButtonsHtml}
                             </div>
-                            <div class="stock-hint-box" id="stock-hint-prod-${ref}">
-                                <span id="stock-text-prod-${ref}">${translations[currentLang].stock_remaining}</span>
+                            <div class="stock-hint-box" id="stock-hint-prod-${esc(ref)}">
+                                <span id="stock-text-prod-${esc(ref)}">${translations[currentLang].stock_remaining}</span>
                                 <span style="color: ${defaultStockColor}; font-weight: 900;">${defaultStockText}</span>
                             </div>
-                            <button class="btn-add" onclick="addToCart(this, ${prod.price}, 'prod-${ref}', '${ref}', event)">+ ${translations[currentLang].add_to_cart}</button>
+                            <button class="btn-add" onclick="addToCart(this, ${Number(prod.price) || 0}, ${jsq('prod-' + ref)}, ${jsq(ref)}, event)">+ ${translations[currentLang].add_to_cart}</button>
                         </div>
                     </div>
                 `;
@@ -2485,14 +2486,14 @@
                 itemsHtml += `
                     <div class="cart-item">
                         <div>
-                            <div class="item-info">[Ref: ${item.ref}] ${displayTitle}</div>
-                            <div class="item-sub">Size: ${item.size} | $${item.price.toFixed(2)}</div>
+                            <div class="item-info">[Ref: ${esc(item.ref)}] ${esc(displayTitle)}</div>
+                            <div class="item-sub">Size: ${esc(item.size)} | $${item.price.toFixed(2)}</div>
                         </div>
                         <div class="qty-controls">
-                            <button class="btn-qty" onclick="changeQty('${key}', -1)">-</button>
+                            <button class="btn-qty" onclick="changeQty(${jsq(key)}, -1)">-</button>
                             <span style="font-weight:800; font-size:13px;">${item.qty}</span>
-                            <button class="btn-qty" onclick="changeQty('${key}', 1)">+</button>
-                            <button class="btn-delete-item" onclick="deleteCartItem('${key}')" title="Delete"><svg class="ico ico-trash" aria-hidden="true"><use href="#i-trash"/></svg></button>
+                            <button class="btn-qty" onclick="changeQty(${jsq(key)}, 1)">+</button>
+                            <button class="btn-delete-item" onclick="deleteCartItem(${jsq(key)})" title="Delete"><svg class="ico ico-trash" aria-hidden="true"><use href="#i-trash"/></svg></button>
                         </div>
                     </div>
                 `;
@@ -2540,11 +2541,10 @@
             try {
                 let r = await fetch(`${RAILWAY_API_URL}/api/payment-config`, { cache: 'no-store' });
                 let cfg = await r.json();
-                khqrEnabled = !!(cfg.khqr_enabled || cfg.wing_enabled);
+                khqrEnabled = !!cfg.khqr_enabled;
                 document.getElementById('payRowKhqr').style.display = cfg.khqr_enabled ? 'flex' : 'none';
-                document.getElementById('payRowWing').style.display = cfg.wing_enabled ? 'flex' : 'none';
                 // default to the first online method, otherwise cash on delivery
-                let first = cfg.khqr_enabled ? 'khqr' : cfg.wing_enabled ? 'wing' : 'cod';
+                let first = cfg.khqr_enabled ? 'khqr' : 'cod';
                 let radio = document.querySelector(`input[name="payMethod"][value="${first}"]`);
                 if (radio) radio.checked = true;
             } catch (e) { khqrEnabled = false; }
@@ -2668,7 +2668,6 @@
                 let result = await response.json();
                 if (!result.success) {
                     uiAlert(result.message || result.error || "មានបញ្ហាពេលកុម្មង់ទំនិញ!", 'error');
-                    if (result.wing_down) loadPaymentConfig(); // hides Wing and switches the choice to KHQR
                     return;
                 }
 
@@ -2679,26 +2678,9 @@
                 document.getElementById('khqrDoneBtn').style.display = 'none';
                 khqrAmountText = '$' + Number(result.amount).toFixed(2);
                 document.getElementById('khqrAmount').innerText = khqrAmountText;
-                if (result.payment === 'wing' && /^https:\/\//i.test(result.wing_url || '')) {
-                    // Wing hosts the payment page: give the customer a button (new tab) and a QR of the same link
-                    let a = document.createElement('a');
-                    a.href = result.wing_url;
-                    a.target = '_blank';
-                    a.rel = 'noopener';
-                    a.className = 'btn-modal-telegram';
-                    a.style.textDecoration = 'none';
-                    a.style.marginTop = '12px';
-                    a.innerHTML = iconize(t.wing_open);
-                    let qrBox = document.getElementById('khqrQrBox');
-                    qrBox.closest('.kq-qr').parentNode.insertBefore(a, qrBox.closest('.kq-qr'));
-                    new QRCode(qrBox, { text: result.wing_url, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
-                    let hintEl = document.getElementById('khqrHint');
-                    if (hintEl) hintEl.textContent = t.wing_hint;
-                } else {
-                    new QRCode(document.getElementById('khqrQrBox'), {
-                        text: result.qr, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M
-                    });
-                }
+                new QRCode(document.getElementById('khqrQrBox'), {
+                    text: result.qr, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M
+                });
 
                 closeModal('checkoutModal');
                 closeModal('cartModal');
@@ -2815,7 +2797,7 @@
 
             // Pay-now path: the server creates the order + KHQR, then we wait for Bakong to confirm.
             let payChoice = document.querySelector('input[name="payMethod"]:checked');
-            if (khqrEnabled && payChoice && (payChoice.value === 'khqr' || payChoice.value === 'wing')) {
+            if (khqrEnabled && payChoice && payChoice.value === 'khqr') {
                 await startKhqrPayment(orderData, payChoice.value);
                 return;
             }

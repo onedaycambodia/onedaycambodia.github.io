@@ -103,7 +103,7 @@
             try {
                 let checkRes = await fetch(`${API_BASE}/api/check-admin`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': tg?.initData || '' },
                     body: JSON.stringify({ telegramId, username })
                 });
                 let checkData = await checkRes.json();
@@ -125,6 +125,9 @@
                 document.getElementById('adminProductList').innerHTML = `<div style="color: #ef4444; text-align: center;">បរាជ័យក្នុងការតភ្ជាប់ Server!</div>`;
             }
         }
+
+        function jsq(v) { return escHtml(JSON.stringify(String(v == null ? '' : v))); }
+        function escHtml(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
         async function loadAdminProducts() {
             try {
@@ -186,9 +189,9 @@
                         <div class="size-row">
                             <div class="size-label">Size: ${sz}</div>
                             <div class="qty-controls">
-                                <button class="btn-qty" onclick="changeQty('${prod.ref}', '${sz}', -1)">-</button>
-                                <input type="number" class="size-input" id="qty-${prod.ref}-${sz}" value="${qty}" min="0" onchange="updateStockAPI('${prod.ref}', '${sz}')">
-                                <button class="btn-qty" onclick="changeQty('${prod.ref}', '${sz}', 1)">+</button>
+                                <button class="btn-qty" onclick="changeQty(${jsq(prod.ref)}, '${sz}', -1)">-</button>
+                                <input type="number" class="size-input" id="qty-${escHtml(prod.ref)}-${sz}" value="${qty}" min="0" onchange="updateStockAPI(${jsq(prod.ref)}, '${sz}')">
+                                <button class="btn-qty" onclick="changeQty(${jsq(prod.ref)}, '${sz}', 1)">+</button>
                             </div>
                         </div>
                     `;
@@ -198,7 +201,7 @@
                 card.className = 'product-card';
                 card.innerHTML = `
                     <div class="prod-header">
-                        <div class="prod-title">Ref: ${prod.ref} - ${prod.title_km}</div>
+                        <div class="prod-title">Ref: ${escHtml(prod.ref)} - ${escHtml(prod.title_km)}</div>
                         <div class="prod-price">$${parseFloat(prod.price).toFixed(2)}</div>
                     </div>
                     <div>

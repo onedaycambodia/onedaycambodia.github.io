@@ -17,7 +17,8 @@ module.exports = function mountWebAdmin(app, deps) {
 
     // ---------- crypto helpers ----------
     const b64u = (buf) => Buffer.from(buf).toString('base64url');
-    const sessionKey = crypto.createHmac('sha256', botToken || 'no-token').update('web-admin-session-v1').digest();
+    // With no BOT_TOKEN a constant key would let anyone forge a session cookie, so use a random key (all sessions then die on restart).
+    const sessionKey = botToken ? crypto.createHmac('sha256', botToken).update('web-admin-session-v1').digest() : crypto.randomBytes(32);
 
     function safeEqual(a, b) {
         const x = Buffer.from(String(a)), y = Buffer.from(String(b));
@@ -52,7 +53,7 @@ module.exports = function mountWebAdmin(app, deps) {
 
     // Telegram Login Widget: hash = HMAC_SHA256(key = SHA256(bot_token), "k=v\n..." sorted, without hash)
     function verifyLoginWidget(data) {
-        if (!data || !data.hash || !data.id || !data.auth_date) return null;
+        if (!botToken || !data || !data.hash || !data.id || !data.auth_date) return null;
         const check = Object.keys(data).filter(k => k !== 'hash').sort().map(k => `${k}=${data[k]}`).join('\n');
         const secret = crypto.createHash('sha256').update(botToken).digest();
         const calc = crypto.createHmac('sha256', secret).update(check).digest('hex');
@@ -63,7 +64,7 @@ module.exports = function mountWebAdmin(app, deps) {
 
     // Telegram Mini App initData: secret = HMAC_SHA256(key "WebAppData", bot_token)
     function verifyInitData(initData) {
-        if (!initData || typeof initData !== 'string') return null;
+        if (!botToken || !initData || typeof initData !== 'string') return null;
         const params = new URLSearchParams(initData);
         const hash = params.get('hash');
         if (!hash) return null;
