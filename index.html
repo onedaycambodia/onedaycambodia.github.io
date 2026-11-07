@@ -3325,7 +3325,7 @@
 
         // ---- Log in with Telegram (OpenID Connect, code + PKCE) ----
         const TG_PENDING = 'oneday_tg_pending';
-        const tgRedirect = () => location.origin + location.pathname;
+        const tgRedirect = () => location.origin + location.pathname.replace(/index\.html$/, '');   // always the same address: https://site/
         const b64url = (buf) => btoa(String.fromCharCode.apply(null, new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         const rnd = (n) => { const a = new Uint8Array(n); crypto.getRandomValues(a); return b64url(a); };
         let tgPopup = null, tgWatch = null;
