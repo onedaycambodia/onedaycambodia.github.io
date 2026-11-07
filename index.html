@@ -1031,10 +1031,51 @@
             .ui-dialog.open .ui-dialog-icon, .ui-dialog.open .ui-dialog-icon::after, .ui-dialog.open .ui-dialog-icon svg,
             .ui-dialog.open .ui-dialog-title, .ui-dialog.open .ui-dialog-msg, .ui-dialog.open .ui-dialog-btn { animation: none !important; }
         }
+
+        /* ===== 👤 Customer account (login / my orders) ===== */
+        .acct-btn { display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; background:var(--card-bg); border:1px solid var(--border-color); color:var(--text-muted); cursor:pointer; flex:none; position:relative; transition:all .2s; }
+        .acct-btn:hover { border-color:var(--accent); color:var(--accent); }
+        .acct-btn .ico { width:20px; height:20px; }
+        .acct-btn.in { color:#fff; background:var(--accent); border-color:var(--accent); }
+        #authModal { z-index:340; } #acctModal, #ordersModal { z-index:330; }
+        .au-sub { color:var(--text-muted); font-size:13px; line-height:1.5; margin:2px 0 14px; }
+        .au-field { position:relative; margin-bottom:12px; }
+        .au-field > .ico { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:18px; height:18px; color:var(--text-muted); pointer-events:none; }
+        .au-input { width:100%; padding:14px 14px 14px 44px; font-size:16px; border-radius:14px; border:1.5px solid var(--border-color); background:var(--card-bg); color:var(--primary); outline:none; }
+        .au-input:focus { border-color:var(--accent); }
+        .au-input.bad { border-color:#ef4444; }
+        .au-code { text-align:center; letter-spacing:.7em; padding:16px 14px 16px calc(14px + .7em); font-size:28px; font-weight:800; }
+        .au-err { display:none; align-items:center; gap:8px; color:#ef4444; font-size:13px; font-weight:600; margin:0 0 12px; }
+        .au-err.show { display:flex; } .au-err .ico { width:16px; height:16px; }
+        .au-link { background:none; border:none; color:var(--accent); font-weight:700; font-size:13px; cursor:pointer; padding:8px 4px; display:inline-flex; align-items:center; gap:6px; }
+        .au-link:disabled { color:var(--text-muted); cursor:default; }
+        .au-row { display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+        .au-hero { display:flex; align-items:center; gap:14px; padding:6px 0 16px; }
+        .au-avatar { width:52px; height:52px; border-radius:50%; background:var(--accent-light); color:var(--accent); display:flex; align-items:center; justify-content:center; flex:none; }
+        .au-avatar .ico { width:28px; height:28px; }
+        .au-hero b { display:block; font-size:16px; } .au-hero span { color:var(--text-muted); font-size:13px; }
+        .au-btn2 { width:100%; display:flex; align-items:center; gap:12px; padding:14px; border-radius:14px; border:1.5px solid var(--border-color); background:var(--card-bg); color:var(--primary); font-weight:700; font-size:14px; cursor:pointer; margin-bottom:10px; }
+        .au-btn2 .ico { width:20px; height:20px; color:var(--accent); }
+        .au-btn2.danger .ico { color:#ef4444; }
+        #authModal .btn-modal-telegram .ico { width:18px; height:18px; margin-right:6px; }
+        .od-list { max-height:65vh; overflow:auto; display:flex; flex-direction:column; gap:12px; padding:2px 2px 6px; }
+        .od-card { border:1.5px solid var(--border-color); border-radius:16px; padding:14px; background:var(--card-bg); }
+        .od-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px; }
+        .od-id { font-weight:800; font-size:15px; } .od-date { color:var(--text-muted); font-size:12px; margin-top:2px; }
+        .od-chips { display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
+        .od-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:999px; font-size:12px; font-weight:700; background:var(--accent-light); color:var(--accent); white-space:nowrap; }
+        .od-chip .ico { width:13px; height:13px; }
+        .od-chip.paid { background:rgba(22,163,74,.14); color:#16a34a; }
+        .od-chip.unpaid { background:rgba(245,158,11,.16); color:#d97706; }
+        .od-chip.bad { background:rgba(239,68,68,.13); color:#ef4444; }
+        .od-item { display:flex; justify-content:space-between; gap:10px; font-size:13px; padding:3px 0; color:var(--primary); }
+        .od-item span:last-child { color:var(--text-muted); white-space:nowrap; }
+        .od-total { display:flex; justify-content:space-between; border-top:1px dashed var(--border-color); margin-top:8px; padding-top:8px; font-weight:800; }
+        .od-empty { text-align:center; color:var(--text-muted); padding:36px 10px; } .od-empty .ico { width:40px; height:40px; display:block; margin:0 auto 10px; opacity:.6; }
     </style>
 </head>
 <body>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol><symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol><symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></symbol><symbol id="i-video" viewBox="0 0 24 24"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></symbol><symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="#22c55e" stroke="none"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" opacity=".2"/><path d="M21 12a9 9 0 0 0-9-9"/></symbol><symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol></svg>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></symbol><symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></symbol><symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 4H5v16h4"/><path d="M16 8l4 4-4 4M20 12H9"/></symbol><symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h11v10H2zM13 9h4l4 4v3h-8"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></symbol><symbol id="i-back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol><symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></symbol><symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol><symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol><symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></symbol><symbol id="i-video" viewBox="0 0 24 24"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></symbol><symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="#22c55e" stroke="none"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" opacity=".2"/><path d="M21 12a9 9 0 0 0-9-9"/></symbol><symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol></svg>
 
 
     <nav>
@@ -1050,6 +1091,8 @@
                 <span data-key="guide_btn_text">របៀបកុម្មង់</span>
             </button>
             
+            <button class="acct-btn" id="accountBtn" style="display:none" onclick="openAccount()" aria-label="Account"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg></button>
+
             <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">
                 <img id="themeImg" src="images/IMG_5830.png" alt="Theme Toggle" loading="lazy">
             </button>
@@ -1305,6 +1348,62 @@
             <button class="btn-close" onclick="closeModal('videoPopupModal')" style="position: absolute; top: 10px; right: 10px; z-index: 20; background: rgba(0,0,0,0.7); color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
             <img id="popupImagePlayer" style="width: 100%; height: auto; max-height: 85vh; object-fit: contain; display: none; margin: auto;" alt="Product Preview">
             <video id="popupVideoPlayer" autoplay loop controls playsinline webkit-playsinline preload="auto" style="display: none;"></video>
+        </div>
+    </div>
+
+    <!-- 👤 Login (name + phone -> 4-digit code from Telegram) -->
+    <div class="modal-overlay" id="authModal" onclick="handleModalClick(event, 'authModal')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg><span data-at="login_title">ចូលគណនី</span></div>
+                <button class="btn-close" onclick="closeModal('authModal')"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
+            </div>
+            <div id="auStepTg" style="display:none">
+                <p class="au-sub" data-at="tg_sub"></p>
+                <div class="au-err" id="auErrTg"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg><span></span></div>
+                <button id="auTgBtn" class="btn-modal-telegram" onclick="tgStart()"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg><span id="auTgTxt" data-at="tg_btn"></span></button>
+            </div>
+            <div id="auStep1">
+                <p class="au-sub" data-at="login_sub"></p>
+                <div class="au-field"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg><input id="auName" class="au-input" type="text" autocomplete="name" maxlength="100" data-atph="name" oninput="auClear()"></div>
+                <div class="au-field"><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg><input id="auPhone" class="au-input" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" data-atph="phone" oninput="auClear()"></div>
+                <div class="au-err" id="auErr1"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg><span></span></div>
+                <button id="auNext" class="btn-modal-telegram" onclick="auRequest(false)"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg><span data-at="next">បន្ទាប់</span></button>
+            </div>
+            <div id="auStep2" style="display:none">
+                <p class="au-sub"><span data-at="code_sub"></span> <b id="auShownPhone"></b></p>
+                <div class="au-field"><svg class="ico" aria-hidden="true" style="display:none"><use href="#i-shield"/></svg><input id="auCode" class="au-input au-code" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="4" placeholder="••••" oninput="auCodeInput()"></div>
+                <div class="au-err" id="auErr2"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg><span></span></div>
+                <button id="auVerify" class="btn-modal-telegram" onclick="auVerify()"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-at="verify">បញ្ជាក់</span></button>
+                <div class="au-row">
+                    <button class="au-link" onclick="auBack()"><svg class="ico" aria-hidden="true"><use href="#i-back"/></svg><span data-at="back">ត្រឡប់ក្រោយ</span></button>
+                    <button class="au-link" id="auResend" onclick="auRequest(true)"><svg class="ico" aria-hidden="true"><use href="#i-refresh"/></svg><span id="auResendTxt"></span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 👤 Account menu -->
+    <div class="modal-overlay" id="acctModal" onclick="handleModalClick(event, 'acctModal')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg><span data-at="account">គណនី</span></div>
+                <button class="btn-close" onclick="closeModal('acctModal')"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
+            </div>
+            <div class="au-hero"><div class="au-avatar"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg></div><div><b id="acName"></b><span id="acPhone"></span></div></div>
+            <button class="au-btn2" onclick="closeModal('acctModal'); openOrders()"><svg class="ico" aria-hidden="true"><use href="#i-receipt"/></svg><span data-at="my_orders">ការកុម្មង់របស់ខ្ញុំ</span></button>
+            <button class="au-btn2 danger" onclick="authLogout()"><svg class="ico" aria-hidden="true"><use href="#i-logout"/></svg><span data-at="logout">ចាកចេញ</span></button>
+        </div>
+    </div>
+
+    <!-- 👤 My orders -->
+    <div class="modal-overlay" id="ordersModal" onclick="handleModalClick(event, 'ordersModal')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><svg class="ico" aria-hidden="true"><use href="#i-receipt"/></svg><span data-at="my_orders">ការកុម្មង់របស់ខ្ញុំ</span></div>
+                <button class="btn-close" onclick="closeModal('ordersModal')"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
+            </div>
+            <div id="ordersBody" class="od-list"></div>
         </div>
     </div>
 
@@ -2689,10 +2788,11 @@
             try {
                 let response = await fetch(`${RAILWAY_API_URL}/api/order`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
                     body: JSON.stringify({ ...orderData, payment_method: method })
                 });
                 let result = await response.json();
+                if (result && result.need_login) { clearAuth(); openAuth(); return; }
                 if (!result.success) {
                     uiAlert(result.message || result.error || "មានបញ្ហាពេលកុម្មង់ទំនិញ!", 'error');
                     return;
@@ -2832,11 +2932,12 @@
             try {
                 let response = await fetch(`${RAILWAY_API_URL}/api/order`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
                     body: JSON.stringify(orderData)
                 });
 
                 let result = await response.json();
+                if (result && result.need_login) { clearAuth(); openAuth(); return; }
                 if (result.success) {
                     let t = translations[currentLang];
 
@@ -3026,6 +3127,266 @@
             _dlgNext();
         }
         window.alert = function (m) { uiAlert(m, 'info'); };   // safety net for any alert() left anywhere
+
+        /* ===================== 👤 CUSTOMER ACCOUNT (login + my orders) ===================== */
+        const AUTH_T = {
+            km: { login_title:'ចូលគណនី', login_sub:'បញ្ចូលឈ្មោះ និងលេខទូរស័ព្ទ យើងនឹងផ្ញើកូដ ៤ ខ្ទង់ទៅ Telegram របស់អ្នក', name:'ឈ្មោះរបស់អ្នក', phone:'លេខទូរស័ព្ទ (Telegram)', next:'បន្ទាប់', code_sub:'កូដ ៤ ខ្ទង់ត្រូវបានផ្ញើទៅ Telegram នៃលេខ', verify:'បញ្ជាក់', resend:'ផ្ញើកូដម្តងទៀត', resend_in:'ផ្ញើម្តងទៀតក្នុង ', back:'ត្រឡប់ក្រោយ',
+                err_name:'សូមបញ្ចូលឈ្មោះ', err_phone:'លេខទូរស័ព្ទមិនត្រឹមត្រូវ', err_no_tg:'លេខនេះមិនមាន Telegram ទេ សូមប្រើលេខដែលមាន Telegram', err_wait:'សូមរង់ចាំបន្តិច មុនផ្ញើកូដម្តងទៀត', err_many:'ព្យាយាមច្រើនពេក សូមរង់ចាំ', err_send:'មិនអាចផ្ញើកូដបានទេ សូមសាកល្បងម្តងទៀត', err_wrong:'កូដមិនត្រឹមត្រូវ', err_expired:'កូដផុតកំណត់ សូមផ្ញើម្តងទៀត', err_locked:'ខុសច្រើនដង សូមផ្ញើកូដថ្មី', err_net:'មិនអាចភ្ជាប់ Server បានទេ',
+                account:'គណនី', my_orders:'ការកុម្មង់របស់ខ្ញុំ', logout:'ចាកចេញ', no_orders:'មិនទាន់មានការកុម្មង់ទេ', loading:'កំពុងផ្ទុក...', tg_sub:'ចុចប៊ូតុងខាងក្រោម រួចចុច Accept ក្នុង Telegram ជាការស្រេច — មិនបាច់វាយលេខ ឬកូដទេ។', tg_btn:'ចូលជាមួយ Telegram', tg_wait:'កំពុងរង់ចាំ Telegram...', err_tg_phone:'Telegram មិនបានផ្តល់លេខទូរស័ព្ទ សូមអនុញ្ញាត (Allow) ការចូលមើលលេខទូរស័ព្ទ', err_tg:'Login មិនបានសម្រេច សូមសាកល្បងម្តងទៀត',
+                st_PENDING:'រង់ចាំបញ្ជាក់', st_CONFIRMED:'ហាងបានបញ្ជាក់', st_AWAITING_PAYMENT:'រង់ចាំបង់ប្រាក់', st_CANCELLED:'បានលុបចោល', st_EXPIRED:'ផុតកំណត់',
+                pay_paid:'បង់ប្រាក់រួច', pay_unpaid:'មិនទាន់បង់', pay_cod:'បង់ពេលទទួល', pay_none:'មិនបានបង់', total:'សរុប', order:'កុម្មង់ #' },
+            en: { login_title:'Sign in', login_sub:'Enter your name and phone number. We will send a 4-digit code to your Telegram.', name:'Your name', phone:'Phone number (Telegram)', next:'Next', code_sub:'A 4-digit code was sent to the Telegram of', verify:'Verify', resend:'Resend code', resend_in:'Resend in ', back:'Back',
+                err_name:'Please enter your name', err_phone:'Invalid phone number', err_no_tg:'This number is not on Telegram. Please use a Telegram number.', err_wait:'Please wait a moment before resending', err_many:'Too many attempts, please wait', err_send:'Could not send the code, please try again', err_wrong:'Wrong code', err_expired:'Code expired, please resend', err_locked:'Too many wrong tries, request a new code', err_net:'Cannot reach the server',
+                account:'Account', my_orders:'My orders', logout:'Log out', no_orders:'No orders yet', loading:'Loading...', tg_sub:'Tap the button below, then tap Accept in Telegram. No typing, no code.', tg_btn:'Log in with Telegram', tg_wait:'Waiting for Telegram...', err_tg_phone:'Telegram did not share your phone number. Please allow phone access.', err_tg:'Login failed, please try again',
+                st_PENDING:'Awaiting confirmation', st_CONFIRMED:'Confirmed', st_AWAITING_PAYMENT:'Awaiting payment', st_CANCELLED:'Cancelled', st_EXPIRED:'Expired',
+                pay_paid:'Paid', pay_unpaid:'Unpaid', pay_cod:'Pay on delivery', pay_none:'Not paid', total:'Total', order:'Order #' },
+            zh: { login_title:'登录', login_sub:'请输入姓名和手机号，我们会向您的 Telegram 发送 4 位验证码。', name:'您的姓名', phone:'手机号 (Telegram)', next:'下一步', code_sub:'4 位验证码已发送至以下号码的 Telegram：', verify:'确认', resend:'重新发送', resend_in:'重新发送：', back:'返回',
+                err_name:'请输入姓名', err_phone:'手机号无效', err_no_tg:'该号码未注册 Telegram，请使用 Telegram 号码', err_wait:'请稍候再重新发送', err_many:'尝试次数过多，请稍候', err_send:'验证码发送失败，请重试', err_wrong:'验证码错误', err_expired:'验证码已过期，请重新发送', err_locked:'错误次数过多，请重新获取', err_net:'无法连接服务器',
+                account:'账户', my_orders:'我的订单', logout:'退出登录', no_orders:'暂无订单', loading:'加载中...', tg_sub:'点击下方按钮，然后在 Telegram 中点击“接受”即可，无需输入号码或验证码。', tg_btn:'使用 Telegram 登录', tg_wait:'等待 Telegram...', err_tg_phone:'Telegram 未提供手机号，请允许访问手机号。', err_tg:'登录失败，请重试',
+                st_PENDING:'等待确认', st_CONFIRMED:'商家已确认', st_AWAITING_PAYMENT:'等待付款', st_CANCELLED:'已取消', st_EXPIRED:'已过期',
+                pay_paid:'已付款', pay_unpaid:'未付款', pay_cod:'货到付款', pay_none:'未付款', total:'合计', order:'订单 #' }
+        };
+        function at(k) { const d = AUTH_T[currentLang] || AUTH_T.km; return d[k] != null ? d[k] : (AUTH_T.km[k] || k); }
+        function applyAuthLang() {
+            document.querySelectorAll('[data-at]').forEach(el => { el.textContent = at(el.getAttribute('data-at')); });
+            document.querySelectorAll('[data-atph]').forEach(el => { el.placeholder = at(el.getAttribute('data-atph')); });
+        }
+        (function () { const _cl = changeLanguage; changeLanguage = function () { const r = _cl.apply(this, arguments); applyAuthLang(); return r; }; })();
+
+        const AUTH_LS = 'oneday_auth_token', AUTH_COOKIE = 'oneday_t';
+        let authProvider = null, tgClientId = '', authEnabled = false, authToken = null, authCust = null, authPending = null, auPhoneVal = '', auTimer = null;
+
+        function authStoreGet() {
+            let t = null;
+            try { t = localStorage.getItem(AUTH_LS); } catch (e) {}
+            if (!t) { const m = document.cookie.match(new RegExp('(?:^|; )' + AUTH_COOKIE + '=([^;]+)')); if (m) t = m[1]; }
+            return t && /^[A-Za-z0-9_-]{20,100}$/.test(t) ? t : null;
+        }
+        function authStoreSet(t) {   // saved in localStorage AND a ~13-month cookie (a second copy in case one is dropped)
+            try { if (t) localStorage.setItem(AUTH_LS, t); else localStorage.removeItem(AUTH_LS); } catch (e) {}
+            try { document.cookie = AUTH_COOKIE + '=' + (t || '') + '; max-age=' + (t ? 34560000 : 0) + '; path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''); } catch (e) {}
+        }
+        function authHeaders() { return authToken ? { Authorization: 'Bearer ' + authToken } : {}; }
+        function clearAuth() { authToken = null; authCust = null; authStoreSet(null); updateAcctUi(); }
+        function updateAcctUi() {
+            const b = document.getElementById('accountBtn'); if (b) b.classList.toggle('in', !!authToken);
+            if (authCust) { document.getElementById('acName').textContent = authCust.name || ''; document.getElementById('acPhone').textContent = authCust.phone || ''; }
+        }
+        async function authInit() {
+            applyAuthLang();
+            authToken = authStoreGet();
+            try {
+                const r = await fetchRetry(`${RAILWAY_API_URL}/api/auth/config`, 2);
+                const cfg = await r.json(); authEnabled = !!cfg.enabled; authProvider = cfg.provider || null; tgClientId = cfg.client_id || '';
+            } catch (e) { authEnabled = false; }
+            const btn = document.getElementById('accountBtn'); if (btn) btn.style.display = authEnabled ? 'flex' : 'none';
+            if (authEnabled && authToken) {
+                try {
+                    const r = await fetch(`${RAILWAY_API_URL}/api/auth/me`, { headers: authHeaders(), cache: 'no-store' });
+                    if (r.status === 401) clearAuth();
+                    else { const j = await r.json(); authCust = j.customer; authStoreSet(authToken); }
+                } catch (e) { /* offline: keep the token, try again next time */ }
+            } else if (!authEnabled) { authToken = null; }
+            updateAcctUi();
+        }
+        function needLogin() { return authEnabled && !authToken; }
+
+        function openAccount() {
+            if (!authEnabled) return;
+            applyAuthLang();
+            if (authToken) { updateAcctUi(); openModal('acctModal'); } else openAuth();
+        }
+        function openAuth(after) {
+            authPending = after || null;
+            applyAuthLang();
+            try { const n = localStorage.getItem('oneday_cust_name'), p = localStorage.getItem('oneday_cust_phone'); if (n && !document.getElementById('auName').value) document.getElementById('auName').value = n; if (p && !document.getElementById('auPhone').value) document.getElementById('auPhone').value = p; } catch (e) {}
+            auShowStep(authProvider === 'telegram' ? 0 : 1); openModal('authModal');
+        }
+        function auShowStep(n) {
+            document.getElementById('auStepTg').style.display = n === 0 ? '' : 'none';
+            document.getElementById('auStep1').style.display = n === 1 ? '' : 'none';
+            document.getElementById('auStep2').style.display = n === 2 ? '' : 'none';
+            auClear();
+        }
+        function auErr(step, msg) { const e = document.getElementById('auErr' + step); e.querySelector('span').textContent = msg; e.classList.add('show'); }
+        function auClear() { document.querySelectorAll('#authModal .au-err').forEach(e => e.classList.remove('show')); document.querySelectorAll('#authModal .au-input').forEach(e => e.classList.remove('bad')); }
+        function auBack() { clearInterval(auTimer); auShowStep(1); }
+        function auCooldown(sec) {
+            clearInterval(auTimer);
+            const btn = document.getElementById('auResend'), txt = document.getElementById('auResendTxt');
+            let left = sec; btn.disabled = true; txt.textContent = at('resend_in') + left + 's';
+            auTimer = setInterval(() => { left--; if (left <= 0) { clearInterval(auTimer); btn.disabled = false; txt.textContent = at('resend'); } else txt.textContent = at('resend_in') + left + 's'; }, 1000);
+        }
+        async function auRequest(isResend) {
+            const nameEl = document.getElementById('auName'), phoneEl = document.getElementById('auPhone');
+            const name = nameEl.value.trim(), phone = phoneEl.value.trim();
+            auClear();
+            if (!name) { nameEl.classList.add('bad'); return auErr(1, at('err_name')); }
+            if (phone.replace(/\D/g, '').length < 8) { phoneEl.classList.add('bad'); return auErr(1, at('err_phone')); }
+            const btn = document.getElementById('auNext'); btn.disabled = true;
+            try {
+                const r = await fetch(`${RAILWAY_API_URL}/api/auth/request`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, phone }) });
+                const j = await r.json().catch(() => ({}));
+                const st = j.status;
+                const E = (m) => { if (isResend) auErr(2, m); else auErr(1, m); };
+                if (st === 'sent') {
+                    auPhoneVal = phone; document.getElementById('auShownPhone').textContent = phone;
+                    auShowStep(2); auCooldown(30);
+                    const c = document.getElementById('auCode'); c.value = ''; setTimeout(() => c.focus(), 80);
+                } else if (st === 'no_telegram') E(at('err_no_tg'));
+                else if (st === 'wait') E(at('err_wait'));
+                else if (st === 'too_many') E(at('err_many'));
+                else if (st === 'bad_phone') { phoneEl.classList.add('bad'); E(at('err_phone')); }
+                else if (st === 'bad_name') { nameEl.classList.add('bad'); E(at('err_name')); }
+                else E(at('err_send'));
+            } catch (e) { (isResend ? auErr(2, at('err_net')) : auErr(1, at('err_net'))); }
+            btn.disabled = false;
+        }
+        function auCodeInput() {
+            const c = document.getElementById('auCode'); c.value = c.value.replace(/\D/g, '').slice(0, 4); auClear();
+            if (c.value.length === 4) auVerify();
+        }
+        let auBusy = false;
+        async function auVerify() {
+            const code = document.getElementById('auCode').value.trim();
+            if (auBusy) return;
+            if (!/^\d{4}$/.test(code)) return auErr(2, at('err_wrong'));
+            auBusy = true; const btn = document.getElementById('auVerify'); btn.disabled = true;
+            try {
+                const r = await fetch(`${RAILWAY_API_URL}/api/auth/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: auPhoneVal, code }) });
+                const j = await r.json().catch(() => ({}));
+                if (j.ok) {
+                    authToken = j.token; authCust = j.customer; authStoreSet(authToken); updateAcctUi();
+                    try { localStorage.setItem('oneday_cust_name', authCust.name || ''); localStorage.setItem('oneday_cust_phone', authCust.phone || ''); } catch (e) {}
+                    clearInterval(auTimer); closeModal('authModal');
+                    const f = authPending; authPending = null; if (f) setTimeout(f, 250);
+                } else {
+                    const m = j.error === 'expired' ? at('err_expired') : j.error === 'locked' ? at('err_locked') : j.error === 'too_many' ? at('err_many') : at('err_wrong');
+                    document.getElementById('auCode').classList.add('bad'); auErr(2, m);
+                }
+            } catch (e) { auErr(2, at('err_net')); }
+            auBusy = false; btn.disabled = false;
+        }
+        async function authLogout() {
+            try { fetch(`${RAILWAY_API_URL}/api/auth/logout`, { method: 'POST', headers: authHeaders() }); } catch (e) {}
+            clearAuth(); closeModal('acctModal');
+        }
+
+        // ---- My orders ----
+        function odChip(cls, icon, text) { return `<span class="od-chip ${cls}"><svg class="ico" aria-hidden="true"><use href="#i-${icon}"/></svg>${esc(text)}</span>`; }
+        async function openOrders() {
+            applyAuthLang();
+            const body = document.getElementById('ordersBody');
+            body.innerHTML = `<div class="od-empty"><svg class="ico" aria-hidden="true"><use href="#i-spinner"/></svg>${esc(at('loading'))}</div>`;
+            openModal('ordersModal');
+            try {
+                const r = await fetch(`${RAILWAY_API_URL}/api/my/orders`, { headers: authHeaders(), cache: 'no-store' });
+                if (r.status === 401) { clearAuth(); closeModal('ordersModal'); return openAuth(openOrders); }
+                const j = await r.json();
+                const list = j.orders || [];
+                if (!list.length) { body.innerHTML = `<div class="od-empty"><svg class="ico" aria-hidden="true"><use href="#i-box"/></svg>${esc(at('no_orders'))}</div>`; return; }
+                const loc = currentLang === 'km' ? 'km-KH' : currentLang === 'zh' ? 'zh-CN' : 'en-GB';
+                body.innerHTML = list.map(o => {
+                    const stIcon = o.status === 'CONFIRMED' ? 'check' : (o.status === 'CANCELLED' || o.status === 'EXPIRED') ? 'ban' : 'hourglass';
+                    const stCls = (o.status === 'CANCELLED' || o.status === 'EXPIRED') ? 'bad' : o.status === 'CONFIRMED' ? 'paid' : '';
+                    const pay = { paid: ['paid', 'check', 'pay_paid'], unpaid: ['unpaid', 'hourglass', 'pay_unpaid'], cod: ['', 'truck', 'pay_cod'], cancelled: ['bad', 'ban', 'pay_none'], expired: ['bad', 'ban', 'pay_none'] }[o.pay] || ['', 'dot', 'pay_cod'];
+                    const amount = (o.pay_amount != null ? o.pay_amount : o.total);
+                    return `<div class="od-card">
+                        <div class="od-top"><div><div class="od-id">${esc(at('order'))}${Number(o.id)}</div><div class="od-date">${esc(new Date(o.created_at).toLocaleString(loc, { dateStyle: 'medium', timeStyle: 'short' }))}</div></div>
+                        <div class="od-chips">${odChip(pay[0], pay[1], at(pay[2]))}${odChip(stCls, stIcon, at('st_' + o.status))}</div></div>
+                        ${(o.items || []).map(i => `<div class="od-item"><span>[${esc(i.ref)}] ${esc(i.title)} · ${esc(i.size)} × ${Number(i.qty)}</span><span>$${(Number(i.price) * Number(i.qty)).toFixed(2)}</span></div>`).join('')}
+                        <div class="od-total"><span>${esc(at('total'))}</span><span>$${Number(amount).toFixed(2)}</span></div></div>`;
+                }).join('');
+            } catch (e) { body.innerHTML = `<div class="od-empty"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg>${esc(at('err_net'))}</div>`; }
+        }
+
+        // ---- gates: +Add to cart / Order Now need a login ----
+        (function () {
+            const _add = addToCart;
+            addToCart = function (btn, price, cardId, ref, ev) {
+                if (needLogin()) { openAuth(() => _add(btn, price, cardId, ref, ev)); return; }
+                return _add.apply(this, arguments);
+            };
+            const _prep = prepareOrder;
+            prepareOrder = function () {
+                if (needLogin()) { openAuth(() => _prep()); return; }
+                return _prep.apply(this, arguments);
+            };
+            const _load = loadUserInfo;   // pre-fill the checkout form from the account
+            loadUserInfo = function () {
+                _load();
+                if (authCust) {
+                    const n = document.getElementById('custName'), p = document.getElementById('custPhone');
+                    if (n && !n.value) n.value = authCust.name || '';
+                    if (p && !p.value) p.value = authCust.phone || '';
+                }
+            };
+        })();
+
+        // ---- Log in with Telegram (OpenID Connect, code + PKCE) ----
+        const TG_PENDING = 'oneday_tg_pending';
+        const tgRedirect = () => location.origin + location.pathname;
+        const b64url = (buf) => btoa(String.fromCharCode.apply(null, new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        const rnd = (n) => { const a = new Uint8Array(n); crypto.getRandomValues(a); return b64url(a); };
+        let tgPopup = null, tgWatch = null;
+        function tgBusy(on) { const b = document.getElementById('auTgBtn'); if (b) b.disabled = on; document.getElementById('auTgTxt').textContent = on ? at('tg_wait') : at('tg_btn'); }
+        async function tgStart() {
+            auClear(); tgBusy(true);
+            // open the popup NOW (inside the tap) — Safari blocks popups opened after an await
+            tgPopup = window.open('', 'oneday_tg_login', 'width=520,height=720');
+            try {
+                const verifier = rnd(48), state = rnd(16);
+                const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
+                try { localStorage.setItem(TG_PENDING, JSON.stringify({ state, verifier, t: Date.now() })); } catch (e) {}
+                const url = 'https://oauth.telegram.org/auth?' + new URLSearchParams({
+                    client_id: tgClientId, redirect_uri: tgRedirect(), response_type: 'code', scope: 'openid profile phone',
+                    state, code_challenge: challenge, code_challenge_method: 'S256'
+                }).toString();
+                if (!tgPopup) { location.href = url; return; }     // popup blocked: full-page redirect instead
+                tgPopup.location.href = url;
+                clearInterval(tgWatch);
+                tgWatch = setInterval(() => { if (tgPopup.closed) { clearInterval(tgWatch); setTimeout(() => tgBusy(false), 1500); } }, 600);
+            } catch (e) { tgBusy(false); auErr('Tg', at('err_tg')); }
+        }
+        async function tgFinish(code, state) {
+            let p = null;
+            try { p = JSON.parse(localStorage.getItem(TG_PENDING) || 'null'); } catch (e) {}
+            try { localStorage.removeItem(TG_PENDING); } catch (e) {}
+            if (!p || p.state !== state || Date.now() - p.t > 15 * 60 * 1000) { tgBusy(false); return; }
+            try { if (tgPopup && !tgPopup.closed) tgPopup.close(); } catch (e) {}
+            try {
+                const r = await fetch(`${RAILWAY_API_URL}/api/auth/telegram`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, code_verifier: p.verifier, redirect_uri: tgRedirect() }) });
+                const j = await r.json().catch(() => ({}));
+                tgBusy(false);
+                if (j.ok) {
+                    authToken = j.token; authCust = j.customer; authStoreSet(authToken); updateAcctUi();
+                    try { localStorage.setItem('oneday_cust_name', authCust.name || ''); localStorage.setItem('oneday_cust_phone', authCust.phone || ''); } catch (e) {}
+                    closeModal('authModal');
+                    const f = authPending; authPending = null; if (f) setTimeout(f, 250);
+                } else {
+                    openModal('authModal'); auShowStep(0);
+                    auErr('Tg', j.error === 'no_phone' ? at('err_tg_phone') : at('err_tg'));
+                }
+            } catch (e) { tgBusy(false); openModal('authModal'); auShowStep(0); auErr('Tg', at('err_net')); }
+        }
+        window.addEventListener('message', (e) => {
+            if (e.origin === location.origin && e.data && e.data.type === 'oneday-tg') tgFinish(e.data.code, e.data.state);
+        });
+        // This page was opened by Telegram as the redirect target (?code=...&state=...)
+        window.__tgReturn = (function () {
+            const q = new URLSearchParams(location.search);
+            if (!q.get('state') || !(q.get('code') || q.get('error'))) return null;
+            const r = { code: q.get('code') || '', state: q.get('state') };
+            try { history.replaceState(null, '', location.pathname); } catch (e) {}
+            if (window.opener && window.opener !== window) {
+                try { window.opener.postMessage({ type: 'oneday-tg', code: r.code, state: r.state }, location.origin); } catch (e) {}
+                document.body.innerHTML = '<p style="font:16px sans-serif;text-align:center;margin-top:40vh">✓</p>';
+                setTimeout(() => window.close(), 300);
+                return 'popup';
+            }
+            return r.code ? r : null;
+        })();
+        authInit().then(() => { if (window.__tgReturn && window.__tgReturn !== 'popup') tgFinish(window.__tgReturn.code, window.__tgReturn.state); });
     </script>
 </body>
 </html>

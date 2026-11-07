@@ -389,6 +389,9 @@ const webAdmin = require('./webadmin')(app, {
     pool, bot, cloudinary, autoTranslate, isAdminUser, deleteCloudinaryFileByUrl, restoreStockForItems, botToken: BOT_TOKEN
 });
 
+// 👤 Customer accounts (login by phone + Telegram Gateway code, My Orders). OFF unless GATEWAY_TOKEN is set.
+const customers = require('./customers')(app, { pool });
+
 // ---------------- 💳 KHQR / BAKONG PAYMENT ----------------
 const KHQR_EXPIRE_MINUTES = Number(process.env.KHQR_EXPIRE_MINUTES) || 3; // QR lifetime; also the stock-hold time for unpaid orders
 const khqrRateMap = new Map(); // ip -> [timestamps], stops someone locking all stock with unpaid QR orders
@@ -757,6 +760,9 @@ app.post('/api/order', async (req, res) => {
 
     // ---- validate input (never trust the browser) ----
     if (ipLimited('order:' + req.ip, 15, 10 * 60 * 1000)) return res.status(429).json({ success: false, message: 'ព្យាយាមច្រើនពេក សូមរង់ចាំបន្តិចសិន។' });
+    // 👤 when accounts are ON, only a logged-in customer can order
+    const authCust = await customers.authCustomer(req);
+    if (customers.enabled && !authCust) return res.status(401).json({ success: false, need_login: true, message: 'សូម Login ជាមុនសិន។' });
     if (!items || typeof items !== 'object') return res.status(400).json({ success: false, message: 'Invalid order' });
     if (!customer || typeof customer !== 'object' || Array.isArray(customer)) customer = {};
     const cut = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
@@ -768,6 +774,7 @@ app.post('/api/order', async (req, res) => {
         userId: cleanTgId(customer.userId || customer.telegramId),
         username: cleanTgUsername(customer.username)
     };
+    if (authCust) { if (!customer.name) customer.name = authCust.name || ''; if (!customer.phone) customer.phone = '0' + String(authCust.phone).replace(/^855/, ''); }
 
     // merge duplicate lines (same ref + size) so stock is checked against the TOTAL quantity
     const lines = new Map();
@@ -835,10 +842,10 @@ app.post('/api/order', async (req, res) => {
         }
 
         const orderRes = await client.query(
-            `INSERT INTO orders (customer, items, total, status, payment_method, pay_amount, expires_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+            `INSERT INTO orders (customer, items, total, status, payment_method, pay_amount, expires_at, customer_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
             [JSON.stringify(customer), JSON.stringify(itemsSummary), totalAmount,
-             isKhqr ? 'AWAITING_PAYMENT' : 'PENDING', isKhqr ? 'KHQR' : 'COD', isKhqr ? payAmount : null, expiresAt]
+             isKhqr ? 'AWAITING_PAYMENT' : 'PENDING', isKhqr ? 'KHQR' : 'COD', isKhqr ? payAmount : null, expiresAt, authCust ? authCust.id : null]
         );
         orderId = orderRes.rows[0].id;
 
