@@ -3193,6 +3193,7 @@
 
         function openAccount() {
             if (!authEnabled) return;
+            authMeta = null;
             applyAuthLang();
             if (authToken) { updateAcctUi(); openModal('acctModal'); } else openAuth();
         }
@@ -3304,12 +3305,12 @@
         (function () {
             const _add = addToCart;
             addToCart = function (btn, price, cardId, ref, ev) {
-                if (needLogin()) { openAuth(() => _add(btn, price, cardId, ref, ev)); return; }
+                if (needLogin()) { const sb = document.querySelector('#' + cardId + ' .size-btn.active'); authMeta = { add: { ref, size: sb ? sb.innerText : 'M' } }; openAuth(() => _add(btn, price, cardId, ref, ev)); return; }
                 return _add.apply(this, arguments);
             };
             const _prep = prepareOrder;
             prepareOrder = function () {
-                if (needLogin()) { openAuth(() => _prep()); return; }
+                if (needLogin()) { authMeta = { order: true }; openAuth(() => _prep()); return; }
                 return _prep.apply(this, arguments);
             };
             const _load = loadUserInfo;   // pre-fill the checkout form from the account
@@ -3330,22 +3331,48 @@
         const rnd = (n) => { const a = new Uint8Array(n); crypto.getRandomValues(a); return b64url(a); };
         let tgPopup = null, tgWatch = null;
         function tgBusy(on) { const b = document.getElementById('auTgBtn'); if (b) b.disabled = on; document.getElementById('auTgTxt').textContent = on ? at('tg_wait') : at('tg_btn'); }
+        const TG_CART = 'oneday_tg_cart';
+        let authMeta = null;   // what the customer was doing when we asked them to log in: {add:{ref,cardId}} | {order:true}
+        function saveCartForRedirect() {
+            try {
+                const items = {};
+                for (const k in cart) { const it = cart[k]; items[k] = { ref: it.ref, size: it.size, qty: it.qty, price: it.price }; }
+                localStorage.setItem(TG_CART, JSON.stringify({ items, meta: authMeta, t: Date.now() }));
+            } catch (e) {}
+        }
+        async function restoreCartAfterLogin() {
+            let saved = null;
+            try { saved = JSON.parse(localStorage.getItem(TG_CART) || 'null'); localStorage.removeItem(TG_CART); } catch (e) {}
+            if (!saved || Date.now() - saved.t > 30 * 60 * 1000) return;
+            for (let n = 0; n < 40 && !(productsList.length && Object.keys(stockData).length); n++) await new Promise(r => setTimeout(r, 300));
+            const put = (ref, size, qty, price) => {
+                const prod = productsList.find(p => String(p.ref).trim().toUpperCase() === String(ref).trim().toUpperCase());
+                if (!prod) return;
+                const key = String(ref).trim().toUpperCase() + '_' + String(size).trim().toUpperCase();
+                const have = cart[key] ? cart[key].qty : 0, max = stockData[key] !== undefined ? stockData[key] : 0;
+                const q = Math.min(qty, max - have); if (q <= 0) return;
+                const pr = priceData[key] && priceData[key] > 0 ? priceData[key] : price;
+                if (cart[key]) cart[key].qty += q; else cart[key] = { product: prod, price: pr, size, ref, qty: q };
+            };
+            for (const k in (saved.items || {})) { const it = saved.items[k]; put(it.ref, it.size, it.qty, it.price); }
+            const m = saved.meta || {};
+            if (m.add) put(m.add.ref, m.add.size || 'M', 1, 0);
+            renderCart();
+            if (m.add) showToast(translations[currentLang].toast_added);
+            if (m.order) setTimeout(() => prepareOrder(), 300);
+        }
         async function tgStart() {
             auClear(); tgBusy(true);
-            // open the popup NOW (inside the tap) — Safari blocks popups opened after an await
-            tgPopup = window.open('', 'oneday_tg_login', 'width=520,height=720');
             try {
                 const verifier = rnd(48), state = rnd(16);
                 const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
                 try { localStorage.setItem(TG_PENDING, JSON.stringify({ state, verifier, t: Date.now() })); } catch (e) {}
+                saveCartForRedirect();
                 const url = 'https://oauth.telegram.org/auth?' + new URLSearchParams({
                     client_id: tgClientId, redirect_uri: tgRedirect(), response_type: 'code', scope: 'openid profile phone',
                     state, code_challenge: challenge, code_challenge_method: 'S256'
                 }).toString();
-                if (!tgPopup) { location.href = url; return; }     // popup blocked: full-page redirect instead
-                tgPopup.location.href = url;
-                clearInterval(tgWatch);
-                tgWatch = setInterval(() => { if (tgPopup.closed) { clearInterval(tgWatch); setTimeout(() => tgBusy(false), 1500); } }, 600);
+                location.href = url;     // full-page redirect: the most reliable on phones (no popups)
             } catch (e) { tgBusy(false); auErr('Tg', at('err_tg')); }
         }
         async function tgFinish(code, state) {
@@ -3363,6 +3390,7 @@
                     try { localStorage.setItem('oneday_cust_name', authCust.name || ''); localStorage.setItem('oneday_cust_phone', authCust.phone || ''); } catch (e) {}
                     closeModal('authModal');
                     const f = authPending; authPending = null; if (f) setTimeout(f, 250);
+                    restoreCartAfterLogin();
                 } else {
                     openModal('authModal'); auShowStep(0);
                     auErr('Tg', j.error === 'no_phone' ? at('err_tg_phone') : at('err_tg'));
