@@ -116,7 +116,7 @@
             display: inline-block;
         }
 
-        input, select, textarea {
+        input:not([type=radio]):not([type=checkbox]), select, textarea, .form-input {
             font-size: 16px !important;
             -webkit-user-select: text;
             user-select: text;
@@ -636,7 +636,7 @@
         .checkout-form { border-top: 1px solid var(--border-color); padding-top: 14px; display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
         .form-group { display: flex; flex-direction: column; gap: 6px; width: 100%; }
         .form-label { font-size: 12px; font-weight: 800; color: var(--primary); }
-        .form-input { width: 100%; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 12px; outline: none; background: var(--input-bg); color: var(--primary); font-size: 14px !important; }
+        .form-input { width: 100%; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 12px; outline: none; background: var(--input-bg); color: var(--primary); font-size: 16px !important; }
         .form-input:focus { border-color: var(--accent); background: var(--card-bg); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
         .form-input.error { border-color: #ef4444; background: #fef2f2; }
 
