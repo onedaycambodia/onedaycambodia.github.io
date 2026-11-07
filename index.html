@@ -1358,10 +1358,14 @@
                 <div class="modal-title"><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg><span data-at="login_title">ចូលគណនី</span></div>
                 <button class="btn-close" onclick="closeModal('authModal')"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
             </div>
+            <div id="auGoogleBox" style="display:none">
+                <div id="auGoogleBtn" style="display:flex;justify-content:center;min-height:44px"></div>
+                <div class="au-err" id="auErrGg"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg><span></span></div>
+            </div>
             <div id="auStepTg" style="display:none">
                 <p class="au-sub" data-at="tg_sub"></p>
                 <div class="au-err" id="auErrTg"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg><span></span></div>
-                <button id="auTgBtn" class="btn-modal-telegram" onclick="tgStart()"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg><span id="auTgTxt" data-at="tg_btn"></span></button>
+                <button id="auTgBtn" class="btn-modal-telegram" style="display:none" onclick="tgStart()"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg><span id="auTgTxt" data-at="tg_btn"></span></button>
             </div>
             <div id="auStep1">
                 <p class="au-sub" data-at="login_sub"></p>
@@ -3154,7 +3158,7 @@
         (function () { const _cl = changeLanguage; changeLanguage = function () { const r = _cl.apply(this, arguments); applyAuthLang(); return r; }; })();
 
         const AUTH_LS = 'oneday_auth_token', AUTH_COOKIE = 'oneday_t';
-        let authProvider = null, tgClientId = '', authEnabled = false, authToken = null, authCust = null, authPending = null, auPhoneVal = '', auTimer = null;
+        let authProvider = null, tgClientId = '', googleClientId = '', ggReady = false, authEnabled = false, authToken = null, authCust = null, authPending = null, auPhoneVal = '', auTimer = null;
 
         function authStoreGet() {
             let t = null;
@@ -3170,14 +3174,14 @@
         function clearAuth() { authToken = null; authCust = null; authStoreSet(null); updateAcctUi(); }
         function updateAcctUi() {
             const b = document.getElementById('accountBtn'); if (b) b.classList.toggle('in', !!authToken);
-            if (authCust) { document.getElementById('acName').textContent = authCust.name || ''; document.getElementById('acPhone').textContent = authCust.phone || ''; }
+            if (authCust) { document.getElementById('acName').textContent = authCust.name || ''; document.getElementById('acPhone').textContent = authCust.phone || authCust.email || ''; }
         }
         async function authInit() {
             applyAuthLang();
             authToken = authStoreGet();
             try {
                 const r = await fetchRetry(`${RAILWAY_API_URL}/api/auth/config`, 2);
-                const cfg = await r.json(); authEnabled = !!cfg.enabled; authProvider = cfg.provider || null; tgClientId = cfg.client_id || '';
+                const cfg = await r.json(); authEnabled = !!cfg.enabled; authProvider = cfg.provider || null; tgClientId = cfg.client_id || ''; googleClientId = cfg.google_client_id || '';
             } catch (e) { authEnabled = false; }
             const btn = document.getElementById('accountBtn'); if (btn) btn.style.display = authEnabled ? 'flex' : 'none';
             if (authEnabled && authToken) {
@@ -3201,10 +3205,13 @@
             authPending = after || null;
             applyAuthLang();
             try { const n = localStorage.getItem('oneday_cust_name'), p = localStorage.getItem('oneday_cust_phone'); if (n && !document.getElementById('auName').value) document.getElementById('auName').value = n; if (p && !document.getElementById('auPhone').value) document.getElementById('auPhone').value = p; } catch (e) {}
-            auShowStep(authProvider === 'telegram' ? 0 : 1); openModal('authModal');
+            auShowStep(authProvider === 'gateway' ? 1 : 0); openModal('authModal'); ggInit();
         }
         function auShowStep(n) {
-            document.getElementById('auStepTg').style.display = n === 0 ? '' : 'none';
+            const tgOn = authProvider === 'telegram';
+            document.getElementById('auStepTg').style.display = (n === 0 && tgOn) ? '' : 'none';
+            document.getElementById('auTgBtn').style.display = tgOn ? '' : 'none';
+            document.getElementById('auGoogleBox').style.display = (googleClientId && n !== 2) ? '' : 'none';
             document.getElementById('auStep1').style.display = n === 1 ? '' : 'none';
             document.getElementById('auStep2').style.display = n === 2 ? '' : 'none';
             auClear();
@@ -3360,6 +3367,35 @@
             renderCart();
             if (m.add) showToast(translations[currentLang].toast_added);
             if (m.order) setTimeout(() => prepareOrder(), 300);
+        }
+        /* ---- Continue with Google (Gmail) ---- */
+        function ggInit() {
+            if (!googleClientId) return;
+            const go = () => {
+                if (ggReady || !window.google || !google.accounts || !google.accounts.id) return;
+                ggReady = true;
+                google.accounts.id.initialize({ client_id: googleClientId, callback: ggCallback, auto_select: false, ux_mode: 'popup' });
+                const box = document.getElementById('auGoogleBtn'); box.innerHTML = '';
+                google.accounts.id.renderButton(box, { type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', width: 280 });
+            };
+            if (window.google && google.accounts) return go();
+            if (document.getElementById('gsiScript')) { setTimeout(go, 800); return; }
+            const sc = document.createElement('script'); sc.id = 'gsiScript'; sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true; sc.onload = go;
+            sc.onerror = () => auErr('Gg', at('err_net'));
+            document.head.appendChild(sc);
+        }
+        async function ggCallback(resp) {
+            auClear();
+            try {
+                const r = await fetch(`${RAILWAY_API_URL}/api/auth/google`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ credential: resp.credential }) });
+                const j = await r.json().catch(() => ({}));
+                if (j.ok) {
+                    authToken = j.token; authCust = j.customer; authStoreSet(authToken); updateAcctUi();
+                    try { localStorage.setItem('oneday_cust_name', authCust.name || ''); } catch (e) {}
+                    closeModal('authModal');
+                    const f = authPending; authPending = null; if (f) setTimeout(f, 250);
+                } else auErr('Gg', at('err_tg'));
+            } catch (e) { auErr('Gg', at('err_net')); }
         }
         async function tgStart() {
             auClear(); tgBusy(true);

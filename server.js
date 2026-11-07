@@ -774,7 +774,7 @@ app.post('/api/order', async (req, res) => {
         userId: cleanTgId(customer.userId || customer.telegramId),
         username: cleanTgUsername(customer.username)
     };
-    if (authCust) { if (!customer.name) customer.name = authCust.name || ''; if (!customer.phone) customer.phone = '0' + String(authCust.phone).replace(/^855/, ''); }
+    if (authCust) { if (!customer.name) customer.name = authCust.name || ''; if (!customer.phone && authCust.phone) customer.phone = '0' + String(authCust.phone).replace(/^855/, ''); }
 
     // merge duplicate lines (same ref + size) so stock is checked against the TOTAL quantity
     const lines = new Map();

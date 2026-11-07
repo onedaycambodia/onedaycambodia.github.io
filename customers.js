@@ -29,7 +29,8 @@ module.exports = function (app, { pool }) {
     const TG_ID = String(process.env.TG_CLIENT_ID || '').trim();
     const TG_SECRET = String(process.env.TG_CLIENT_SECRET || '').trim();
     // 'telegram' = "Log in with Telegram" (free)  |  'gateway' = 4-digit code via Telegram Gateway (paid)  |  null = off
-    const provider = (TG_ID && TG_SECRET) ? 'telegram' : (TOKEN ? 'gateway' : null);
+    const GOOGLE_ID = String(process.env.GOOGLE_CLIENT_ID || '').trim();   // "Continue with Google" (Gmail)
+    const provider = (TG_ID && TG_SECRET) ? 'telegram' : (TOKEN ? 'gateway' : (GOOGLE_ID ? 'google' : null));
     const enabled = !!provider;
     const SECRET = process.env.AUTH_SECRET || crypto.randomBytes(24).toString('hex');
 
@@ -59,6 +60,12 @@ module.exports = function (app, { pool }) {
                 token_hash CHAR(64) PRIMARY KEY, customer_id INT NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
                 created_at TIMESTAMPTZ DEFAULT NOW(), last_seen TIMESTAMPTZ DEFAULT NOW(), expires_at TIMESTAMPTZ NOT NULL)`);
             await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS tg_id BIGINT`);
+            // Google (Gmail) accounts have no phone number -> phone becomes optional
+            await pool.query(`ALTER TABLE customers ALTER COLUMN phone DROP NOT NULL`);
+            await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS email VARCHAR(255)`);
+            await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS google_sub VARCHAR(64)`);
+            await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_google_sub ON customers (google_sub) WHERE google_sub IS NOT NULL`);
+            await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_email ON customers (LOWER(email)) WHERE email IS NOT NULL`);
             await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id INTEGER`);
             await pool.query(`CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders (customer_id)`);
             console.log('Customer accounts ready. Login provider:', provider || 'OFF (set TG_CLIENT_ID + TG_CLIENT_SECRET)');
@@ -83,7 +90,7 @@ module.exports = function (app, { pool }) {
         if (!tok) return null;
         try {
             const r = await pool.query(
-                `SELECT c.id, c.name, c.phone, s.last_seen FROM customer_sessions s JOIN customers c ON c.id = s.customer_id
+                `SELECT c.id, c.name, c.phone, c.email, s.last_seen FROM customer_sessions s JOIN customers c ON c.id = s.customer_id
                  WHERE s.token_hash = $1 AND s.expires_at > NOW()`, [sha(tok)]);
             if (!r.rows.length) return null;
             const c = r.rows[0];
@@ -91,10 +98,10 @@ module.exports = function (app, { pool }) {
                 pool.query(`UPDATE customer_sessions SET last_seen = NOW(), expires_at = NOW() + make_interval(days => $2) WHERE token_hash = $1`,
                     [sha(tok), SESSION_DAYS]).catch(() => {});
             }
-            return { id: c.id, name: c.name, phone: c.phone };
+            return { id: c.id, name: c.name, phone: c.phone, email: c.email };
         } catch (e) { console.error('authCustomer:', e.message); return null; }
     }
-    const publicCustomer = (c) => ({ name: c.name, phone: showPhone(c.phone) });
+    const publicCustomer = (c) => ({ name: c.name, phone: c.phone ? showPhone(c.phone) : '', email: c.email || '' });
 
     // ---------- Telegram Gateway ----------
     async function sendCode(phone, code) {
@@ -115,7 +122,7 @@ module.exports = function (app, { pool }) {
     }
 
     // ---------- API ----------
-    app.get('/api/auth/config', (req, res) => res.json({ enabled, provider, client_id: provider === 'telegram' ? TG_ID : undefined }));
+    app.get('/api/auth/config', (req, res) => res.json({ enabled, provider, client_id: provider === 'telegram' ? TG_ID : undefined, google_client_id: GOOGLE_ID || undefined }));
 
     app.post('/api/auth/request', async (req, res) => {
         if (provider !== 'gateway') return res.status(503).json({ status: 'disabled' });
@@ -258,6 +265,64 @@ module.exports = function (app, { pool }) {
             res.json({ ok: true, token, customer: publicCustomer(cu.rows[0]) });
         } catch (e) {
             console.error('auth/telegram:', e.message);
+            res.status(400).json({ ok: false, error: 'invalid' });
+        }
+    });
+
+    // ---------- Google (Gmail) login: verify the ID token from Google Identity Services ----------
+    let gJwks = { keys: null, at: 0 };
+    async function getGoogleKeys(force) {
+        if (!force && gJwks.keys && Date.now() - gJwks.at < 3600000) return gJwks.keys;
+        const r = await fetch('https://www.googleapis.com/oauth2/v3/certs');
+        const j = await r.json();
+        gJwks = { keys: j.keys || [], at: Date.now() };
+        return gJwks.keys;
+    }
+    async function verifyGoogleToken(idToken) {
+        const parts = String(idToken || '').split('.');
+        if (parts.length !== 3) throw new Error('bad token');
+        const header = JSON.parse(b64u(parts[0]).toString());
+        const claims = JSON.parse(b64u(parts[1]).toString());
+        if (header.alg !== 'RS256') throw new Error('unsupported alg');
+        let keys = await getGoogleKeys(false);
+        let jwk = keys.find(k => k.kid === header.kid);
+        if (!jwk) { keys = await getGoogleKeys(true); jwk = keys.find(k => k.kid === header.kid); }
+        if (!jwk) throw new Error('no matching key');
+        const pub = crypto.createPublicKey({ key: jwk, format: 'jwk' });
+        if (!crypto.verify('RSA-SHA256', Buffer.from(parts[0] + '.' + parts[1]), pub, b64u(parts[2]))) throw new Error('bad signature');
+        if (claims.iss !== 'https://accounts.google.com' && claims.iss !== 'accounts.google.com') throw new Error('bad iss');
+        if (String(claims.aud) !== GOOGLE_ID) throw new Error('bad aud');
+        if (!claims.exp || claims.exp * 1000 < Date.now()) throw new Error('expired');
+        if (!claims.sub || !claims.email || !(claims.email_verified === true || claims.email_verified === 'true')) throw new Error('email not verified');
+        return claims;
+    }
+
+    app.post('/api/auth/google', async (req, res) => {
+        if (!GOOGLE_ID) return res.status(503).json({ ok: false, error: 'disabled' });
+        if (limited('gg:' + req.ip, 20, 10 * 60 * 1000)) return res.status(429).json({ ok: false, error: 'too_many' });
+        try {
+            const claims = await verifyGoogleToken(req.body && req.body.credential);
+            const sub = String(claims.sub).slice(0, 64);
+            const email = String(claims.email).toLowerCase().slice(0, 255);
+            const name = String(claims.name || [claims.given_name, claims.family_name].filter(Boolean).join(' ') || email.split('@')[0]).trim().slice(0, 100);
+            // same Google account (sub) or same verified Gmail = same customer
+            let cu = await pool.query(`SELECT id FROM customers WHERE google_sub = $1 OR LOWER(email) = $2 ORDER BY (google_sub = $1) DESC LIMIT 1`, [sub, email]);
+            if (cu.rows.length) {
+                cu = await pool.query(
+                    `UPDATE customers SET google_sub = COALESCE(google_sub, $2), email = COALESCE(email, $3),
+                     name = COALESCE(NULLIF(name, ''), $4), last_login_at = NOW() WHERE id = $1 RETURNING id, name, phone, email`,
+                    [cu.rows[0].id, sub, email, name]);
+            } else {
+                cu = await pool.query(
+                    `INSERT INTO customers (phone, name, email, google_sub) VALUES (NULL, $1, $2, $3) RETURNING id, name, phone, email`,
+                    [name, email, sub]);
+            }
+            const token = crypto.randomBytes(32).toString('base64url');
+            await pool.query(`INSERT INTO customer_sessions (token_hash, customer_id, expires_at) VALUES ($1, $2, NOW() + make_interval(days => $3))`,
+                [sha(token), cu.rows[0].id, SESSION_DAYS]);
+            res.json({ ok: true, token, customer: publicCustomer(cu.rows[0]) });
+        } catch (e) {
+            console.error('auth/google:', e.message);
             res.status(400).json({ ok: false, error: 'invalid' });
         }
     });
