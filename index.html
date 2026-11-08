@@ -1073,7 +1073,7 @@
         .au-btn2 .ico { width:20px; height:20px; color:var(--accent); }
         .au-btn2.danger .ico { color:#ef4444; }
         /* ---- login buttons: Google / TikTok / Telegram, one consistent style ---- */
-        #authModal .au-sso { position:relative; display:flex; align-items:center; justify-content:flex-start; gap:12px; width:100%; max-width:400px; height:46px; margin:12px auto 0; padding:0 16px; border-radius:23px; background:#fff; color:#1f2328; border:1px solid #e3e6ea; box-shadow:0 1px 2px rgba(16,24,40,.06); font-family:inherit; font-size:14.5px; font-weight:600; letter-spacing:0; box-sizing:border-box; cursor:pointer; overflow:hidden; text-shadow:none; -webkit-tap-highlight-color:transparent; transition:transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease, border-color .2s ease; animation:auIn .5s cubic-bezier(.2,.8,.2,1) both; }
+        #authModal .au-sso { position:relative; display:flex; align-items:center; justify-content:flex-start; gap:12px; width:100%; max-width:400px; height:46px; margin:12px auto 0; padding:0 16px; border-radius:23px; background:#fff; color:#1f2328; border:1px solid #e3e6ea; box-shadow:0 1px 2px rgba(16,24,40,.06); font-family:inherit; font-size:14.5px; font-weight:600; letter-spacing:0; box-sizing:border-box; cursor:pointer; overflow:hidden; text-shadow:none; -webkit-tap-highlight-color:transparent; transition:transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease, border-color .2s ease, opacity .25s ease; animation:auIn .5s cubic-bezier(.2,.8,.2,1) both; }
         #authModal .au-sso span { flex:1; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:34px; }
         #authModal .au-sso .au-ic { width:22px; height:22px; flex:none; display:block; object-fit:contain; border-radius:5px; }
         #authModal .au-sso:hover { transform:translateY(-2px); border-color:#cdd3da; box-shadow:0 8px 20px rgba(16,24,40,.14); }
@@ -1084,8 +1084,18 @@
         #authModal #auGoogleBox { width:100%; max-width:400px; margin:0 auto; }
         #authModal #auGoogleBox .au-sso { margin-top:0; }
         #authModal #auGoogleBtn { position:absolute; inset:0; z-index:2; display:flex; align-items:center; justify-content:center; opacity:.01; overflow:hidden; transform:scaleY(1.2); }
+        #authModal .au-lead { margin:2px 4px 14px; text-align:center; font-size:13.5px; line-height:1.6; opacity:.78; animation:auIn .5s cubic-bezier(.2,.8,.2,1) both; }
+        #authModal .au-sso .au-rip { position:absolute; z-index:1; border-radius:50%; background:rgba(47,111,237,.2); transform:scale(0); animation:auRip .65s ease-out forwards; pointer-events:none; }
+        #authModal .au-sso.loading { pointer-events:none; border-color:#8fb0e8; box-shadow:0 0 0 4px rgba(47,111,237,.12); transform:none; }
+        #authModal .au-sso.loading .au-ic { opacity:0; }
+        #authModal .au-sso.loading::after { content:''; position:absolute; left:18px; top:50%; width:18px; height:18px; margin-top:-9px; border-radius:50%; border:2.5px solid #d3deef; border-top-color:#2f6fed; animation:auSpin .7s linear infinite; }
+        #authModal .au-sso.loading::before { left:auto; top:auto; bottom:0; width:40%; height:3px; background:linear-gradient(90deg,transparent,#2f6fed,transparent); transform:none; transition:none; animation:auBar 1.1s ease-in-out infinite; }
+        #authModal .au-sso.dim { opacity:.4; transform:scale(.985); pointer-events:none; }
+        @keyframes auRip { to { transform:scale(1); opacity:0; } }
+        @keyframes auSpin { to { transform:rotate(360deg); } }
+        @keyframes auBar { from { left:-40%; } to { left:100%; } }
         @keyframes auIn { from { opacity:0; transform:translateY(14px) scale(.96); } to { opacity:1; transform:none; } }
-        @media (prefers-reduced-motion: reduce) { #authModal .au-sso { animation:none; transition:none; } #authModal .au-sso::before { display:none; } }
+        @media (prefers-reduced-motion: reduce) { #authModal .au-sso, #authModal .au-lead { animation:none; transition:none; } #authModal .au-sso::before, #authModal .au-rip { display:none; } #authModal .au-sso.loading::after { animation-duration:1.6s; } }
         #authModal .btn-modal-telegram .ico { width:18px; height:18px; margin-right:6px; }
         .od-list { max-height:48vh; overflow:auto; display:flex; flex-direction:column; gap:12px; padding:2px 2px 6px; }
         .od-card { border:1.5px solid var(--border-color); border-radius:16px; padding:14px; background:var(--card-bg); }
@@ -1387,6 +1397,7 @@
                 <div class="modal-title"><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg><span data-at="login_title">ចូលគណនី</span></div>
                 <button class="btn-close" onclick="closeModal('authModal')"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
             </div>
+            <p class="au-lead" data-at="login_lead"></p>
             <div id="auGoogleBox" style="display:none">
                 <div class="au-sso"><svg class="au-ic" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span data-at="gg_btn"></span><div id="auGoogleBtn"></div></div>
                 <div class="au-err" id="auErrGg"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg><span></span></div>
@@ -3162,17 +3173,17 @@
         const AUTH_T = {
             km: { login_title:'ចូលគណនី', login_sub:'បញ្ចូលឈ្មោះ និងលេខទូរស័ព្ទ យើងនឹងផ្ញើកូដ ៤ ខ្ទង់ទៅ Telegram របស់អ្នក', name:'ឈ្មោះរបស់អ្នក', phone:'លេខទូរស័ព្ទ (Telegram)', next:'បន្ទាប់', code_sub:'កូដ ៤ ខ្ទង់ត្រូវបានផ្ញើទៅ Telegram នៃលេខ', verify:'បញ្ជាក់', resend:'ផ្ញើកូដម្តងទៀត', resend_in:'ផ្ញើម្តងទៀតក្នុង ', back:'ត្រឡប់ក្រោយ',
                 err_name:'សូមបញ្ចូលឈ្មោះ', err_phone:'លេខទូរស័ព្ទមិនត្រឹមត្រូវ', err_no_tg:'លេខនេះមិនមាន Telegram ទេ សូមប្រើលេខដែលមាន Telegram', err_wait:'សូមរង់ចាំបន្តិច មុនផ្ញើកូដម្តងទៀត', err_many:'ព្យាយាមច្រើនពេក សូមរង់ចាំ', err_send:'មិនអាចផ្ញើកូដបានទេ សូមសាកល្បងម្តងទៀត', err_wrong:'កូដមិនត្រឹមត្រូវ', err_expired:'កូដផុតកំណត់ សូមផ្ញើម្តងទៀត', err_locked:'ខុសច្រើនដង សូមផ្ញើកូដថ្មី', err_net:'មិនអាចភ្ជាប់ Server បានទេ',
-                gg_btn:'បន្តដោយប្រើ Google', tt_btn:'បន្តដោយប្រើ TikTok', account:'គណនី', my_orders:'ការកុម្មង់របស់ខ្ញុំ', logout:'ចាកចេញ', saved:'បានរក្សាទុក', err_save:'រក្សាទុកមិនបាន សូមសាកល្បងម្តងទៀត', no_orders:'មិនទាន់មានការកុម្មង់ទេ', loading:'កំពុងផ្ទុក...', tg_sub:'ចុចប៊ូតុងខាងក្រោម រួចចុច Accept ក្នុង Telegram ជាការស្រេច — មិនបាច់វាយលេខ ឬកូដទេ។', tg_btn:'បន្តដោយប្រើ Telegram', tg_wait:'កំពុងរង់ចាំ Telegram...', err_tg_phone:'Telegram មិនបានផ្តល់លេខទូរស័ព្ទ សូមអនុញ្ញាត (Allow) ការចូលមើលលេខទូរស័ព្ទ', err_tg:'Login មិនបានសម្រេច សូមសាកល្បងម្តងទៀត',
+                gg_btn:'បន្តដោយប្រើ Google', login_lead:'ចូលគណនីដើម្បីរក្សាទុកព័ត៌មានរបស់អ្នក និងតាមដានការកុម្មង់ ដោយមិនបាច់បំពេញម្តងទៀត។', connecting:'កំពុងតភ្ជាប់...', tt_btn:'បន្តដោយប្រើ TikTok', account:'គណនី', my_orders:'ការកុម្មង់របស់ខ្ញុំ', logout:'ចាកចេញ', saved:'បានរក្សាទុក', err_save:'រក្សាទុកមិនបាន សូមសាកល្បងម្តងទៀត', no_orders:'មិនទាន់មានការកុម្មង់ទេ', loading:'កំពុងផ្ទុក...', tg_sub:'ចុចប៊ូតុងខាងក្រោម រួចចុច Accept ក្នុង Telegram ជាការស្រេច — មិនបាច់វាយលេខ ឬកូដទេ។', tg_btn:'បន្តដោយប្រើ Telegram', tg_wait:'កំពុងរង់ចាំ Telegram...', err_tg_phone:'Telegram មិនបានផ្តល់លេខទូរស័ព្ទ សូមអនុញ្ញាត (Allow) ការចូលមើលលេខទូរស័ព្ទ', err_tg:'Login មិនបានសម្រេច សូមសាកល្បងម្តងទៀត',
                 st_PENDING:'រង់ចាំបញ្ជាក់', st_CONFIRMED:'ហាងបានបញ្ជាក់', st_AWAITING_PAYMENT:'រង់ចាំបង់ប្រាក់', st_CANCELLED:'បានលុបចោល', st_EXPIRED:'ផុតកំណត់',
                 pay_paid:'បង់ប្រាក់រួច', pay_unpaid:'មិនទាន់បង់', pay_cod:'បង់ពេលទទួល', pay_none:'មិនបានបង់', total:'សរុប', order:'កុម្មង់ #' },
             en: { login_title:'Sign in', login_sub:'Enter your name and phone number. We will send a 4-digit code to your Telegram.', name:'Your name', phone:'Phone number (Telegram)', next:'Next', code_sub:'A 4-digit code was sent to the Telegram of', verify:'Verify', resend:'Resend code', resend_in:'Resend in ', back:'Back',
                 err_name:'Please enter your name', err_phone:'Invalid phone number', err_no_tg:'This number is not on Telegram. Please use a Telegram number.', err_wait:'Please wait a moment before resending', err_many:'Too many attempts, please wait', err_send:'Could not send the code, please try again', err_wrong:'Wrong code', err_expired:'Code expired, please resend', err_locked:'Too many wrong tries, request a new code', err_net:'Cannot reach the server',
-                gg_btn:'Continue with Google', tt_btn:'Continue with TikTok', account:'Account', my_orders:'My orders', logout:'Log out', saved:'Saved', err_save:'Could not save, please try again', no_orders:'No orders yet', loading:'Loading...', tg_sub:'Tap the button below, then tap Accept in Telegram. No typing, no code.', tg_btn:'Continue with Telegram', tg_wait:'Waiting for Telegram...', err_tg_phone:'Telegram did not share your phone number. Please allow phone access.', err_tg:'Login failed, please try again',
+                gg_btn:'Continue with Google', login_lead:'Log in to save your details and track your orders, with no need to fill them in again.', connecting:'Connecting...', tt_btn:'Continue with TikTok', account:'Account', my_orders:'My orders', logout:'Log out', saved:'Saved', err_save:'Could not save, please try again', no_orders:'No orders yet', loading:'Loading...', tg_sub:'Tap the button below, then tap Accept in Telegram. No typing, no code.', tg_btn:'Continue with Telegram', tg_wait:'Waiting for Telegram...', err_tg_phone:'Telegram did not share your phone number. Please allow phone access.', err_tg:'Login failed, please try again',
                 st_PENDING:'Awaiting confirmation', st_CONFIRMED:'Confirmed', st_AWAITING_PAYMENT:'Awaiting payment', st_CANCELLED:'Cancelled', st_EXPIRED:'Expired',
                 pay_paid:'Paid', pay_unpaid:'Unpaid', pay_cod:'Pay on delivery', pay_none:'Not paid', total:'Total', order:'Order #' },
             zh: { login_title:'登录', login_sub:'请输入姓名和手机号，我们会向您的 Telegram 发送 4 位验证码。', name:'您的姓名', phone:'手机号 (Telegram)', next:'下一步', code_sub:'4 位验证码已发送至以下号码的 Telegram：', verify:'确认', resend:'重新发送', resend_in:'重新发送：', back:'返回',
                 err_name:'请输入姓名', err_phone:'手机号无效', err_no_tg:'该号码未注册 Telegram，请使用 Telegram 号码', err_wait:'请稍候再重新发送', err_many:'尝试次数过多，请稍候', err_send:'验证码发送失败，请重试', err_wrong:'验证码错误', err_expired:'验证码已过期，请重新发送', err_locked:'错误次数过多，请重新获取', err_net:'无法连接服务器',
-                gg_btn:'使用 Google 继续', tt_btn:'使用 TikTok 继续', account:'账户', my_orders:'我的订单', logout:'退出登录', saved:'已保存', err_save:'保存失败，请重试', no_orders:'暂无订单', loading:'加载中...', tg_sub:'点击下方按钮，然后在 Telegram 中点击“接受”即可，无需输入号码或验证码。', tg_btn:'使用 Telegram 继续', tg_wait:'等待 Telegram...', err_tg_phone:'Telegram 未提供手机号，请允许访问手机号。', err_tg:'登录失败，请重试',
+                gg_btn:'使用 Google 继续', login_lead:'登录后可保存您的信息并跟踪订单，无需重复填写。', connecting:'正在连接...', tt_btn:'使用 TikTok 继续', account:'账户', my_orders:'我的订单', logout:'退出登录', saved:'已保存', err_save:'保存失败，请重试', no_orders:'暂无订单', loading:'加载中...', tg_sub:'点击下方按钮，然后在 Telegram 中点击“接受”即可，无需输入号码或验证码。', tg_btn:'使用 Telegram 继续', tg_wait:'等待 Telegram...', err_tg_phone:'Telegram 未提供手机号，请允许访问手机号。', err_tg:'登录失败，请重试',
                 st_PENDING:'等待确认', st_CONFIRMED:'商家已确认', st_AWAITING_PAYMENT:'等待付款', st_CANCELLED:'已取消', st_EXPIRED:'已过期',
                 pay_paid:'已付款', pay_unpaid:'未付款', pay_cod:'货到付款', pay_none:'未付款', total:'合计', order:'订单 #' }
         };
@@ -3238,6 +3249,38 @@
             try { const n = localStorage.getItem('oneday_cust_name'), p = localStorage.getItem('oneday_cust_phone'); if (n && !document.getElementById('auName').value) document.getElementById('auName').value = n; if (p && !document.getElementById('auPhone').value) document.getElementById('auPhone').value = p; } catch (e) {}
             auShowStep(authProvider === 'gateway' ? 1 : 0); openModal('authModal'); ggInit(); auAnimate();
         }
+        let auLoadTimer = null;
+        function auReset() {   // back to the normal look (modal re-opened, error, or the browser Back button)
+            clearTimeout(auLoadTimer);
+            document.querySelectorAll('#authModal .au-sso').forEach(el => el.classList.remove('loading', 'dim'));
+            document.querySelectorAll('#authModal .au-rip').forEach(r => r.remove());
+            applyAuthLang();
+        }
+        function auPress(btn, x, y) {   // ripple under the finger + spinner on the tapped button, the others fade
+            if (!btn || btn.classList.contains('loading')) return;
+            const r = btn.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2;
+            const rip = document.createElement('i'); rip.className = 'au-rip';
+            rip.style.cssText = 'width:' + d + 'px;height:' + d + 'px;left:' + ((x == null ? r.width / 2 : x - r.left) - d / 2) + 'px;top:' + ((y == null ? r.height / 2 : y - r.top) - d / 2) + 'px';
+            btn.appendChild(rip); setTimeout(() => rip.remove(), 700);
+            btn.classList.add('loading');
+            const sp = btn.querySelector('span'); if (sp) sp.textContent = at('connecting');
+            document.querySelectorAll('#authModal .au-sso').forEach(o => { if (o !== btn && o.offsetParent) o.classList.add('dim'); });
+            clearTimeout(auLoadTimer); auLoadTimer = setTimeout(auReset, 15000);
+        }
+        document.getElementById('authModal').addEventListener('pointerdown', (e) => {
+            const b = e.target.closest('.au-sso');
+            if (b && !b.querySelector('#auGoogleBtn')) auPress(b, e.clientX, e.clientY);   // Telegram / TikTok
+        });
+        // Google's real button lives in a cross-origin iframe: a tap on it moves focus into the iframe
+        window.addEventListener('blur', () => setTimeout(() => {
+            const a = document.activeElement;
+            if (a && a.tagName === 'IFRAME' && a.closest('#auGoogleBtn')) auPress(a.closest('.au-sso'));
+        }, 0));
+        window.addEventListener('focus', () => {   // Google popup closed without signing in
+            const g = document.getElementById('auGoogleBtn'), w = g && g.closest('.au-sso');
+            if (w && w.classList.contains('loading')) setTimeout(() => { if (!window.__ggBusy) auReset(); }, 1500);
+        });
+        window.addEventListener('pageshow', (e) => { if (e.persisted) auReset(); });
         function auAnimate() {   // replay the staggered entrance of the login buttons every time the modal opens
             let i = 0;
             document.querySelectorAll('#authModal .au-sso').forEach(el => {
@@ -3247,6 +3290,7 @@
             });
         }
         function auShowStep(n) {
+            auReset();
             const tgOn = authProvider === 'telegram';
             document.getElementById('auStepTg').style.display = (n === 0 && tgOn) ? '' : 'none';
             document.getElementById('auTgBtn').style.display = tgOn ? '' : 'none';
@@ -3471,7 +3515,7 @@
             document.head.appendChild(sc);
         }
         async function ggCallback(resp) {
-            auClear();
+            auClear(); window.__ggBusy = true;
             try {
                 const r = await fetch(`${RAILWAY_API_URL}/api/auth/google`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ credential: resp.credential }) });
                 const j = await r.json().catch(() => ({}));
@@ -3480,8 +3524,8 @@
                     try { localStorage.setItem('oneday_cust_name', authCust.name || ''); } catch (e) {}
                     closeModal('authModal');
                     const f = authPending; authPending = null; if (f) setTimeout(f, 250);
-                } else auErr('Gg', at('err_tg'));
-            } catch (e) { auErr('Gg', at('err_net')); }
+                } else { auErr('Gg', at('err_tg')); window.__ggBusy = false; auReset(); }
+            } catch (e) { auErr('Gg', at('err_net')); window.__ggBusy = false; auReset(); }
         }
         /* ---- Continue with TikTok (Login Kit: authorization code, exchanged on the server) ---- */
         const TT_PENDING = 'oneday_tt_pending';
