@@ -2,7 +2,7 @@
 // Tables are created automatically. Nothing changes for shoppers who never touch the wallet.
 const TOPUP_MIN = Number(process.env.WALLET_MIN_TOPUP) || 1;
 const TOPUP_MAX = Number(process.env.WALLET_MAX_TOPUP) || 500;
-const TOPUP_EXPIRE_MIN = Number(process.env.WALLET_TOPUP_EXPIRE_MIN) || 10;
+const TOPUP_EXPIRE_MIN = Number(process.env.WALLET_TOPUP_EXPIRE_MIN) || 3;
 
 module.exports = function (app, { pool, bakong, customers }) {
     async function init(attempt = 1) {
@@ -66,7 +66,7 @@ module.exports = function (app, { pool, bakong, customers }) {
         try {
             const b = await pool.query('SELECT wallet_balance FROM customers WHERE id = $1', [c.id]);
             const tx = await pool.query(
-                `SELECT type, amount, balance_after, created_at FROM wallet_tx WHERE customer_id = $1 ORDER BY id DESC LIMIT 15`, [c.id]);
+                `SELECT type, amount, balance_after, created_at FROM wallet_tx WHERE customer_id = $1 ORDER BY id DESC LIMIT 50`, [c.id]);
             res.json({
                 ok: true, balance: Number(b.rows[0] ? b.rows[0].wallet_balance : 0),
                 min: TOPUP_MIN, max: TOPUP_MAX, khqr_enabled: bakong.isEnabled(),

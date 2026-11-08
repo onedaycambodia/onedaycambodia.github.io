@@ -1037,10 +1037,14 @@
 
         /* =====  Wallet ===== */
         #walletModal { z-index:335; }
-        .wl-card { margin:14px 0 4px; padding:16px; border-radius:16px; color:#fff; background:linear-gradient(135deg,#0369a1,#0ea5e9); display:flex; align-items:center; justify-content:space-between; gap:12px; box-shadow:0 8px 22px rgba(2,132,199,.28); }
-        .wl-lbl { font-size:13px; font-weight:700; opacity:.9; display:flex; align-items:center; gap:6px; }
-        .wl-bal { font-size:30px; font-weight:800; line-height:1.15; margin-top:2px; }
-        .wl-add { flex:none; border:0; border-radius:12px; padding:11px 14px; font:inherit; font-weight:800; font-size:14px; color:#0369a1; background:#fff; cursor:pointer; }
+        #walletModal .modal-content.kq-success .modal-header { display:none; }
+        #walletModal .modal-content.kq-success { padding-top:28px; }
+        .wl-card { margin:10px 0 2px; padding:10px 14px; border-radius:14px; color:#fff; background:linear-gradient(135deg,#0369a1,#0ea5e9); display:flex; align-items:center; justify-content:space-between; gap:12px; box-shadow:0 5px 14px rgba(2,132,199,.25); }
+        .wl-lbl { font-size:12px; font-weight:700; opacity:.9; display:flex; align-items:center; gap:6px; }
+        .wl-bal { font-size:22px; font-weight:800; line-height:1.15; margin-top:1px; }
+        .wl-add { flex:none; border:0; border-radius:12px; padding:8px 12px; font:inherit; font-weight:800; font-size:13px; color:#0369a1; background:#fff; cursor:pointer; }
+        .wl-btns { display:flex; gap:8px; flex:none; }
+        .wl-ghost { color:#fff; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.55); }
         .wl-add:active { transform:scale(.97); }
         .wl-field label, .wl-h { display:block; font-size:13px; font-weight:800; margin:14px 0 6px; color:var(--text-muted); }
         .wl-input { width:100%; box-sizing:border-box; font:inherit; font-size:22px; font-weight:800; padding:12px 14px; border-radius:12px; border:1.5px solid var(--border-color); background:var(--input-bg); color:inherit; }
@@ -1478,7 +1482,7 @@
             </div>
             <div class="wl-card">
                 <div><div class="wl-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg><span data-at="wallet"></span></div><div class="wl-bal" id="wlBal">$0.00</div></div>
-                <button class="wl-add" type="button" onclick="wlOpen()">+ <span data-at="wl_topup"></span></button>
+                <div class="wl-btns"><button class="wl-add wl-ghost" type="button" onclick="wlOpenHist()"><span data-at="wl_hbtn"></span></button><button class="wl-add" type="button" onclick="wlOpen()">+ <span data-at="wl_topup"></span></button></div>
             </div>
             <div class="au-sec"><svg class="ico" aria-hidden="true"><use href="#i-receipt"/></svg><span data-at="my_orders"></span></div>
             <div id="ordersBody" class="od-list"></div>
@@ -1488,7 +1492,7 @@
     <div class="modal-overlay" id="walletModal" onclick="handleModalClick(event, 'walletModal')">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="modal-title"><span data-at="wl_title"></span></div>
+                <div class="modal-title"><span id="wlTitle" data-at="wl_title"></span></div>
                 <button class="btn-close" onclick="wlClose()"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
             </div>
             <div id="wlForm">
@@ -1503,6 +1507,7 @@
                 <div id="wlHist"></div>
             </div>
             <div id="wlQr" class="wl-qrwrap" style="display:none"></div>
+            <div id="wlHistView" style="display:none"><div id="wlHistFull"></div></div>
         </div>
     </div>
 
@@ -3452,9 +3457,9 @@
 
 
         /* ===================== 💰 WALLET ===================== */
-        Object.assign(AUTH_T.km, { wallet:'Wallet', wl_topup:'បញ្ចូល Wallet', wl_title:'បញ្ចូលលុយចូល Wallet', wl_amount:'ចំនួនទឹកប្រាក់ (USD)', wl_method:'វិធីបង់ប្រាក់', wl_khqr:'KHQR (Bakong)', wl_khqr_sub:'ស្កេនតាម ABA, ACLEDA ឬធនាគារណាមួយ', wl_gen:'បង្កើត QR បង់ប្រាក់', wl_range:'សូមបញ្ចូលចន្លោះ', wl_scan:'ស្កេន QR ដើម្បីបង់ប្រាក់', wl_wait:'កំពុងរង់ចាំការបង់ប្រាក់...', wl_expires:'ផុតកំណត់ក្នុង', wl_ok:'បញ្ចូល Wallet បានជោគជ័យ!', wl_expired:'QR នេះផុតកំណត់ហើយ។ បើអ្នកបានបង់រួច សូមទាក់ទងហាង។', wl_check:'ខ្ញុំបានបង់ហើយ - ពិនិត្យម្តងទៀត', wl_hist:'ប្រវត្តិ Wallet', wl_none:'មិនទាន់មានប្រវត្តិ', wl_t_topup:'បញ្ចូលលុយ', wl_t_order:'បង់ទិញទំនិញ', wl_unavail:'ការបង់ប្រាក់តាម KHQR មិនទាន់ដំណើរការ', wl_toomany:'មាន QR រង់ចាំច្រើនពេក សូមរង់ចាំបន្តិច', wl_pay:'បង់ពី Wallet', wl_bal:'សមតុល្យ', wl_low:'សមតុល្យមិនគ្រប់ សូមបញ្ចូល Wallet', wl_done:'រួចរាល់' });
-        Object.assign(AUTH_T.en, { wallet:'Wallet', wl_topup:'Top up', wl_title:'Top up Wallet', wl_amount:'Amount (USD)', wl_method:'Payment method', wl_khqr:'KHQR (Bakong)', wl_khqr_sub:'Scan with ABA, ACLEDA or any bank app', wl_gen:'Create payment QR', wl_range:'Enter an amount between', wl_scan:'Scan the QR to pay', wl_wait:'Waiting for payment...', wl_expires:'Expires in', wl_ok:'Wallet topped up!', wl_expired:'This QR has expired. If you already paid, please contact the shop.', wl_check:'I have paid - check again', wl_hist:'Wallet history', wl_none:'No history yet', wl_t_topup:'Top up', wl_t_order:'Order payment', wl_unavail:'KHQR payment is not available right now', wl_toomany:'Too many QR codes waiting, please wait a moment', wl_pay:'Pay with Wallet', wl_bal:'Balance', wl_low:'Not enough balance, please top up', wl_done:'Done' });
-        Object.assign(AUTH_T.zh, { wallet:'钱包', wl_topup:'充值', wl_title:'钱包充值', wl_amount:'金额 (USD)', wl_method:'付款方式', wl_khqr:'KHQR (Bakong)', wl_khqr_sub:'用 ABA、ACLEDA 或任何银行 App 扫码', wl_gen:'生成付款二维码', wl_range:'请输入金额范围', wl_scan:'扫码付款', wl_wait:'等待付款...', wl_expires:'剩余时间', wl_ok:'充值成功！', wl_expired:'二维码已过期。如已付款，请联系商店。', wl_check:'我已付款 - 重新检查', wl_hist:'钱包记录', wl_none:'暂无记录', wl_t_topup:'充值', wl_t_order:'订单付款', wl_unavail:'KHQR 付款暂不可用', wl_toomany:'待付二维码过多，请稍候', wl_pay:'用钱包付款', wl_bal:'余额', wl_low:'余额不足，请先充值', wl_done:'完成' });
+        Object.assign(AUTH_T.km, { wallet:'Wallet', wl_topup:'បញ្ចូល Wallet', wl_title:'បញ្ចូលលុយចូល Wallet', wl_amount:'ចំនួនទឹកប្រាក់ (USD)', wl_method:'វិធីបង់ប្រាក់', wl_khqr:'KHQR (Bakong)', wl_khqr_sub:'ស្កេនតាម ABA, ACLEDA ឬធនាគារណាមួយ', wl_gen:'បង្កើត QR បង់ប្រាក់', wl_range:'សូមបញ្ចូលចន្លោះ', wl_scan:'ស្កេន QR ដើម្បីបង់ប្រាក់', wl_wait:'កំពុងរង់ចាំការបង់ប្រាក់...', wl_expires:'ផុតកំណត់ក្នុង', wl_ok:'បញ្ចូល Wallet បានជោគជ័យ!', wl_expired:'QR នេះផុតកំណត់ហើយ។ បើអ្នកបានបង់រួច សូមទាក់ទងហាង។', wl_check:'ខ្ញុំបានបង់ហើយ - ពិនិត្យម្តងទៀត', wl_hist:'ប្រវត្តិ Wallet', wl_none:'មិនទាន់មានប្រវត្តិ', wl_t_topup:'បញ្ចូលលុយ', wl_t_order:'បង់ទិញទំនិញ', wl_unavail:'ការបង់ប្រាក់តាម KHQR មិនទាន់ដំណើរការ', wl_toomany:'មាន QR រង់ចាំច្រើនពេក សូមរង់ចាំបន្តិច', wl_pay:'បង់ពី Wallet', wl_bal:'សមតុល្យ', wl_low:'សមតុល្យមិនគ្រប់ សូមបញ្ចូល Wallet', wl_done:'រួចរាល់', wl_hbtn:'ប្រវត្តិ' });
+        Object.assign(AUTH_T.en, { wallet:'Wallet', wl_topup:'Top up', wl_title:'Top up Wallet', wl_amount:'Amount (USD)', wl_method:'Payment method', wl_khqr:'KHQR (Bakong)', wl_khqr_sub:'Scan with ABA, ACLEDA or any bank app', wl_gen:'Create payment QR', wl_range:'Enter an amount between', wl_scan:'Scan the QR to pay', wl_wait:'Waiting for payment...', wl_expires:'Expires in', wl_ok:'Wallet topped up!', wl_expired:'This QR has expired. If you already paid, please contact the shop.', wl_check:'I have paid - check again', wl_hist:'Wallet history', wl_none:'No history yet', wl_t_topup:'Top up', wl_t_order:'Order payment', wl_unavail:'KHQR payment is not available right now', wl_toomany:'Too many QR codes waiting, please wait a moment', wl_pay:'Pay with Wallet', wl_bal:'Balance', wl_low:'Not enough balance, please top up', wl_done:'Done', wl_hbtn:'History' });
+        Object.assign(AUTH_T.zh, { wallet:'钱包', wl_topup:'充值', wl_title:'钱包充值', wl_amount:'金额 (USD)', wl_method:'付款方式', wl_khqr:'KHQR (Bakong)', wl_khqr_sub:'用 ABA、ACLEDA 或任何银行 App 扫码', wl_gen:'生成付款二维码', wl_range:'请输入金额范围', wl_scan:'扫码付款', wl_wait:'等待付款...', wl_expires:'剩余时间', wl_ok:'充值成功！', wl_expired:'二维码已过期。如已付款，请联系商店。', wl_check:'我已付款 - 重新检查', wl_hist:'钱包记录', wl_none:'暂无记录', wl_t_topup:'充值', wl_t_order:'订单付款', wl_unavail:'KHQR 付款暂不可用', wl_toomany:'待付二维码过多，请稍候', wl_pay:'用钱包付款', wl_bal:'余额', wl_low:'余额不足，请先充值', wl_done:'完成', wl_hbtn:'记录' });
 
         let wlState = { balance: 0, min: 1, max: 500, khqr_enabled: false, tx: [] };
         let wlTimer = null, wlCount = null, wlMd5 = null, wlAmt = 0, wlPickedAmount = '';
@@ -3475,8 +3480,11 @@
         async function wlOpen() {
             if (!authToken) { openAuth(); return; }
             wlStop(); applyAuthLang();
+            document.querySelector('#walletModal .modal-content').classList.remove('kq-success');
             document.getElementById('wlForm').style.display = 'block';
             document.getElementById('wlQr').style.display = 'none';
+            document.getElementById('wlHistView').style.display = 'none';
+            document.getElementById('wlTitle').textContent = at('wl_title');
             document.getElementById('wlErr').textContent = '';
             document.getElementById('wlAmount').value = '';
             document.getElementById('wlChips').innerHTML = [5, 10, 20, 50].map(v => `<button type="button" class="wl-chip" onclick="wlPick(${v})">$${v}</button>`).join('');
@@ -3485,14 +3493,28 @@
             await wlLoad();
             wlHist();
         }
+        async function wlOpenHist() {
+            if (!authToken) { openAuth(); return; }
+            wlStop(); applyAuthLang();
+            document.querySelector('#walletModal .modal-content').classList.remove('kq-success');
+            document.getElementById('wlForm').style.display = 'none';
+            document.getElementById('wlQr').style.display = 'none';
+            document.getElementById('wlHistView').style.display = 'block';
+            document.getElementById('wlTitle').textContent = at('wl_hist');
+            document.getElementById('wlHistFull').innerHTML = `<div class="wl-sub">${esc(at('loading'))}</div>`;
+            openModal('walletModal');
+            await wlLoad();
+            wlHist('wlHistFull');
+            document.getElementById('wlHistView').insertAdjacentHTML('beforeend', '');
+        }
         function wlPick(v) {
             document.getElementById('wlAmount').value = v;
             document.querySelectorAll('#wlChips .wl-chip').forEach(c => c.classList.toggle('on', c.textContent === '$' + v));
         }
-        function wlHist() {
-            const el = document.getElementById('wlHist');
+        function wlHist(target) {
+            const el = document.getElementById(target || 'wlHist');
             const loc = currentLang === 'km' ? 'km-KH' : currentLang === 'zh' ? 'zh-CN' : 'en-GB';
-            el.innerHTML = (wlState.tx || []).length ? wlState.tx.map(t => `<div class="wl-tx"><div>${esc(at(t.type === 'topup' ? 'wl_t_topup' : 'wl_t_order'))}<small>${esc(new Date(t.created_at).toLocaleString(loc, { dateStyle: 'medium', timeStyle: 'short' }))}</small></div><b class="${t.amount >= 0 ? 'pos' : 'neg'}">${t.amount >= 0 ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</b></div>`).join('') : `<div class="wl-sub">${esc(at('wl_none'))}</div>`;
+            el.innerHTML = (wlState.tx || []).length ? wlState.tx.map(t => `<div class="wl-tx"><div>${esc(at(t.type === 'topup' ? 'wl_t_topup' : 'wl_t_order'))}<small>${esc(new Date(t.created_at).toLocaleString(loc, { dateStyle: 'medium', timeStyle: 'short' }))} · ${esc(at('wl_bal'))} ${wlMoney(t.balance_after)}</small></div><b class="${t.amount >= 0 ? 'pos' : 'neg'}">${t.amount >= 0 ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</b></div>`).join('') : `<div class="wl-sub">${esc(at('wl_none'))}</div>`;
         }
 
         async function wlCreate() {
@@ -3544,11 +3566,19 @@
                 const box = document.getElementById('wlQr');
                 if (s.status === 'PAID') {
                     wlStop(); await wlLoad();
-                    box.innerHTML = `<div class="wl-ok"><div class="tick">✅</div><div class="wl-big">${esc(at('wl_ok'))}</div><div class="wl-sub">+${wlMoney(wlAmt)} · ${esc(at('wallet'))}: <b>${wlMoney(wlState.balance)}</b></div></div><button class="btn-modal-telegram" type="button" style="margin-top:16px" onclick="wlClose()"><span>${esc(at('wl_done'))}</span></button>`;
+                    document.querySelector('#walletModal .modal-content').classList.add('kq-success');
+                    box.innerHTML = '<div class="ty-wrap"><div class="kq-confetti" id="wlConfetti"></div>' +
+                        '<div class="ty-badge"><svg viewBox="0 0 52 52" aria-hidden="true"><path class="tick" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg></div>' +
+                        '<div class="ty-brand"><img src="images/oneday_clothing_logo_180x180.png" alt=""><span class="ty-name"><b>One</b>day<em>.</em></span></div>' +
+                        '<div class="ty-title">' + esc(at('wl_ok')) + '</div>' +
+                        '<div class="ty-sub">' + esc(at('wallet')) + ': ' + wlMoney(wlState.balance) + '</div>' +
+                        '<div class="ty-amount">' + ico('check') + ' +' + wlMoney(wlAmt) + '</div></div>' +
+                        '<button class="btn-modal-telegram" type="button" style="margin-top:18px" onclick="wlClose()"><span>' + esc(at('wl_done')) + '</span></button>';
+                    launchConfetti(document.getElementById('wlConfetti'));
                     wlRefreshCheckout();
                 } else if (s.status === 'EXPIRED' || s.status === 'NOT_FOUND') {
                     wlStop();
-                    box.innerHTML = `<div class="wl-sub" style="font-size:15px;color:#f59e0b;font-weight:700">⏳ ${esc(at('wl_expired'))}</div><button class="btn-modal-telegram" type="button" style="margin-top:16px" onclick="wlOpen()"><span>${esc(at('wl_topup'))}</span></button>`;
+                    box.innerHTML = `<div class="wl-sub" style="font-size:15px;color:#f59e0b;font-weight:700">${ico('hourglass')} ${esc(at('wl_expired'))}</div><button class="btn-modal-telegram" type="button" style="margin-top:16px" onclick="wlOpen()"><span>${esc(at('wl_topup'))}</span></button>`;
                 }
             } catch (e) {}
             wlPolling = false;
