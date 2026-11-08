@@ -98,7 +98,9 @@
         if (a !== '' && (!(Number(a) >= 0) || Number(a) > 10000)) { err.textContent = 'ចំនួនទឹកប្រាក់មិនត្រឹមត្រូវ'; return; }
         go.disabled = true;
         try {
-            const r = await fetch('/api/qr/generate', {
+            // On GitHub Pages there is no server, so call the Railway API; on Railway itself keep the same-origin path.
+            const API = /github\.io$/.test(location.hostname) ? 'https://onedaycambodiagithubio-production.up.railway.app' : '';
+            const r = await fetch(API + '/api/qr/generate', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ amount: a === '' ? 0 : Number(a), days: Number(days.value), note: note.value })
             });
