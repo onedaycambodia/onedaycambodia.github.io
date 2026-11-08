@@ -1052,7 +1052,6 @@
         .wl-inwrap { position:relative; }
         .wl-inwrap span { position:absolute; left:16px; top:50%; transform:translateY(-50%); font-size:22px; font-weight:800; color:var(--accent); }
         .wl-inwrap .wl-input { padding-left:36px; }
-        #walletModal .modal-content { max-width:380px; }
         #walletModal .wl-method { position:relative; padding-right:44px; border-radius:14px; }
         #walletModal .wl-method::after { content:''; position:absolute; right:14px; top:50%; width:20px; height:20px; margin-top:-10px; border-radius:50%; background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center/14px no-repeat; }
         .wl-input { width:100%; box-sizing:border-box; font:inherit; font-size:22px; font-weight:800; padding:12px 14px; border-radius:12px; border:1.5px solid var(--border-color); background:var(--input-bg); color:inherit; }
@@ -1075,6 +1074,25 @@
         .wl-tx small { display:block; color:var(--text-muted); font-size:12px; }
         .wl-tx b.pos { color:#16a34a; } .wl-tx b.neg { color:#dc2626; }
         .pay-opt .wl-mini { margin-left:auto; border:1.5px solid var(--accent); color:var(--accent); background:transparent; border-radius:8px; padding:3px 9px; font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
+                /* Wallet popups: same look as the Account popup (cards, borders, colours follow light/dark theme) */
+        #walletModal .wl-pill { border:1.5px solid var(--border-color); background:var(--card-bg); color:var(--accent); }
+        #walletModal .wl-pill b { color:var(--primary); }
+        #walletModal .wl-field label { color:var(--primary); font-size:14px; font-weight:800; margin:16px 0 8px; }
+        #walletModal .wl-input { background:var(--card-bg); color:var(--primary); border:1.5px solid var(--border-color); border-radius:14px; }
+        #walletModal .wl-input::placeholder { color:var(--text-muted); opacity:.7; }
+        #walletModal .wl-chip { background:var(--card-bg); color:var(--primary); border:1.5px solid var(--border-color); border-radius:14px; }
+        #walletModal .wl-chip.on { background:var(--accent-light); color:var(--accent); border-color:var(--accent); }
+        #walletModal .wl-h { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:800; color:var(--primary); margin:18px 0 10px; padding-top:14px; border-top:1px solid var(--border-color); }
+        #walletModal .wl-method { background:var(--card-bg); color:var(--primary); border:1.5px solid var(--accent); }
+        #walletModal .wl-method small { color:var(--text-muted); }
+        #walletModal .wl-tx { background:var(--card-bg); color:var(--primary); border:1.5px solid var(--border-color); border-radius:14px; padding:11px 14px; margin-bottom:8px; align-items:center; }
+        #walletModal .wl-tx small { color:var(--text-muted); }
+        #walletModal .wl-sub { color:var(--text-muted); }
+        #walletModal .kq-hint { background:var(--card-bg); border:1.5px solid var(--border-color); color:var(--text-muted); }
+        #walletModal .kq-m-name, #walletModal .kq-time b { color:var(--primary); }
+        #walletModal .kq-status { background:var(--accent-light); border:1.5px solid var(--border-color); }
+        #walletModal .kq-btn-ghost { background:var(--card-bg); }
+        #walletModal .btn-modal-telegram { border-radius:14px; }
         .acct-btn:hover { border-color:var(--accent); color:var(--accent); }
         .acct-btn .ico { width:20px; height:20px; }
         .acct-btn.in { color:#fff; background:var(--accent); border-color:var(--accent); }
