@@ -1086,11 +1086,11 @@
         #authModal #auGoogleBtn { position:absolute; inset:0; z-index:2; display:flex; align-items:center; justify-content:center; opacity:.01; overflow:hidden; transform:scaleY(1.2); }
         #authModal .au-lead { margin:2px 4px 14px; text-align:center; font-size:13.5px; line-height:1.6; opacity:.78; animation:auIn .5s cubic-bezier(.2,.8,.2,1) both; }
         #authModal .au-sso .au-rip { position:absolute; z-index:1; border-radius:50%; background:rgba(47,111,237,.2); transform:scale(0); animation:auRip .65s ease-out forwards; pointer-events:none; }
-        #authModal .au-sso.loading { pointer-events:none; border-color:#8fb0e8; box-shadow:0 0 0 4px rgba(47,111,237,.12); transform:none; }
+        #authModal .au-sso.loading { border-color:#8fb0e8; box-shadow:0 0 0 4px rgba(47,111,237,.12); transform:none; }
         #authModal .au-sso.loading .au-ic { opacity:0; }
         #authModal .au-sso.loading::after { content:''; position:absolute; left:18px; top:50%; width:18px; height:18px; margin-top:-9px; border-radius:50%; border:2.5px solid #d3deef; border-top-color:#2f6fed; animation:auSpin .7s linear infinite; }
         #authModal .au-sso.loading::before { left:auto; top:auto; bottom:0; width:40%; height:3px; background:linear-gradient(90deg,transparent,#2f6fed,transparent); transform:none; transition:none; animation:auBar 1.1s ease-in-out infinite; }
-        #authModal .au-sso.dim { opacity:.4; transform:scale(.985); pointer-events:none; }
+        #authModal .au-sso.dim { opacity:.4; transform:scale(.985); }
         @keyframes auRip { to { transform:scale(1); opacity:0; } }
         @keyframes auSpin { to { transform:rotate(360deg); } }
         @keyframes auBar { from { left:-40%; } to { left:100%; } }
