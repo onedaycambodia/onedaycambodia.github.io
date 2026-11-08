@@ -701,8 +701,6 @@
         body.dark-mode .btn-delete-item:hover { background: rgba(239,68,68,.24); }
         .btn-delete-item .ico-trash { width: 16px; height: 16px; vertical-align: middle; }
         /* paper plane that flies to the Account button after a successful payment */
-        .fly-plane { position: fixed; left: 0; top: 0; z-index: 100000; pointer-events: none; width: 34px; height: 34px; margin: -17px 0 0 -17px; filter: drop-shadow(0 3px 6px rgba(15,40,90,.35)); will-change: transform, opacity; }
-        .fly-plane svg { display: block; }
         .empty-msg { text-align: center; color: var(--text-muted); padding: 30px 0; font-size: 13px; font-weight: 600; }
 
         .summary-box { border-top: 1px solid var(--border-color); padding-top: 12px; padding-bottom: 4px; display: flex; flex-direction: column; gap: 8px; }
@@ -2950,21 +2948,13 @@
             }
             stopKhqrTimers();
             closeModal('khqrModal');
-            if (fly) setTimeout(() => flyPlanesToAccount(fly[0], fly[1]), 200);
+            if (fly) setTimeout(() => flyStarsToAccount(fly[0], fly[1]), 200);
         }
 
-        // ✈️✈️✈️ After a successful payment, when the customer closes the result popup, 3 paper planes take off from the
-        // close button and each flies its own random, wobbly path to the Account button, leaving a rainbow smoke trail.
+        // ✨ After a successful payment, when the customer closes the result popup, a burst of golden stars and sparkles
+        // flies from the close button along smooth curves to the Account button, shedding glitter; the button flashes on arrival.
         let khqrPlanePending = false;
-        // paper plane drawn pointing right: light upper wing, blue lower wing, darker fold
-        const PLANE_SVG = '<svg viewBox="0 0 44 44" width="34" height="34" aria-hidden="true">' +
-            '<defs><linearGradient id="fpA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfeeff"/></linearGradient>' +
-            '<linearGradient id="fpB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4fc3ff"/><stop offset="1" stop-color="#1d7fe0"/></linearGradient></defs>' +
-            '<path d="M42 22 5 7l10 15z" fill="url(#fpA)"/>' +
-            '<path d="M42 22 15 22 11 38z" fill="url(#fpB)"/>' +
-            '<path d="M15 22 11 38 20 29z" fill="#0f5fb8"/>' +
-            '<path d="M42 22 5 7l10 15 4-0.2z" fill="none" stroke="rgba(255,255,255,.7)" stroke-width=".6" stroke-linejoin="round"/></svg>';
-        function flyPlanesToAccount(sx, sy) {
+        function flyStarsToAccount(sx, sy) {
             try {
                 if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
                 const btn = document.getElementById('accountBtn');
@@ -2972,80 +2962,103 @@
                 const b = btn.getBoundingClientRect();
                 if (!b.width) return;                         // account button hidden (login disabled)
                 const W = window.innerWidth, H = window.innerHeight, dpr = Math.min(window.devicePixelRatio || 1, 2);
-                const ex = Math.min(Math.max(b.left + b.width / 2, 12), W - 12);
-                const ey = Math.min(Math.max(b.top + b.height / 2, 12), H - 12);
-                // one transparent canvas draws the rainbow ribbons of all planes
+                const ex = Math.min(Math.max(b.left + b.width / 2, 14), W - 14);
+                const ey = Math.min(Math.max(b.top + b.height / 2, 14), H - 14);
                 const cv = document.createElement('canvas');
                 cv.width = W * dpr; cv.height = H * dpr;
-                cv.style.cssText = 'position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:99999;pointer-events:none';
+                cv.style.cssText = 'position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:100000;pointer-events:none';
                 document.body.appendChild(cv);
                 const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
                 const r = (min, max) => min + Math.random() * (max - min);
-                const dx = ex - sx, dy = ey - sy, len = Math.hypot(dx, dy) || 1, px = -dy / len, py = dx / len;
-                const t0 = performance.now();
-                const planes = [0, 1, 2].map(k => {
-                    const amp = Math.min(170, Math.max(60, len * 0.38));
-                    const f1 = r(1.1, 2.4), f2 = r(2.6, 4.6), p1 = r(0, 6.28), p2 = r(0, 6.28);
-                    const sgn = k === 1 ? -1 : (k === 2 ? (Math.random() < .5 ? -1 : 1) : 1);
-                    const el = document.createElement('div');
-                    el.className = 'fly-plane';
-                    el.innerHTML = PLANE_SVG;
-                    el.style.opacity = 0;
-                    document.body.appendChild(el);
-                    return { k, el, delay: k * 280, dur: 2600 + k * 200 + r(0, 300), size: [1, .82, 1.08][k], hist: [], done: false, arrived: false,
-                        pos: (t) => {
-                            const e = t * t * (3 - 2 * t);
-                            const env = Math.pow(Math.sin(Math.PI * t), 0.9);
-                            const w = (Math.sin(f1 * 6.283 * t + p1) * 0.65 + Math.sin(f2 * 6.283 * t + p2) * 0.35) * amp * env * sgn;
-                            return [sx + dx * e + px * w, sy + dy * e + py * w];
-                        } };
-                });
-                const COLORS = ['#ff3b3b', '#ff9f1a', '#ffe135', '#3ddc57', '#2fa8ff', '#8a5cff'];
-                const TRAIL_MS = 750, SW = 3.4;
-                function drawTrail(p, now) {
-                    const hs = p.hist;
-                    if (hs.length < 3) return;
-                    for (let s = 0; s < COLORS.length; s++) {
-                        ctx.strokeStyle = COLORS[s]; ctx.lineCap = 'round';
-                        for (let i = 1; i < hs.length; i++) {
-                            const a = hs[i - 1], c = hs[i];
-                            const age = (now - c.t) / TRAIL_MS; if (age >= 1) continue;
-                            const fade = 1 - age, off = (s - (COLORS.length - 1) / 2) * SW * (0.35 + 0.65 * fade);
-                            ctx.globalAlpha = Math.pow(fade, 1.3) * 0.95;
-                            ctx.lineWidth = SW * (0.4 + 0.6 * fade) + 0.4;
-                            ctx.beginPath();
-                            ctx.moveTo(a.x + a.nx * off, a.y + a.ny * off);
-                            ctx.lineTo(c.x + c.nx * off, c.y + c.ny * off);
-                            ctx.stroke();
-                        }
-                    }
-                    ctx.globalAlpha = 1;
+                const GOLD = ['#fff3a3', '#ffd54a', '#ffb300'], WHITE = ['#ffffff', '#ffe9f3', '#d6f0ff'];
+                const dist = Math.hypot(ex - sx, ey - sy) || 1;
+                const nx = -(ey - sy) / dist, ny = (ex - sx) / dist;
+                const STARS = 16;
+                const stars = [], glitter = [];
+                for (let i = 0; i < STARS; i++) {
+                    const burstA = r(0, 6.283), burstR = r(70, 170);      // first swoosh outward in a random direction
+                    const side = (Math.random() < .5 ? -1 : 1) * r(40, 130);
+                    const sparkle = i % 4 === 3;                          // every 4th is a white 4-point sparkle
+                    stars.push({
+                        p0: [sx, sy],
+                        p1: [sx + Math.cos(burstA) * burstR, sy + Math.sin(burstA) * burstR],
+                        p2: [ex + nx * side, ey + ny * side],
+                        p3: [ex, ey],
+                        delay: r(0, 520), dur: r(1500, 2200),
+                        R: sparkle ? r(9, 13) : r(8, 15), spin: r(-5, 5), rot0: r(0, 6.28), phase: r(0, 6.28),
+                        sparkle, pal: sparkle ? WHITE : GOLD, arrived: false, done: false, last: null
+                    });
                 }
+                function starPath(x, y, R, rIn, n, rot) {
+                    ctx.beginPath();
+                    for (let i = 0; i < n * 2; i++) {
+                        const rad = i % 2 ? rIn : R, ang = rot + i * Math.PI / n - Math.PI / 2;
+                        const px = x + Math.cos(ang) * rad, py = y + Math.sin(ang) * rad;
+                        i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+                    }
+                    ctx.closePath();
+                }
+                function drawStar(x, y, R, rot, pal, sparkle, alpha) {
+                    ctx.save(); ctx.globalAlpha = alpha;
+                    ctx.shadowColor = sparkle ? 'rgba(180,225,255,.95)' : 'rgba(255,190,40,.95)'; ctx.shadowBlur = 14;
+                    const g = ctx.createLinearGradient(x - R, y - R, x + R, y + R);
+                    g.addColorStop(0, pal[0]); g.addColorStop(.55, pal[1]); g.addColorStop(1, pal[2]);
+                    ctx.fillStyle = g;
+                    sparkle ? starPath(x, y, R * 1.15, R * 0.22, 4, rot) : starPath(x, y, R, R * 0.46, 5, rot);
+                    ctx.fill();
+                    ctx.shadowBlur = 0; ctx.lineWidth = 0.8; ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.stroke();
+                    ctx.restore();
+                }
+                const bez = (p, t) => { const u = 1 - t; return [
+                    u*u*u*p.p0[0] + 3*u*u*t*p.p1[0] + 3*u*t*t*p.p2[0] + t*t*t*p.p3[0],
+                    u*u*u*p.p0[1] + 3*u*u*t*p.p1[1] + 3*u*t*t*p.p2[1] + t*t*t*p.p3[1]]; };
+                const ease = (t) => 0.5 - Math.cos(Math.PI * t) / 2;     // easeInOutSine
+                const spawnGlitter = (x, y, n, spread, big) => {
+                    for (let i = 0; i < n && glitter.length < 420; i++) {
+                        const a = r(0, 6.283), v = r(0.2, 1) * spread;
+                        glitter.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - (big ? 0 : 0.3), born: 0, life: r(450, 900), s: r(1.2, big ? 3.6 : 2.6), c: Math.random() < .25 ? '#ffffff' : GOLD[(Math.random() * 3) | 0], sp: Math.random() < .35 });
+                    }
+                };
+                const pulse = (strong) => btn.animate([
+                    { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(255,193,7,.8)' },
+                    { transform: 'scale(' + (strong ? 1.5 : 1.22) + ')', boxShadow: '0 0 0 ' + (strong ? 22 : 12) + 'px rgba(255,193,7,0)' },
+                    { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(255,193,7,0)' }], { duration: strong ? 900 : 450, easing: 'ease-out' });
+                spawnGlitter(sx, sy, 28, 3.2, true);                       // little flash at take-off
+                const t0 = performance.now();
+                let lastT = t0, lastPulse = 0, arrivedCount = 0;
                 function frame(now) {
+                    const dt = Math.min(now - lastT, 40); lastT = now;
                     ctx.clearRect(0, 0, W, H);
                     let alive = false;
-                    for (const p of planes) {
-                        const el = now - t0 - p.delay;
-                        if (el >= 0 && el <= p.dur) {
-                            const t = el / p.dur, pt = p.pos(t), pn = p.pos(Math.min(t + 0.01, 1));
-                            const ang = Math.atan2(pn[1] - pt[1], pn[0] - pt[0]);
-                            const sc = (t < .12 ? 0.4 + t / .12 * 0.8 : (t > .9 ? 1.2 - (t - .9) / .1 * 0.8 : 1.2)) * p.size;
-                            p.el.style.opacity = t > .95 ? (1 - t) / .05 : 1;
-                            p.el.style.transform = 'translate(' + pt[0].toFixed(1) + 'px,' + pt[1].toFixed(1) + 'px) rotate(' + (ang * 180 / Math.PI).toFixed(1) + 'deg) scale(' + sc.toFixed(2) + ')';
-                            // ribbon starts a little behind the nose, along the flight direction
-                            const bx = pt[0] - Math.cos(ang) * 10 * sc, by = pt[1] - Math.sin(ang) * 10 * sc;
-                            p.hist.push({ x: bx, y: by, nx: -Math.sin(ang), ny: Math.cos(ang), t: now });
+                    for (const s of stars) {
+                        const el = now - t0 - s.delay;
+                        if (el < 0) { alive = true; continue; }
+                        if (el <= s.dur) {
                             alive = true;
-                        } else if (el > p.dur && !p.done) {
-                            p.done = true; p.el.remove();
-                            btn.animate([{ transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(56,189,248,.7)' }, { transform: 'scale(1.35)', boxShadow: '0 0 0 14px rgba(56,189,248,0)' }, { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(56,189,248,0)' }], { duration: 700, easing: 'ease-out' });
-                        } else if (el < 0) alive = true;
-                        while (p.hist.length && now - p.hist[0].t > TRAIL_MS) p.hist.shift();
-                        if (p.hist.length) alive = true;
-                        drawTrail(p, now);
+                            const t = el / s.dur, pt = bez(s, ease(t));
+                            let sc = t < .12 ? 0.15 + t / .12 * 0.85 : (t > .88 ? 1 - (t - .88) / .12 * 0.75 : 1);
+                            sc *= 1 + 0.2 * Math.sin(now * 0.018 + s.phase);   // twinkle
+                            drawStar(pt[0], pt[1], s.R * sc, s.rot0 + s.spin * (el / 1000), s.pal, s.sparkle, t > .96 ? (1 - t) / .04 : 1);
+                            spawnGlitter(pt[0], pt[1], 1 + (Math.random() < .5 ? 1 : 0), 0.35, false);
+                        } else if (!s.done) {
+                            s.done = true; arrivedCount++;
+                            spawnGlitter(ex, ey, 7, 2.2, true);
+                            if (now - lastPulse > 160) { lastPulse = now; pulse(false); }
+                        }
                     }
-                    if (alive) requestAnimationFrame(frame);
-                    else { cv.remove(); planes.forEach(p => p.el.remove()); }
+                    // glitter: tiny drifting dots / sparkles that fade out
+                    for (let i = glitter.length - 1; i >= 0; i--) {
+                        const g = glitter[i]; g.born += dt;
+                        if (g.born >= g.life) { glitter.splice(i, 1); continue; }
+                        g.x += g.vx * dt / 16; g.y += g.vy * dt / 16; g.vy += 0.012 * dt / 16;
+                        const k = 1 - g.born / g.life;
+                        ctx.globalAlpha = k * k; ctx.fillStyle = g.c;
+                        if (g.sp) { ctx.shadowColor = g.c; ctx.shadowBlur = 6; starPath(g.x, g.y, g.s * 1.8, g.s * 0.4, 4, 0); ctx.fill(); ctx.shadowBlur = 0; }
+                        else { ctx.beginPath(); ctx.arc(g.x, g.y, g.s * (0.5 + 0.5 * k), 0, 6.283); ctx.fill(); }
+                    }
+                    ctx.globalAlpha = 1;
+                    if (alive || glitter.length) requestAnimationFrame(frame);
+                    else { cv.remove(); pulse(true); }                   // last star landed: big golden flash on the Account button
                 }
                 requestAnimationFrame(frame);
             } catch (e) { /* purely decorative: never break the payment screen */ }
