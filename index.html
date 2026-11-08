@@ -1916,11 +1916,12 @@
         }
 
         function openModal(modalId) {
-            if (modalId === 'checkoutModal') setViewportLock(true); // no zoom while filling in the order form
+            if (modalId === 'checkoutModal' || modalId === 'walletModal') setViewportLock(true); // no zoom while filling in a form
             document.getElementById(modalId).classList.add('active');
         }
         function closeModal(modalId) {
             if (modalId === 'checkoutModal') setViewportLock(false);
+            else if (modalId === 'walletModal') { const co = document.getElementById('checkoutModal'); if (!(co && co.classList.contains('active'))) setViewportLock(false); } // stay locked if checkout is still open underneath
             setTimeout(resetZoom, 60); 
             let modal = document.getElementById(modalId);
             if (modal) {
