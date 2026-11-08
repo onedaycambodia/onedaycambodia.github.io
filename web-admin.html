@@ -109,7 +109,6 @@ svg.chev{width:16px;height:16px;color:var(--mut);transition:.2s;flex:none;fill:n
 <nav id="nav" style="display:none">
 <button data-t="dash"><svg class="i"><use href="#i-home"/></svg>ទំព័រដើម</button>
 <button data-t="products"><svg class="i"><use href="#i-box"/></svg>ទំនិញ</button>
-<button data-t="stock"><svg class="i"><use href="#i-layers"/></svg>ស្តុក</button>
 <button data-t="orders"><svg class="i"><use href="#i-receipt"/></svg>ការកុម្ម៉ង់<b id="pendB" style="display:none"></b></button>
 <button data-t="customers"><svg class="i"><use href="#i-users"/></svg>អតិថិជន</button>
 </nav>
@@ -164,11 +163,11 @@ async function go(t) {
     $('#app').innerHTML = '<div class="empty">កំពុងផ្ទុក...</div>';
     try {
         if (t === 'dash') { S.stats = await api('/stats?days=' + S.range); pend(); }
-        if (t === 'products' || t === 'stock') S.products = await api('/products');
+        if (t === 'products') S.products = await api('/products');
         if (t === 'orders') S.orders = await api('/orders?status=' + S.ostat);
         if (t === 'customers') S.customers = await api('/customers');
     } catch (e) { if (e.message !== 'login') $('#app').innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
-    ({ dash, products: prodView, stock: stockView, orders: ordView, customers: custView })[t]();
+    ({ dash, products: prodView, orders: ordView, customers: custView })[t]();
 }
 const reload = () => go(S.tab);
 function pend() { const n = S.stats && S.stats.orders_by_status.PENDING || 0; const b = $('#pendB'); b.style.display = n ? 'inline' : 'none'; b.textContent = n; }
@@ -189,15 +188,18 @@ function dash() {
 /* ---------- products ---------- */
 const title = p => p.title_km || p.title_en || p.ref;
 function filtered() { const q = S.q.toLowerCase(); return S.products.filter(p => (S.gender === 'all' || p.gender === S.gender) && (!q || (p.ref + ' ' + title(p)).toLowerCase().includes(q))); }
-function toolbar(add) { return `<div class="bar"><div class="sr">${ic('search')}<input class="in" placeholder="ស្វែងរក Ref ឬឈ្មោះ..." value="${esc(S.q)}" oninput="S.q=this.value;drawList()"></div>${add ? `<button class="btn" onclick="editProd()">${ic('plus')}បន្ថែម</button>` : ''}</div><div class="chips" style="margin-bottom:12px">${[['all', 'ទាំងអស់'], ['men', 'បុរស'], ['women', 'ស្រ្តី']].map(g => `<button class="chip ${S.gender === g[0] ? 'on' : ''}" onclick="S.gender='${g[0]}';go2()">${g[1]}</button>`).join('')}</div><div id="list"></div>`; }
-const go2 = () => (S.tab === 'products' ? prodView : stockView)();
-const drawList = () => (S.tab === 'products' ? prodList : stockList)();
+function toolbar(add) { return `<div class="bar"><div class="sr">${ic('search')}<input class="in" placeholder="ស្វែងរកទំនិញ..." value="${esc(S.q)}" oninput="S.q=this.value;drawList()"></div>${add ? `<button class="btn" onclick="editProd()">${ic('plus')}បន្ថែម</button>` : ''}</div><div class="chips" style="margin-bottom:12px">${[['all', 'ទាំងអស់'], ['men', 'បុរស'], ['women', 'ស្រ្តី']].map(g => `<button class="chip ${S.gender === g[0] ? 'on' : ''}" onclick="S.gender='${g[0]}';go2()">${g[1]}</button>`).join('')}</div><div id="list"></div>`; }
+const go2 = () => prodView();
+const drawList = () => prodList();
 function prodView() { $('#app').innerHTML = toolbar(1); prodList(); }
 function prodList() {
-    const l = filtered(); $('#list').innerHTML = l.length ? `<div class="list">${l.map(p => `<div class="rw it2"><div class="th">${thumbImg(p.video_url)}</div><div class="nm">${esc(title(p))}<small>Ref: ${esc(p.ref)} · ដើម ${money(p.cost_price)}</small></div><span class="pr2">${money(p.price)}</span><button class="mb" onclick="editProd('${esc(p.ref)}')">${ic('edit')}</button><button class="mb" style="color:var(--bad)" onclick="delProd('${esc(p.ref)}')">${ic('trash')}</button></div>`).join('')}</div>` : '<div class="empty">រកមិនឃើញទំនិញ</div>';
+    const l = filtered(); $('#list').innerHTML = l.length ? `<div class="list">${l.map((p, i) => `<div class="xw"><div class="rw" onclick="xt('px${i}')"><div class="th">${thumbImg(p.video_url)}</div><div class="nm">${esc(title(p))}<small>Ref: ${esc(p.ref)} · ដើម ${money(p.cost_price)}</small></div><span class="pr2">${money(p.price)}</span><span class="bd ${cls(tot(p))}" id="t_${esc(p.ref)}">${tot(p)}</span><svg class="chev"><use href="#i-chev"/></svg></div>
+    <div class="xp" id="px${i}"><div class="mut" style="margin-bottom:6px">ស្តុកតាម Size</div><div class="szg">${(p.sizes || []).map(s => `<div class="sz2"><b>${esc(s.size)}</b><button onclick="stk('${esc(p.ref)}','${esc(s.size)}',-1)">−</button><input type="number" min="0" id="q_${esc(p.ref)}_${esc(s.size)}" value="${s.stock_qty}" class="${cls(s.stock_qty)}" onchange="stk('${esc(p.ref)}','${esc(s.size)}',null,this.value)"><button onclick="stk('${esc(p.ref)}','${esc(s.size)}',1)">+</button></div>`).join('')}</div>
+    <div class="acts"><button class="btn g" onclick="editProd('${esc(p.ref)}')">${ic('edit')}កែ</button><button class="btn g" style="color:var(--bad)" onclick="delProd('${esc(p.ref)}')">${ic('trash')}លុប</button></div></div></div>`).join('')}</div>` : '<div class="empty">រកមិនឃើញទំនិញ</div>';
 }
 const thumbImg = u => u ? `<img loading="lazy" src="${esc(thumb(u, 120))}" onerror="this.style.display='none'">` : ic('img');
 const xt = id => { const x = document.getElementById(id); x.classList.toggle('on'); x.previousElementSibling.classList.toggle('open'); };
+const tot = p => (p.sizes || []).reduce((a, s) => a + (s.stock_qty || 0), 0), cls = n => n <= 0 ? 'out' : n <= 2 ? 'low' : '';
 function editProd(ref) {
     const p = S.products.find(x => x.ref === ref) || { gender: 'men', type: 'tops' }, nw = !ref;
     const f = (k, l, ex = '') => `<label class="fl">${l}</label><input class="in" id="f_${k}" value="${esc(p[k] == null ? '' : p[k])}" ${ex}>`;
@@ -239,11 +241,6 @@ function delProd(ref) {
 async function doDel(ref) { try { await api('/products/' + encodeURIComponent(ref), { method: 'DELETE' }); toast('បានលុប'); closeSheet(); reload(); } catch (e) { toast(e.message, 1); } }
 
 /* ---------- stock ---------- */
-function stockView() { $('#app').innerHTML = toolbar(0); stockList(); }
-const tot = p => (p.sizes || []).reduce((a, s) => a + (s.stock_qty || 0), 0), cls = n => n <= 0 ? 'out' : n <= 2 ? 'low' : '';
-function stockList() {
-    const l = filtered(); $('#list').innerHTML = l.length ? `<div class="list">${l.map((p, i) => `<div class="xw"><div class="rw" onclick="xt('sx${i}')"><div class="th">${thumbImg(p.video_url)}</div><div class="nm">${esc(title(p))}<small>Ref: ${esc(p.ref)}</small></div><span class="bd ${cls(tot(p))}" id="t_${esc(p.ref)}">${tot(p)}</span><svg class="chev"><use href="#i-chev"/></svg></div><div class="xp" id="sx${i}"><div class="szg">${(p.sizes || []).map(s => `<div class="sz2"><b>${esc(s.size)}</b><button onclick="stk('${esc(p.ref)}','${esc(s.size)}',-1)">−</button><input type="number" min="0" id="q_${esc(p.ref)}_${esc(s.size)}" value="${s.stock_qty}" class="${cls(s.stock_qty)}" onchange="stk('${esc(p.ref)}','${esc(s.size)}',null,this.value)"><button onclick="stk('${esc(p.ref)}','${esc(s.size)}',1)">+</button></div>`).join('')}</div></div></div>`).join('')}</div>` : '<div class="empty">រកមិនឃើញទំនិញ</div>';
-}
 async function stk(ref, size, d, qty) {
     try {
         const r = await api('/stock', { method: 'POST', body: d === null ? { ref, size, qty } : { ref, size, delta: d } });
