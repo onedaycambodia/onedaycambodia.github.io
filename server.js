@@ -1634,6 +1634,15 @@ bot.command('cleanup', async (ctx) => {
     ctx.reply('🧹 ប្រព័ន្ធកំពុងប្រើប្រាស់ Cloudinary Cloud Storage 100% ដូច្នេះមិនចាំបាច់មានការសម្អាត Local File ទៀតទេ។');
 });
 
+// Always take the Confirm/Cancel buttons off the admin message, even if the order was already handled
+// (from the web dashboard or by another admin) or the text edit fails - stale buttons used to stay forever.
+async function finishOrderMsg(ctx, suffix) {
+    try { await ctx.editMessageReplyMarkup({ inline_keyboard: [] }); } catch (e) { /* already removed */ }
+    try {
+        await ctx.editMessageText(String((ctx.callbackQuery.message && ctx.callbackQuery.message.text) || '') + suffix, { reply_markup: { inline_keyboard: [] } });
+    } catch (e) { if (!/not modified/i.test(e.message)) console.error('finishOrderMsg:', e.message); }
+}
+
 // Manual payment review buttons (sent when Bakong could not confirm a payment automatically)
 bot.action(/^manual_paid_(\d+)$/, async (ctx) => {
     try {
@@ -1664,10 +1673,12 @@ bot.action(/^confirm_order_(\d+)$/, async (ctx) => {
     try {
         // only a PENDING order can be confirmed (before, a CANCELLED / unpaid order could be "confirmed" too)
         const r = await pool.query("UPDATE orders SET status = 'CONFIRMED' WHERE id = $1 AND status = 'PENDING' RETURNING id", [orderId]);
-        if (r.rows.length === 0) return ctx.answerCbQuery('⚠ ការកុម្មង់នេះមិនស្ថិតក្នុងស្ថានភាព PENDING ទេ!', { show_alert: true });
+        if (r.rows.length === 0) {
+            await finishOrderMsg(ctx, '\n\nstatus: already handled');
+            return ctx.answerCbQuery('⚠ ការកុម្មង់នេះមិនស្ថិតក្នុងស្ថានភាព PENDING ទេ!', { show_alert: true }); }
         await ctx.answerCbQuery('✅ បានបញ្ជាក់ការកុម្មង់!');
         let originalText = ctx.callbackQuery.message.text;
-        await ctx.editMessageText(originalText + '\n\nstatus: ✅ Confirmed', { reply_markup: { inline_keyboard: [] } });
+        await finishOrderMsg(ctx, '\n\nstatus: ✅ Confirmed');
     } catch (err) {
         console.error('confirm_order error:', err.message);
         await ctx.answerCbQuery('❌ មានបញ្ហា', { show_alert: true });
@@ -1680,16 +1691,22 @@ bot.action(/^cancel_order_(\d+)$/, async (ctx) => {
     try {
         await client.query('BEGIN');
         // status-guarded UPDATE: a double tap can no longer restore the stock twice
-        const r = await client.query("UPDATE orders SET status = 'CANCELLED' WHERE id = $1 AND status IN ('PENDING','CONFIRMED') RETURNING items", [orderId]);
+        const r = await client.query("UPDATE orders SET status = 'CANCELLED' WHERE id = $1 AND status IN ('PENDING','CONFIRMED') RETURNING items, payment_method, pay_amount, customer_id", [orderId]);
         if (r.rows.length === 0) {
             await client.query('ROLLBACK');
+            await finishOrderMsg(ctx, '\n\nstatus: already handled');
             return ctx.answerCbQuery('⚠ មិនអាចលុបចោលការកុម្មង់នេះបានទេ (លុបរួច / កំពុងរង់ចាំបង់ប្រាក់)!', { show_alert: true });
         }
         await restoreStockForItems(client, r.rows[0].items);
+        const wo = r.rows[0];
+        if (wo.payment_method === 'WALLET' && wo.customer_id && Number(wo.pay_amount) > 0) { // wallet-paid order: money goes back to the customer's wallet
+            const wb = await client.query('UPDATE customers SET wallet_balance = wallet_balance + $1 WHERE id = $2 RETURNING wallet_balance', [wo.pay_amount, wo.customer_id]);
+            if (wb.rows.length) await client.query(`INSERT INTO wallet_tx (customer_id, type, amount, balance_after, ref) VALUES ($1,'refund',$2,$3,$4)`, [wo.customer_id, wo.pay_amount, wb.rows[0].wallet_balance, 'order:' + orderId]);
+        }
         await client.query('COMMIT');
         await ctx.answerCbQuery('❌ បានបដិសេធ និងសងស្តុកចូលវិញ!');
         let originalText = ctx.callbackQuery.message.text;
-        await ctx.editMessageText(originalText + '\n\nstatus: ❌ Cancelled & Stock Restored', { reply_markup: { inline_keyboard: [] } });
+        await finishOrderMsg(ctx, '\n\nstatus: ❌ Cancelled & Stock Restored');
     } catch (err) {
         try { await client.query('ROLLBACK'); } catch (e) {}
         console.error('cancel_order error:', err.message);
