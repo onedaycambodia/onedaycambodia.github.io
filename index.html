@@ -697,6 +697,13 @@
         .qty-controls { display: flex; align-items: center; gap: 8px; }
         .btn-qty { background: var(--accent-light); color: var(--accent); border: 1px solid var(--border-color); width: 30px; height: 30px; border-radius: 8px; font-weight: 900; cursor: pointer; font-size: 14px; }
         .btn-delete-item { background: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; width: 30px; height: 30px; border-radius: 8px; font-weight: 800; cursor: pointer; margin-left: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        body.dark-mode .btn-delete-item { background: rgba(239,68,68,.14); color: #f87171; border-color: rgba(248,113,113,.38); }
+        body.dark-mode .btn-delete-item:hover { background: rgba(239,68,68,.24); }
+        .btn-delete-item .ico-trash { width: 16px; height: 16px; vertical-align: middle; }
+        /* paper plane that flies to the Account button after a successful payment */
+        .fly-plane { position: fixed; left: 0; top: 0; z-index: 100000; pointer-events: none; width: 28px; height: 28px; margin: -14px 0 0 -14px; color: var(--accent, #38bdf8); filter: drop-shadow(0 4px 8px rgba(56,189,248,.45)); will-change: transform, opacity; }
+        .fly-plane .ico { width: 28px; height: 28px; stroke-width: 2.2; fill: rgba(56,189,248,.18); display: block; vertical-align: top; }
+        .fly-dot { position: fixed; left: 0; top: 0; z-index: 99999; pointer-events: none; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; background: var(--accent, #38bdf8); }
         .empty-msg { text-align: center; color: var(--text-muted); padding: 30px 0; font-size: 13px; font-weight: 600; }
 
         .summary-box { border-top: 1px solid var(--border-color); padding-top: 12px; padding-bottom: 4px; display: flex; flex-direction: column; gap: 8px; }
@@ -2939,6 +2946,66 @@
             closeModal('khqrModal');
         }
 
+        // ✈️ Paper plane: takes off from the green check and flies a random, wobbly path to the Account button.
+        function flyPlaneToAccount(fromEl) {
+            try {
+                if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                const btn = document.getElementById('accountBtn');
+                if (!fromEl || !btn || !btn.animate) return;
+                const vw = window.innerWidth, vh = window.innerHeight;
+                const a = fromEl.getBoundingClientRect();
+                const b = btn.getBoundingClientRect();
+                if (!b.width || !a.width) return;           // account button hidden (login disabled)
+                const sx = a.left + a.width / 2, sy = a.top + a.height / 2;
+                const ex = Math.min(Math.max(b.left + b.width / 2, 12), vw - 12);
+                const ey = Math.min(Math.max(b.top + b.height / 2, 12), vh - 12);
+                const dx = ex - sx, dy = ey - sy, len = Math.hypot(dx, dy) || 1;
+                const px = -dy / len, py = dx / len;          // perpendicular direction
+                const r = (min, max) => min + Math.random() * (max - min);
+                const amp = Math.min(150, Math.max(50, len * 0.35));
+                const f1 = r(1.2, 2.6), f2 = r(2.8, 4.6), p1 = r(0, 6.28), p2 = r(0, 6.28), sgn = Math.random() < .5 ? -1 : 1;
+                const pos = (t) => {
+                    const e = t * t * (3 - 2 * t);           // smoothstep: slow start, soft landing
+                    const env = Math.pow(Math.sin(Math.PI * Math.min(t, 1)), 0.9);
+                    const w = (Math.sin(f1 * 6.283 * t + p1) * 0.65 + Math.sin(f2 * 6.283 * t + p2) * 0.35) * amp * env * sgn;
+                    const lift = 0;
+                    return [sx + dx * e + px * w, sy + dy * e + py * w + lift];
+                };
+                const N = 70, pts = [];
+                for (let i = 0; i <= N; i++) pts.push(pos(i / N));
+                const frames = pts.map((p, i) => {
+                    const q = pts[Math.min(i + 1, N)], o = pts[Math.max(i - 1, 0)];
+                    const ang = Math.atan2(q[1] - o[1], q[0] - o[0]) * 180 / Math.PI + 45;   // icon points up-right
+                    const t = i / N;
+                    const sc = t < .12 ? 0.4 + t / .12 * 0.8 : (t > .9 ? 1.2 - (t - .9) / .1 * 0.8 : 1.2);
+                    return { transform: 'translate(' + p[0].toFixed(1) + 'px,' + p[1].toFixed(1) + 'px) rotate(' + ang.toFixed(1) + 'deg) scale(' + sc.toFixed(2) + ')',
+                             opacity: t > .95 ? 0 : 1, offset: t };
+                });
+                const plane = document.createElement('div');
+                plane.className = 'fly-plane';
+                plane.innerHTML = '<svg class="ico" aria-hidden="true"><use href="#i-send"/></svg>';
+                document.body.appendChild(plane);
+                const dur = 2800;
+                const anim = plane.animate(frames, { duration: dur, easing: 'linear', fill: 'forwards' });
+                // fading trail of dots behind the plane
+                const trail = setInterval(() => {
+                    const rc = plane.getBoundingClientRect();
+                    const d = document.createElement('div');
+                    d.className = 'fly-dot';
+                    d.style.transform = 'translate(' + (rc.left + rc.width / 2) + 'px,' + (rc.top + rc.height / 2) + 'px)';
+                    document.body.appendChild(d);
+                    const da = d.animate([{ opacity: .55, scale: 1 }, { opacity: 0, scale: .2 }], { duration: 650, easing: 'ease-out', fill: 'forwards' });
+                    da.onfinish = () => d.remove();
+                }, 70);
+                anim.onfinish = () => {
+                    clearInterval(trail);
+                    plane.remove();
+                    btn.animate([{ transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(56,189,248,.7)' }, { transform: 'scale(1.35)', boxShadow: '0 0 0 14px rgba(56,189,248,0)' }, { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(56,189,248,0)' }], { duration: 700, easing: 'ease-out' });
+                };
+                anim.oncancel = () => { clearInterval(trail); plane.remove(); };
+            } catch (e) { /* purely decorative: never break the payment screen */ }
+        }
+
         function showKhqrResult(text, ok) {
             stopKhqrTimers();
             const content = document.querySelector('#khqrModal .modal-content');
@@ -2957,6 +3024,7 @@
                         (khqrAmountText ? '<div class="ty-amount">' + ico('check') + ' ' + khqrAmountText + '</div>' : '') +
                     '</div>';
                 launchConfetti(document.getElementById('kqConfetti'));
+                setTimeout(() => flyPlaneToAccount(document.querySelector('#khqrBody .ty-badge')), 900);
             } else {
                 body.innerHTML =
                     '<div class="pay-result"><div class="pay-result-icon warn">' + ico('hourglass') + '</div>' +

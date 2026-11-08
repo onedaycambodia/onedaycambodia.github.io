@@ -13,7 +13,7 @@ const DEFAULT_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
 const SESSION_HOURS = 12;
 
 module.exports = function mountWebAdmin(app, deps) {
-    const { pool, bot, cloudinary, autoTranslate, isAdminUser, deleteCloudinaryFileByUrl, restoreStockForItems, botToken } = deps;
+    const { pool, bot, cloudinary, autoTranslate, isAdminUser, deleteCloudinaryFileByUrl, restoreStockForItems, syncAdminOrderMsgs, botToken } = deps;
 
     // ---------- crypto helpers ----------
     const b64u = (buf) => Buffer.from(buf).toString('base64url');
@@ -279,9 +279,11 @@ module.exports = function mountWebAdmin(app, deps) {
     }));
 
     app.post('/api/web-admin/orders/:id/confirm', guarded(async (req, res) => {
-        const r = await pool.query("UPDATE orders SET status = 'CONFIRMED' WHERE id = $1 AND status = 'PENDING' RETURNING id", [parseInt(req.params.id, 10) || 0]);
+        const id = parseInt(req.params.id, 10) || 0;
+        const r = await pool.query("UPDATE orders SET status = 'CONFIRMED' WHERE id = $1 AND status = 'PENDING' RETURNING id", [id]);
         if (!r.rows.length) return res.status(409).json({ error: 'ការកុម្មង់នេះមិនស្ថិតក្នុងស្ថានភាព PENDING ទេ' });
         res.json({ ok: true });
+        if (syncAdminOrderMsgs) syncAdminOrderMsgs(id, '\n\nstatus: ✅ Confirmed (via Dashboard)'); // take the buttons off the Telegram messages
     }));
 
     app.post('/api/web-admin/orders/:id/cancel', guarded(async (req, res) => {
@@ -299,6 +301,7 @@ module.exports = function mountWebAdmin(app, deps) {
             }
             await client.query('COMMIT');
             res.json({ ok: true, refunded: o.payment_method === 'WALLET' });
+            if (syncAdminOrderMsgs) syncAdminOrderMsgs(id, '\n\nstatus: ❌ Cancelled & Stock Restored (via Dashboard)');
         } catch (err) {
             try { await client.query('ROLLBACK'); } catch (e) {}
             throw err;

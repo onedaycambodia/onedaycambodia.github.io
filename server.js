@@ -284,7 +284,8 @@ async function initDB() {
                 ADD COLUMN IF NOT EXISTS pay_amount DECIMAL(10,2),
                 ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP,
                 ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP,
-                ADD COLUMN IF NOT EXISTS manual_review BOOLEAN DEFAULT FALSE;
+                ADD COLUMN IF NOT EXISTS manual_review BOOLEAN DEFAULT FALSE,
+                ADD COLUMN IF NOT EXISTS tg_msgs JSONB DEFAULT '[]'::jsonb;
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_orders_khqr_md5 ON orders (khqr_md5);`);
         await bakong.init(pool); // persistent Bakong call counter (survives restarts)
@@ -386,7 +387,7 @@ app.post('/api/admin/update-stock', async (req, res) => {
 
 // 🖥️ Web admin (browser version of the bot's admin tools): /web-admin
 const webAdmin = require('./webadmin')(app, {
-    pool, bot, cloudinary, autoTranslate, isAdminUser, deleteCloudinaryFileByUrl, restoreStockForItems, botToken: BOT_TOKEN
+    pool, bot, cloudinary, autoTranslate, isAdminUser, deleteCloudinaryFileByUrl, restoreStockForItems, syncAdminOrderMsgs, botToken: BOT_TOKEN
 });
 
 // 👤 Customer accounts (login by phone + Telegram Gateway code, My Orders). OFF unless GATEWAY_TOKEN is set.
@@ -485,15 +486,43 @@ async function sendOrderToAdmins(orderId, customer, itemsSummary, totalAmount, h
     else if (username) inlineKeyboard.push([{ text: '💬 ឆាតទៅកាន់អតិថិជន', url: `https://t.me/${username}` }]);
 
     if (mi) inlineKeyboard.push([{ text: "📍 បើក Map", url: mi.url }]);
+    const sent = []; // remember every admin message so the web dashboard / other admins can update it later
     for (let adm of adminsRes.rows) {
         try {
-            await bot.telegram.sendMessage(adm.chat_id, msg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: inlineKeyboard } });
+            const m = await bot.telegram.sendMessage(adm.chat_id, msg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: inlineKeyboard } });
+            sent.push({ chat_id: adm.chat_id, message_id: m.message_id, text: msg, md: true });
         } catch (e) {
             // last resort: plain text, so an odd character can never hide a paid order from the admins
-            try { await bot.telegram.sendMessage(adm.chat_id, msg.replace(/\\([_*`\[\]])/g, '$1').replace(/\*/g, ''), { reply_markup: { inline_keyboard: inlineKeyboard } }); }
+            try {
+                const plain = msg.replace(/\\([_*`\[\]])/g, '$1').replace(/\*/g, '');
+                const m = await bot.telegram.sendMessage(adm.chat_id, plain, { reply_markup: { inline_keyboard: inlineKeyboard } });
+                sent.push({ chat_id: adm.chat_id, message_id: m.message_id, text: plain, md: false });
+            }
             catch (e2) { console.error('order notify failed:', e2.message); }
         }
     }
+    try { await pool.query("UPDATE orders SET tg_msgs = $1::jsonb WHERE id = $2", [JSON.stringify(sent), orderId]); }
+    catch (e) { console.error('save tg_msgs failed:', e.message); }
+}
+
+// Update the Telegram order message of EVERY admin (used when an order is confirmed / cancelled from the web dashboard
+// or by another admin) so the Confirm / Cancel buttons never stay behind. Never throws.
+async function syncAdminOrderMsgs(orderId, suffix) {
+    try {
+        const r = await pool.query("SELECT tg_msgs FROM orders WHERE id = $1", [orderId]);
+        if (!r.rows.length) return;
+        let list = r.rows[0].tg_msgs;
+        if (typeof list === 'string') { try { list = JSON.parse(list); } catch (e) { list = []; } }
+        for (const m of (Array.isArray(list) ? list : [])) {
+            const opts = { reply_markup: { inline_keyboard: [] } }; // remove ALL buttons (Confirm / Cancel / Chat / Map)
+            if (m.md) opts.parse_mode = 'Markdown';
+            try { await bot.telegram.editMessageText(m.chat_id, m.message_id, undefined, String(m.text || '') + suffix, opts); }
+            catch (e) {
+                if (/not modified/i.test(e.message)) continue;
+                try { await bot.telegram.editMessageReplyMarkup(m.chat_id, m.message_id, undefined, { inline_keyboard: [] }); } catch (e2) { /* message deleted / too old */ }
+            }
+        }
+    } catch (e) { console.error('syncAdminOrderMsgs:', e.message); }
 }
 
 // Mark an awaiting order as paid exactly once (the status guard makes double-calls harmless), then tell the admins.
@@ -1679,6 +1708,7 @@ bot.action(/^confirm_order_(\d+)$/, async (ctx) => {
         await ctx.answerCbQuery('✅ បានបញ្ជាក់ការកុម្មង់!');
         let originalText = ctx.callbackQuery.message.text;
         await finishOrderMsg(ctx, '\n\nstatus: ✅ Confirmed');
+        await syncAdminOrderMsgs(orderId, '\n\nstatus: ✅ Confirmed');
     } catch (err) {
         console.error('confirm_order error:', err.message);
         await ctx.answerCbQuery('❌ មានបញ្ហា', { show_alert: true });
@@ -1707,6 +1737,7 @@ bot.action(/^cancel_order_(\d+)$/, async (ctx) => {
         await ctx.answerCbQuery('❌ បានបដិសេធ និងសងស្តុកចូលវិញ!');
         let originalText = ctx.callbackQuery.message.text;
         await finishOrderMsg(ctx, '\n\nstatus: ❌ Cancelled & Stock Restored');
+        await syncAdminOrderMsgs(orderId, '\n\nstatus: ❌ Cancelled & Stock Restored');
     } catch (err) {
         try { await client.query('ROLLBACK'); } catch (e) {}
         console.error('cancel_order error:', err.message);
