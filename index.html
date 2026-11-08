@@ -1068,6 +1068,11 @@
         body.dark-mode .ui-dialog.t-stock, body.dark-mode .ui-dialog.t-location { --dlg: #38bdf8; --dlg-soft: rgba(56, 189, 248, .16); }
         .ui-dialog.t-error, .ui-dialog.t-network { --dlg: #ef4444; --dlg-soft: rgba(239, 68, 68, .14); }
         .ui-dialog.t-cart, .ui-dialog.t-info { --dlg: #0284c7; --dlg-soft: rgba(2, 132, 199, .14); }
+        .ui-dialog.t-logout { --dlg: #ef4444; --dlg-soft: rgba(239, 68, 68, .14); }
+        .ui-dialog-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .ui-dialog-actions .ui-dialog-btn { margin-top: 0; flex: 1; }
+        .ui-dialog-btn.ghost { background: transparent; color: var(--primary); border: 1px solid var(--border-color); }
+        .ui-dialog-btn.ghost:hover { border-color: var(--dlg); color: var(--dlg); }
 
         .ui-dialog-card { position: relative; overflow: hidden; width: 100%; max-width: 340px; padding: 28px 22px 18px; text-align: center;
                           background: var(--card-bg); color: var(--primary); border: 1px solid var(--border-color); border-radius: 26px;
@@ -3142,6 +3147,13 @@
                 return;
             }
 
+            {   // ask the customer to confirm before anything is sent
+                let _tp = document.getElementById('total-price');
+                let _tot = _tp ? _tp.textContent.trim() : '';
+                let _msg = UI_CFM_MSG.order[_dlgLang()] + (_tot ? ': ' + _tot : '?');
+                if (!(await uiConfirm('order', _msg))) return;
+            }
+
             saveUserInfo();
 
             let tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
@@ -3374,6 +3386,66 @@
         }
         window.alert = function (m) { uiAlert(m, 'info'); };   // safety net for any alert() left anywhere
 
+        // ===== Confirm dialog (Yes / No) =====
+        var UI_CFM = {
+            order:  { icon: '<path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/><path d="m9.5 14 2 2 3.5-3.5"/>',
+                      title: { km: '\u1794\u1789\u17d2\u1788\u17b6\u1780\u17cb\u1780\u17b6\u179a\u1780\u17bb\u1798\u17d2\u1798\u1784\u17cb?', en: 'Confirm your order?', zh: '\u786e\u8ba4\u4e0b\u5355\uff1f' },
+                      yes:   { km: '\u1794\u1789\u17d2\u1787\u17b6\u1780\u17cb', en: 'Yes, order', zh: '\u662f\u7684\uff0c\u4e0b\u5355' } },
+            logout: { icon: '<path d="M9 4H5v16h4"/><path d="M16 8l4 4-4 4M20 12H9"/>',
+                      title: { km: '\u1785\u17b6\u1780\u1785\u17c1\u1789\u1796\u17b8\u1782\u178e\u1793\u17b8?', en: 'Log out?', zh: '\u9000\u51fa\u767b\u5f55\uff1f' },
+                      yes:   { km: '\u1785\u17b6\u1780\u1785\u17c1\u1789', en: 'Log out', zh: '\u9000\u51fa' } }
+        };
+        var UI_CFM_NO = { km: '\u1794\u17c4\u17c7\u1794\u1784\u17cb', en: 'Cancel', zh: '\u53d6\u6d88' };
+        var _cfmEl = null, _cfmResolve = null;
+        function _cfmBuild() {
+            if (_cfmEl) return _cfmEl;
+            _cfmEl = document.createElement('div');
+            _cfmEl.className = 'ui-dialog';
+            _cfmEl.setAttribute('aria-hidden', 'true');
+            _cfmEl.innerHTML = '<div class="ui-dialog-card" role="alertdialog" aria-modal="true">' +
+                '<div class="ui-dialog-icon"><svg viewBox="0 0 24 24" aria-hidden="true"></svg></div>' +
+                '<div class="ui-dialog-title"></div><div class="ui-dialog-msg"></div>' +
+                '<div class="ui-dialog-actions"><button type="button" class="ui-dialog-btn ghost" data-r="0"></button>' +
+                '<button type="button" class="ui-dialog-btn" data-r="1"></button></div></div>';
+            document.body.appendChild(_cfmEl);
+            _cfmEl.addEventListener('click', function (e) {
+                if (e.target === _cfmEl) return _cfmDone(false);
+                var b = e.target.closest && e.target.closest('.ui-dialog-btn');
+                if (b) _cfmDone(b.getAttribute('data-r') === '1');
+            });
+            document.addEventListener('keydown', function (e) { if (_cfmResolve && e.key === 'Escape') { e.preventDefault(); _cfmDone(false); } });
+            return _cfmEl;
+        }
+        function _cfmDone(v) {
+            if (!_cfmResolve) return;
+            var r = _cfmResolve; _cfmResolve = null;
+            _cfmEl.classList.remove('open');
+            _cfmEl.setAttribute('aria-hidden', 'true');
+            r(v);
+        }
+        function uiConfirm(kind, message) {
+            return new Promise(function (resolve) {
+                if (_cfmResolve) return resolve(false);
+                var c = UI_CFM[kind] || UI_CFM.order, el = _cfmBuild(), lang = _dlgLang();
+                el.className = 'ui-dialog t-' + kind;
+                el.querySelector('.ui-dialog-icon svg').innerHTML = c.icon;
+                el.querySelector('.ui-dialog-title').textContent = c.title[lang];
+                el.querySelector('.ui-dialog-msg').textContent = message || '';
+                el.querySelector('.ui-dialog-msg').style.display = message ? '' : 'none';
+                el.querySelector('[data-r="0"]').textContent = UI_CFM_NO[lang];
+                el.querySelector('[data-r="1"]').textContent = c.yes[lang];
+                _cfmResolve = resolve;
+                el.setAttribute('aria-hidden', 'false');
+                void el.offsetWidth;
+                el.classList.add('open');
+                setTimeout(function () { var b = el.querySelector('[data-r="1"]'); if (b) b.focus({ preventScroll: true }); }, 60);
+            });
+        }
+        var UI_CFM_MSG = {
+            order:  { km: '\u178f\u17be\u17a2\u17d2\u1793\u1780\u1794\u17d2\u179a\u17b6\u1780\u178a\u1785\u17b6\u1780\u17cb\u1785\u1784\u17cb\u1780\u17bb\u1798\u17d2\u1798\u1784\u17cb\u1798\u17c2\u1793\u1791\u17c1? \u179f\u179a\u17bb\u1794', en: 'Are you sure you want to place this order? Total', zh: '\u786e\u5b9a\u8981\u4e0b\u5355\u5417\uff1f\u5408\u8ba1' },
+            logout: { km: '\u17a2\u17d2\u1793\u1780\u1793\u17b9\u1784\u178f\u17d2\u179a\u17bc\u179c\u1785\u17bc\u179b\u1782\u178e\u1793\u17b8\u1798\u17d2\u178f\u1784\u1791\u17c0\u178f\u178a\u17be\u1798\u17d2\u1794\u17b8\u1794\u17d2\u179a\u17be\u17d4', en: 'You will need to sign in again to use your account.', zh: '\u60a8\u9700\u8981\u91cd\u65b0\u767b\u5f55\u624d\u80fd\u4f7f\u7528\u8d26\u6237\u3002' }
+        };
+
         /* ===================== 👤 CUSTOMER ACCOUNT (login + my orders) ===================== */
         const AUTH_T = {
             km: { login_title:'ចូលគណនី', login_sub:'បញ្ចូលឈ្មោះ និងលេខទូរស័ព្ទ យើងនឹងផ្ញើកូដ ៤ ខ្ទង់ទៅ Telegram របស់អ្នក', name:'ឈ្មោះរបស់អ្នក', phone:'លេខទូរស័ព្ទ (Telegram)', next:'បន្ទាប់', code_sub:'កូដ ៤ ខ្ទង់ត្រូវបានផ្ញើទៅ Telegram នៃលេខ', verify:'បញ្ជាក់', resend:'ផ្ញើកូដម្តងទៀត', resend_in:'ផ្ញើម្តងទៀតក្នុង ', back:'ត្រឡប់ក្រោយ',
@@ -3565,6 +3637,7 @@
             auBusy = false; btn.disabled = false;
         }
         async function authLogout() {
+            if (!(await uiConfirm('logout', UI_CFM_MSG.logout[_dlgLang()]))) return;
             try { fetch(`${RAILWAY_API_URL}/api/auth/logout`, { method: 'POST', headers: authHeaders() }); } catch (e) {}
             clearAuth(); closeModal('acctModal');
         }
