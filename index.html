@@ -701,10 +701,8 @@
         body.dark-mode .btn-delete-item:hover { background: rgba(239,68,68,.24); }
         .btn-delete-item .ico-trash { width: 16px; height: 16px; vertical-align: middle; }
         /* paper plane that flies to the Account button after a successful payment */
-        .fly-plane { position: fixed; left: 0; top: 0; z-index: 100000; pointer-events: none; width: 28px; height: 28px; margin: -14px 0 0 -14px; color: var(--accent, #38bdf8); filter: drop-shadow(0 4px 8px rgba(56,189,248,.45)); will-change: transform, opacity; }
-        .fly-plane .ico { width: 28px; height: 28px; stroke-width: 2.2; fill: rgba(56,189,248,.18); display: block; vertical-align: top; }
-        .fly-smoke { position: fixed; left: 0; top: 0; z-index: 99999; pointer-events: none; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; filter: blur(3px); mix-blend-mode: screen; will-change: transform, opacity; }
-        body:not(.dark-mode) .fly-smoke { mix-blend-mode: normal; }
+        .fly-plane { position: fixed; left: 0; top: 0; z-index: 100000; pointer-events: none; width: 34px; height: 34px; margin: -17px 0 0 -17px; filter: drop-shadow(0 3px 6px rgba(15,40,90,.35)); will-change: transform, opacity; }
+        .fly-plane svg { display: block; }
         .empty-msg { text-align: center; color: var(--text-muted); padding: 30px 0; font-size: 13px; font-weight: 600; }
 
         .summary-box { border-top: 1px solid var(--border-color); padding-top: 12px; padding-bottom: 4px; display: flex; flex-direction: column; gap: 8px; }
@@ -2958,6 +2956,14 @@
         // ✈️✈️✈️ After a successful payment, when the customer closes the result popup, 3 paper planes take off from the
         // close button and each flies its own random, wobbly path to the Account button, leaving a rainbow smoke trail.
         let khqrPlanePending = false;
+        // paper plane drawn pointing right: light upper wing, blue lower wing, darker fold
+        const PLANE_SVG = '<svg viewBox="0 0 44 44" width="34" height="34" aria-hidden="true">' +
+            '<defs><linearGradient id="fpA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfeeff"/></linearGradient>' +
+            '<linearGradient id="fpB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4fc3ff"/><stop offset="1" stop-color="#1d7fe0"/></linearGradient></defs>' +
+            '<path d="M42 22 5 7l10 15z" fill="url(#fpA)"/>' +
+            '<path d="M42 22 15 22 11 38z" fill="url(#fpB)"/>' +
+            '<path d="M15 22 11 38 20 29z" fill="#0f5fb8"/>' +
+            '<path d="M42 22 5 7l10 15 4-0.2z" fill="none" stroke="rgba(255,255,255,.7)" stroke-width=".6" stroke-linejoin="round"/></svg>';
         function flyPlanesToAccount(sx, sy) {
             try {
                 if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -2965,65 +2971,84 @@
                 if (!btn || !btn.animate) return;
                 const b = btn.getBoundingClientRect();
                 if (!b.width) return;                         // account button hidden (login disabled)
-                const vw = window.innerWidth, vh = window.innerHeight;
-                const ex = Math.min(Math.max(b.left + b.width / 2, 12), vw - 12);
-                const ey = Math.min(Math.max(b.top + b.height / 2, 12), vh - 12);
-                for (let k = 0; k < 3; k++) setTimeout(() => flyOnePlane(sx, sy, ex, ey, k, btn), k * 260);
+                const W = window.innerWidth, H = window.innerHeight, dpr = Math.min(window.devicePixelRatio || 1, 2);
+                const ex = Math.min(Math.max(b.left + b.width / 2, 12), W - 12);
+                const ey = Math.min(Math.max(b.top + b.height / 2, 12), H - 12);
+                // one transparent canvas draws the rainbow ribbons of all planes
+                const cv = document.createElement('canvas');
+                cv.width = W * dpr; cv.height = H * dpr;
+                cv.style.cssText = 'position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:99999;pointer-events:none';
+                document.body.appendChild(cv);
+                const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+                const r = (min, max) => min + Math.random() * (max - min);
+                const dx = ex - sx, dy = ey - sy, len = Math.hypot(dx, dy) || 1, px = -dy / len, py = dx / len;
+                const t0 = performance.now();
+                const planes = [0, 1, 2].map(k => {
+                    const amp = Math.min(170, Math.max(60, len * 0.38));
+                    const f1 = r(1.1, 2.4), f2 = r(2.6, 4.6), p1 = r(0, 6.28), p2 = r(0, 6.28);
+                    const sgn = k === 1 ? -1 : (k === 2 ? (Math.random() < .5 ? -1 : 1) : 1);
+                    const el = document.createElement('div');
+                    el.className = 'fly-plane';
+                    el.innerHTML = PLANE_SVG;
+                    el.style.opacity = 0;
+                    document.body.appendChild(el);
+                    return { k, el, delay: k * 280, dur: 2600 + k * 200 + r(0, 300), size: [1, .82, 1.08][k], hist: [], done: false, arrived: false,
+                        pos: (t) => {
+                            const e = t * t * (3 - 2 * t);
+                            const env = Math.pow(Math.sin(Math.PI * t), 0.9);
+                            const w = (Math.sin(f1 * 6.283 * t + p1) * 0.65 + Math.sin(f2 * 6.283 * t + p2) * 0.35) * amp * env * sgn;
+                            return [sx + dx * e + px * w, sy + dy * e + py * w];
+                        } };
+                });
+                const COLORS = ['#ff3b3b', '#ff9f1a', '#ffe135', '#3ddc57', '#2fa8ff', '#8a5cff'];
+                const TRAIL_MS = 750, SW = 3.4;
+                function drawTrail(p, now) {
+                    const hs = p.hist;
+                    if (hs.length < 3) return;
+                    for (let s = 0; s < COLORS.length; s++) {
+                        ctx.strokeStyle = COLORS[s]; ctx.lineCap = 'round';
+                        for (let i = 1; i < hs.length; i++) {
+                            const a = hs[i - 1], c = hs[i];
+                            const age = (now - c.t) / TRAIL_MS; if (age >= 1) continue;
+                            const fade = 1 - age, off = (s - (COLORS.length - 1) / 2) * SW * (0.35 + 0.65 * fade);
+                            ctx.globalAlpha = Math.pow(fade, 1.3) * 0.95;
+                            ctx.lineWidth = SW * (0.4 + 0.6 * fade) + 0.4;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x + a.nx * off, a.y + a.ny * off);
+                            ctx.lineTo(c.x + c.nx * off, c.y + c.ny * off);
+                            ctx.stroke();
+                        }
+                    }
+                    ctx.globalAlpha = 1;
+                }
+                function frame(now) {
+                    ctx.clearRect(0, 0, W, H);
+                    let alive = false;
+                    for (const p of planes) {
+                        const el = now - t0 - p.delay;
+                        if (el >= 0 && el <= p.dur) {
+                            const t = el / p.dur, pt = p.pos(t), pn = p.pos(Math.min(t + 0.01, 1));
+                            const ang = Math.atan2(pn[1] - pt[1], pn[0] - pt[0]);
+                            const sc = (t < .12 ? 0.4 + t / .12 * 0.8 : (t > .9 ? 1.2 - (t - .9) / .1 * 0.8 : 1.2)) * p.size;
+                            p.el.style.opacity = t > .95 ? (1 - t) / .05 : 1;
+                            p.el.style.transform = 'translate(' + pt[0].toFixed(1) + 'px,' + pt[1].toFixed(1) + 'px) rotate(' + (ang * 180 / Math.PI).toFixed(1) + 'deg) scale(' + sc.toFixed(2) + ')';
+                            // ribbon starts a little behind the nose, along the flight direction
+                            const bx = pt[0] - Math.cos(ang) * 10 * sc, by = pt[1] - Math.sin(ang) * 10 * sc;
+                            p.hist.push({ x: bx, y: by, nx: -Math.sin(ang), ny: Math.cos(ang), t: now });
+                            alive = true;
+                        } else if (el > p.dur && !p.done) {
+                            p.done = true; p.el.remove();
+                            btn.animate([{ transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(56,189,248,.7)' }, { transform: 'scale(1.35)', boxShadow: '0 0 0 14px rgba(56,189,248,0)' }, { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(56,189,248,0)' }], { duration: 700, easing: 'ease-out' });
+                        } else if (el < 0) alive = true;
+                        while (p.hist.length && now - p.hist[0].t > TRAIL_MS) p.hist.shift();
+                        if (p.hist.length) alive = true;
+                        drawTrail(p, now);
+                    }
+                    if (alive) requestAnimationFrame(frame);
+                    else { cv.remove(); planes.forEach(p => p.el.remove()); }
+                }
+                requestAnimationFrame(frame);
             } catch (e) { /* purely decorative: never break the payment screen */ }
-        }
-
-        function flyOnePlane(sx, sy, ex, ey, k, btn) {
-            const dx = ex - sx, dy = ey - sy, len = Math.hypot(dx, dy) || 1;
-            const px = -dy / len, py = dx / len;              // perpendicular direction
-            const r = (min, max) => min + Math.random() * (max - min);
-            const amp = Math.min(170, Math.max(60, len * 0.38));
-            const f1 = r(1.1, 2.6), f2 = r(2.8, 5), p1 = r(0, 6.28), p2 = r(0, 6.28);
-            const sgn = k === 1 ? -1 : (k === 2 ? (Math.random() < .5 ? -1 : 1) : 1);   // planes spread to different sides
-            const size = [1, .85, 1.1][k];
-            const pos = (t) => {
-                const e = t * t * (3 - 2 * t);               // smoothstep: slow take-off, soft landing
-                const env = Math.pow(Math.sin(Math.PI * t), 0.9);
-                const w = (Math.sin(f1 * 6.283 * t + p1) * 0.65 + Math.sin(f2 * 6.283 * t + p2) * 0.35) * amp * env * sgn;
-                return [sx + dx * e + px * w, sy + dy * e + py * w];
-            };
-            const N = 80, pts = [];
-            for (let i = 0; i <= N; i++) pts.push(pos(i / N));
-            const frames = pts.map((p, i) => {
-                const q = pts[Math.min(i + 1, N)], o = pts[Math.max(i - 1, 0)];
-                const ang = Math.atan2(q[1] - o[1], q[0] - o[0]) * 180 / Math.PI + 45;   // icon points up-right
-                const t = i / N;
-                const sc = (t < .12 ? 0.4 + t / .12 * 0.8 : (t > .9 ? 1.2 - (t - .9) / .1 * 0.8 : 1.2)) * size;
-                return { transform: 'translate(' + p[0].toFixed(1) + 'px,' + p[1].toFixed(1) + 'px) rotate(' + ang.toFixed(1) + 'deg) scale(' + sc.toFixed(2) + ')',
-                         opacity: t > .95 ? 0 : 1, offset: t };
-            });
-            const plane = document.createElement('div');
-            plane.className = 'fly-plane';
-            plane.innerHTML = '<svg class="ico" aria-hidden="true"><use href="#i-send"/></svg>';
-            document.body.appendChild(plane);
-            const dur = 2600 + k * 200 + r(0, 300);
-            const t0 = performance.now();
-            const anim = plane.animate(frames, { duration: dur, easing: 'linear', fill: 'forwards' });
-            // rainbow smoke: soft coloured puffs that grow, drift up and fade; the hue cycles along the flight
-            const trail = setInterval(() => {
-                const rc = plane.getBoundingClientRect();
-                const hue = (((performance.now() - t0) / dur) * 720 + k * 120) % 360;
-                const d = document.createElement('div');
-                d.className = 'fly-smoke';
-                d.style.background = 'radial-gradient(circle, hsla(' + hue.toFixed(0) + ',100%,60%,.85) 0%, hsla(' + hue.toFixed(0) + ',100%,60%,0) 70%)';
-                const x = rc.left + rc.width / 2 + r(-3, 3), y = rc.top + rc.height / 2 + r(-3, 3);
-                document.body.appendChild(d);
-                const da = d.animate([
-                    { transform: 'translate(' + x + 'px,' + y + 'px) scale(.4)', opacity: .9 },
-                    { transform: 'translate(' + (x + r(-10, 10)) + 'px,' + (y - r(14, 30)) + 'px) scale(2.6)', opacity: 0 }
-                ], { duration: 950, easing: 'ease-out', fill: 'forwards' });
-                da.onfinish = () => d.remove();
-            }, 38);
-            anim.onfinish = () => {
-                clearInterval(trail);
-                plane.remove();
-                btn.animate([{ transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(56,189,248,.7)' }, { transform: 'scale(1.35)', boxShadow: '0 0 0 14px rgba(56,189,248,0)' }, { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(56,189,248,0)' }], { duration: 700, easing: 'ease-out' });
-            };
-            anim.oncancel = () => { clearInterval(trail); plane.remove(); };
         }
 
         function showKhqrResult(text, ok) {
