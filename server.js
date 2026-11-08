@@ -391,6 +391,7 @@ const webAdmin = require('./webadmin')(app, {
 
 // 👤 Customer accounts (login by phone + Telegram Gateway code, My Orders). OFF unless GATEWAY_TOKEN is set.
 const customers = require('./customers')(app, { pool });
+const wallet = require('./wallet')(app, { pool, bakong, customers });
 
 // ---------------- 💳 KHQR / BAKONG PAYMENT ----------------
 const KHQR_EXPIRE_MINUTES = Number(process.env.KHQR_EXPIRE_MINUTES) || 3; // QR lifetime; also the stock-hold time for unpaid orders
@@ -757,12 +758,14 @@ app.post('/api/order', async (req, res) => {
     const body = req.body || {};
     let { customer, items, payment_method } = body;
     const isKhqr = payment_method === 'khqr'; // "pay online" (Bakong KHQR)
+    const isWallet = payment_method === 'wallet'; // pay from the customer's Wallet balance
 
     // ---- validate input (never trust the browser) ----
     if (ipLimited('order:' + req.ip, 15, 10 * 60 * 1000)) return res.status(429).json({ success: false, message: 'ព្យាយាមច្រើនពេក សូមរង់ចាំបន្តិចសិន។' });
     // 👤 when accounts are ON, only a logged-in customer can order
     const authCust = await customers.authCustomer(req);
     if (customers.enabled && !authCust) return res.status(401).json({ success: false, need_login: true, message: 'សូម Login ជាមុនសិន។' });
+    if (isWallet && !authCust) return res.status(401).json({ success: false, need_login: true, message: 'Please log in' });
     if (!items || typeof items !== 'object') return res.status(400).json({ success: false, message: 'Invalid order' });
     if (!customer || typeof customer !== 'object' || Array.isArray(customer)) customer = {};
     const cut = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
@@ -801,7 +804,7 @@ app.post('/api/order', async (req, res) => {
     let released = false;
     const release = () => { if (!released) { released = true; client.release(); } };
     let committed = false;
-    let orderId, itemsSummary = [], totalAmount = 0, payAmount = 0, expiresAt = null, khqrResult = null;
+    let orderId, itemsSummary = [], totalAmount = 0, payAmount = 0, expiresAt = null, khqrResult = null, walletBalance = null;
 
     try {
         await client.query('BEGIN');
@@ -841,13 +844,24 @@ app.post('/api/order', async (req, res) => {
             expiresAt = new Date(Date.now() + KHQR_EXPIRE_MINUTES * 60 * 1000);
         }
 
+        if (isWallet) payAmount = Number((totalAmount + await getDeliveryFeeNumber()).toFixed(2)); // items + delivery, computed here
+
         const orderRes = await client.query(
-            `INSERT INTO orders (customer, items, total, status, payment_method, pay_amount, expires_at, customer_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+            `INSERT INTO orders (customer, items, total, status, payment_method, pay_amount, expires_at, customer_id, paid_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
             [JSON.stringify(customer), JSON.stringify(itemsSummary), totalAmount,
-             isKhqr ? 'AWAITING_PAYMENT' : 'PENDING', isKhqr ? 'KHQR' : 'COD', isKhqr ? payAmount : null, expiresAt, authCust ? authCust.id : null]
+             isKhqr ? 'AWAITING_PAYMENT' : 'PENDING', isKhqr ? 'KHQR' : (isWallet ? 'WALLET' : 'COD'), (isKhqr || isWallet) ? payAmount : null, expiresAt, authCust ? authCust.id : null, isWallet ? new Date() : null]
         );
         orderId = orderRes.rows[0].id;
+
+        if (isWallet) {
+            // balance check + deduction in the SAME transaction as the stock: any failure rolls everything back
+            walletBalance = await wallet.spend(client, authCust.id, payAmount, 'order:' + orderId);
+            if (walletBalance === null) {
+                await client.query('ROLLBACK'); release();
+                return res.json({ success: false, insufficient: true, message: 'Wallet balance is not enough. Please top up first.' });
+            }
+        }
 
         if (isKhqr) {
             // If QR generation throws, the catch below rolls back the order AND the stock deduction.
@@ -877,6 +891,11 @@ app.post('/api/order', async (req, res) => {
     }
 
     // The order is saved. From here on nothing may turn the answer into an error (the customer would re-order).
+    if (isWallet) {
+        try { await sendOrderToAdmins(orderId, customer, itemsSummary, payAmount, ` Paid by WALLET $${payAmount.toFixed(2)}`); }
+        catch (e) { console.error('notify admins failed:', e.message); }
+        return res.json({ success: true, payment: 'wallet', order_id: orderId, amount: payAmount, balance: walletBalance });
+    }
     if (!isKhqr) {
         try { await sendOrderToAdmins(orderId, customer, itemsSummary, totalAmount, ''); }
         catch (e) { console.error('notify admins failed:', e.message); }

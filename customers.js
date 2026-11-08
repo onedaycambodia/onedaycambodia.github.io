@@ -429,6 +429,7 @@ module.exports = function (app, { pool }) {
         if (o.status === 'CANCELLED') return 'cancelled';
         if (o.status === 'EXPIRED') return 'expired';
         if (o.status === 'AWAITING_PAYMENT') return 'unpaid';
+        if (o.payment_method === 'WALLET') return 'paid';
         if (o.payment_method === 'KHQR' && o.paid_at) return 'paid';
         return o.payment_method === 'KHQR' ? 'paid' : 'cod';
     }
