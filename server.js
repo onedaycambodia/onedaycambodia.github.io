@@ -616,12 +616,12 @@ app.post('/api/qr/generate', (req, res) => {
         recent.push(now);
         standaloneQrRate.set(ip, recent);
 
-        const { amount, note, days } = req.body || {};
+        const { amount, note, days, minutes } = req.body || {};
         const a = Number(amount);
         if (amount !== undefined && amount !== null && amount !== '' && (!Number.isFinite(a) || a < 0 || a > 10000)) {
             return res.status(400).json({ ok: false, message: 'Invalid amount' });
         }
-        res.json({ ok: true, ...bakong.createStandaloneKhqr({ amount: a || 0, note, days }) });
+        res.json({ ok: true, ...bakong.createStandaloneKhqr({ amount: a || 0, note, days, minutes }) });
     } catch (err) {
         console.error('standalone qr error:', err.message);
         res.status(500).json({ ok: false, message: 'Could not generate QR' });
