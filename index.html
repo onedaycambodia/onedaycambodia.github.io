@@ -2970,7 +2970,18 @@
                 document.body.appendChild(cv);
                 const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
                 const r = (min, max) => min + Math.random() * (max - min);
-                const GOLD = ['#fff3a3', '#ffd54a', '#ffb300'], WHITE = ['#ffffff', '#ffe9f3', '#d6f0ff'];
+                // every star picks its own random colour: [light, mid, dark] gradient + glow
+                const PALS = [
+                    { c: ['#fff3a3', '#ffd54a', '#ffb300'], glow: 'rgba(255,190,40,.95)' },   // gold
+                    { c: ['#ffd1e8', '#ff6fb5', '#e0208a'], glow: 'rgba(255,90,170,.95)' },   // pink
+                    { c: ['#d4f3ff', '#4fc3ff', '#1d7fe0'], glow: 'rgba(60,170,255,.95)' },   // sky blue
+                    { c: ['#d9ffe6', '#4be08a', '#0fa84f'], glow: 'rgba(60,220,130,.95)' },   // green
+                    { c: ['#e9dcff', '#a77bff', '#6a35e0'], glow: 'rgba(150,110,255,.95)' },  // violet
+                    { c: ['#ffe0c2', '#ff9a3c', '#f05a00'], glow: 'rgba(255,140,50,.95)' },   // orange
+                    { c: ['#ffd0d0', '#ff5a5a', '#d61f1f'], glow: 'rgba(255,80,80,.95)' },    // red
+                    { c: ['#ffffff', '#f3f7ff', '#c9dcff'], glow: 'rgba(200,225,255,.95)' }   // white
+                ];
+                const rp = () => PALS[(Math.random() * PALS.length) | 0];
                 const dist = Math.hypot(ex - sx, ey - sy) || 1;
                 const nx = -(ey - sy) / dist, ny = (ex - sx) / dist;
                 const STARS = 16;
@@ -2986,7 +2997,7 @@
                         p3: [ex, ey],
                         delay: r(0, 520), dur: r(1500, 2200),
                         R: sparkle ? r(9, 13) : r(8, 15), spin: r(-5, 5), rot0: r(0, 6.28), phase: r(0, 6.28),
-                        sparkle, pal: sparkle ? WHITE : GOLD, arrived: false, done: false, last: null
+                        sparkle, pal: rp(), arrived: false, done: false, last: null
                     });
                 }
                 function starPath(x, y, R, rIn, n, rot) {
@@ -2999,10 +3010,11 @@
                     ctx.closePath();
                 }
                 function drawStar(x, y, R, rot, pal, sparkle, alpha) {
+                    const cols = pal.c;
                     ctx.save(); ctx.globalAlpha = alpha;
-                    ctx.shadowColor = sparkle ? 'rgba(180,225,255,.95)' : 'rgba(255,190,40,.95)'; ctx.shadowBlur = 14;
+                    ctx.shadowColor = pal.glow; ctx.shadowBlur = 14;
                     const g = ctx.createLinearGradient(x - R, y - R, x + R, y + R);
-                    g.addColorStop(0, pal[0]); g.addColorStop(.55, pal[1]); g.addColorStop(1, pal[2]);
+                    g.addColorStop(0, cols[0]); g.addColorStop(.55, cols[1]); g.addColorStop(1, cols[2]);
                     ctx.fillStyle = g;
                     sparkle ? starPath(x, y, R * 1.15, R * 0.22, 4, rot) : starPath(x, y, R, R * 0.46, 5, rot);
                     ctx.fill();
@@ -3013,10 +3025,10 @@
                     u*u*u*p.p0[0] + 3*u*u*t*p.p1[0] + 3*u*t*t*p.p2[0] + t*t*t*p.p3[0],
                     u*u*u*p.p0[1] + 3*u*u*t*p.p1[1] + 3*u*t*t*p.p2[1] + t*t*t*p.p3[1]]; };
                 const ease = (t) => 0.5 - Math.cos(Math.PI * t) / 2;     // easeInOutSine
-                const spawnGlitter = (x, y, n, spread, big) => {
+                const spawnGlitter = (x, y, n, spread, big, pal) => {
                     for (let i = 0; i < n && glitter.length < 420; i++) {
                         const a = r(0, 6.283), v = r(0.2, 1) * spread;
-                        glitter.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - (big ? 0 : 0.3), born: 0, life: r(450, 900), s: r(1.2, big ? 3.6 : 2.6), c: Math.random() < .25 ? '#ffffff' : GOLD[(Math.random() * 3) | 0], sp: Math.random() < .35 });
+                        glitter.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - (big ? 0 : 0.3), born: 0, life: r(450, 900), s: r(1.2, big ? 3.6 : 2.6), c: Math.random() < .2 ? '#ffffff' : (pal || rp()).c[(Math.random() * 3) | 0], sp: Math.random() < .35 });
                     }
                 };
                 const pulse = (strong) => btn.animate([
@@ -3039,10 +3051,10 @@
                             let sc = t < .12 ? 0.15 + t / .12 * 0.85 : (t > .88 ? 1 - (t - .88) / .12 * 0.75 : 1);
                             sc *= 1 + 0.2 * Math.sin(now * 0.018 + s.phase);   // twinkle
                             drawStar(pt[0], pt[1], s.R * sc, s.rot0 + s.spin * (el / 1000), s.pal, s.sparkle, t > .96 ? (1 - t) / .04 : 1);
-                            spawnGlitter(pt[0], pt[1], 1 + (Math.random() < .5 ? 1 : 0), 0.35, false);
+                            spawnGlitter(pt[0], pt[1], 1 + (Math.random() < .5 ? 1 : 0), 0.35, false, s.pal);
                         } else if (!s.done) {
                             s.done = true; arrivedCount++;
-                            spawnGlitter(ex, ey, 7, 2.2, true);
+                            spawnGlitter(ex, ey, 7, 2.2, true, s.pal);
                             if (now - lastPulse > 160) { lastPulse = now; pulse(false); }
                         }
                     }
