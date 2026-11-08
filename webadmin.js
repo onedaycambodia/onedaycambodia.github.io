@@ -289,11 +289,16 @@ module.exports = function mountWebAdmin(app, deps) {
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-            const r = await client.query("UPDATE orders SET status = 'CANCELLED' WHERE id = $1 AND status IN ('PENDING','CONFIRMED') RETURNING items", [id]);
+            const r = await client.query("UPDATE orders SET status = 'CANCELLED' WHERE id = $1 AND status IN ('PENDING','CONFIRMED') RETURNING items, payment_method, pay_amount, customer_id", [id]);
             if (!r.rows.length) { await client.query('ROLLBACK'); return res.status(409).json({ error: 'មិនអាចលុបការកុម្មង់នេះបានទេ' }); }
             await restoreStockForItems(client, r.rows[0].items);
+            const o = r.rows[0];
+            if (o.payment_method === 'WALLET' && o.customer_id && Number(o.pay_amount) > 0) { // wallet-paid order: money goes back to the customer's wallet
+                const b = await client.query('UPDATE customers SET wallet_balance = wallet_balance + $1 WHERE id = $2 RETURNING wallet_balance', [o.pay_amount, o.customer_id]);
+                if (b.rows.length) await client.query(`INSERT INTO wallet_tx (customer_id, type, amount, balance_after, ref) VALUES ($1,'refund',$2,$3,$4)`, [o.customer_id, o.pay_amount, b.rows[0].wallet_balance, 'order:' + id]);
+            }
             await client.query('COMMIT');
-            res.json({ ok: true });
+            res.json({ ok: true, refunded: o.payment_method === 'WALLET' });
         } catch (err) {
             try { await client.query('ROLLBACK'); } catch (e) {}
             throw err;
@@ -302,8 +307,21 @@ module.exports = function mountWebAdmin(app, deps) {
         }
     }));
 
+    // ---------- customers (with wallet balance) ----------
+    app.get('/api/web-admin/customers', guarded(async (req, res) => {
+        const q = '%' + String(req.query.q || '').trim().toLowerCase().slice(0, 60) + '%';
+        const sql = (wallet) => `SELECT c.id, c.name, c.phone, c.email, c.avatar, c.created_at, c.last_login_at, ${wallet ? 'COALESCE(c.wallet_balance,0)' : '0'}::float AS wallet,
+                (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id)::int AS orders,
+                (SELECT COALESCE(SUM(o.total),0) FROM orders o WHERE o.customer_id = c.id AND o.status = 'CONFIRMED')::float AS spent
+             FROM customers c WHERE LOWER(COALESCE(c.name,'') || ' ' || COALESCE(c.phone,'') || ' ' || COALESCE(c.email,'')) LIKE $1 ORDER BY c.id DESC LIMIT 300`;
+        let r;
+        try { r = await pool.query(sql(true), [q]); } catch (e) { r = await pool.query(sql(false), [q]); }
+        res.json(r.rows);
+    }));
+
     // ---------- dashboard ----------
     app.get('/api/web-admin/stats', guarded(async (req, res) => {
+        const rangeDays = [7, 30, 90].includes(parseInt(req.query.days, 10)) ? parseInt(req.query.days, 10) : 7;
         const itemsOf = `jsonb_array_elements(CASE WHEN jsonb_typeof(o.items) = 'array' THEN o.items ELSE '[]'::jsonb END)`;
         const [counts, sales, profit, days, low, out, top, prods] = await Promise.all([
             pool.query('SELECT status, COUNT(*)::int AS n FROM orders GROUP BY status'),
@@ -311,7 +329,7 @@ module.exports = function mountWebAdmin(app, deps) {
             pool.query(`SELECT COALESCE(SUM((i->>'profit')::numeric),0)::float AS v FROM orders o, ${itemsOf} i WHERE o.status = 'CONFIRMED'`),
             pool.query(`SELECT to_char(created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Phnom_Penh', 'YYYY-MM-DD') AS d,
                                SUM(total)::float AS sales, COUNT(*)::int AS orders
-                        FROM orders WHERE status = 'CONFIRMED' AND created_at > NOW() - INTERVAL '8 days' GROUP BY d ORDER BY d`),
+                        FROM orders WHERE status = 'CONFIRMED' AND created_at > NOW() - make_interval(days => $1) GROUP BY d ORDER BY d`, [rangeDays]),
             pool.query(`SELECT s.ref, p.title_km, s.size, s.stock_qty FROM stock s JOIN products p ON p.ref = s.ref
                         WHERE s.stock_qty BETWEEN 1 AND 2 ORDER BY s.stock_qty, s.ref LIMIT 30`),
             pool.query('SELECT COUNT(*)::int AS n FROM stock WHERE stock_qty <= 0'),
@@ -328,6 +346,9 @@ module.exports = function mountWebAdmin(app, deps) {
             products: prods.rows[0].n,
             sizes_out_of_stock: out.rows[0].n,
             last_days: days.rows,
+            range_days: rangeDays,
+            wallet_total: await pool.query('SELECT COALESCE(SUM(wallet_balance),0)::float AS v FROM customers').then(r => r.rows[0].v).catch(() => 0),
+            customers_total: await pool.query('SELECT COUNT(*)::int AS n FROM customers').then(r => r.rows[0].n).catch(() => 0),
             low_stock: low.rows,
             top_sellers: top.rows
         });

@@ -1,270 +1,268 @@
 <!DOCTYPE html>
 <html lang="km">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OneDay Stock-Controller | Admin</title>
-    
-    <!-- Telegram WebApp SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --primary: #f8fafc;
-            --accent: #38bdf8;
-            --accent-light: #1e293b;
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --border-color: #334155;
-            --text-muted: #94a3b8;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kantumruy Pro', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-color); color: var(--primary); padding: 12px; padding-bottom: 80px; }
-
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: var(--card-bg); padding: 12px 16px; border-radius: 14px; border: 1px solid var(--border-color); }
-        .logo-box { display: flex; flex-direction: column; }
-        .logo { font-size: 15px; font-weight: 800; color: var(--primary); }
-        .sub-badge { font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        
-        .header-actions { display: flex; gap: 8px; align-items: center; }
-        .btn-header { background: var(--accent); color: #0f172a; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; }
-
-        .search-box-container { margin-bottom: 12px; display: none; }
-        .search-box-container.active { display: block; }
-        .search-input { width: 100%; padding: 10px 14px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; color: var(--primary); font-size: 13px; outline: none; }
-        .search-input:focus { border-color: var(--accent); }
-
-        .product-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .prod-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
-        .prod-title { font-size: 13px; font-weight: 800; color: var(--primary); }
-        .prod-price { font-size: 13px; font-weight: 900; color: var(--accent); }
-
-        .size-row { display: flex; justify-content: space-between; align-items: center; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 12px; margin-bottom: 6px; }
-        .size-label { font-size: 12px; font-weight: 700; color: var(--text-muted); }
-        
-        .qty-controls { display: flex; align-items: center; gap: 8px; }
-        .btn-qty { background: var(--card-bg); color: var(--accent); border: 1px solid var(--border-color); width: 32px; height: 32px; border-radius: 8px; font-size: 16px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-        .btn-qty:active { background: var(--accent); color: white; }
-        
-        .size-input { width: 45px; height: 32px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; font-weight: 800; text-align: center; background: var(--card-bg); color: var(--primary); outline: none; }
-        .size-input:focus { border-color: var(--accent); }
-
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(56, 189, 248, 0.95); color: #0f172a; padding: 8px 18px; border-radius: 20px; font-size: 11px; font-weight: 800; transition: transform 0.3s ease; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .toast.show { transform: translateX(-50%) translateY(0); }
-    
-        /* SVG icons */
-        .ico { width: 1.1em; height: 1.1em; display: inline-block; vertical-align: -0.2em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        .ico-check { color: #16a34a; } .ico-alert { color: #f59e0b; } .ico-ban { color: #ef4444; }
-        .btn-close .ico { width: 16px; height: 16px; vertical-align: middle; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Oneday Dashboard</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1220;--card:#131c2e;--card2:#0f1829;--line:#243049;--tx:#f1f5f9;--mut:#8da0bb;--ac:#38bdf8;--ac2:#0ea5e9;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--r:16px}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Kantumruy Pro',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:84px}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(11,18,32,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--ac2),#0369a1);display:grid;place-items:center}
+.top h1{font-size:16px;font-weight:800;line-height:1.1}.top small{color:var(--mut);font-size:11px;font-weight:600;letter-spacing:.6px}
+.sp{flex:1}.ib{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;color:var(--mut)}
+main{max-width:1100px;margin:0 auto;padding:16px}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom));background:rgba(15,24,41,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+nav button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:var(--mut);padding:6px 10px;border-radius:12px;position:relative;min-width:56px}
+nav button.on{color:var(--ac);background:rgba(56,189,248,.1)}
+nav b{position:absolute;top:0;right:4px;background:var(--bad);color:#fff;border-radius:99px;font-size:10px;padding:1px 5px}
+.grid{display:grid;gap:12px}.kpis{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi{display:flex;flex-direction:column;gap:6px}.kpi .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center}
+.kpi .v{font-size:22px;font-weight:800}.kpi .l{font-size:12px;color:var(--mut);font-weight:600}
+h2{font-size:15px;font-weight:800;margin:20px 0 10px;display:flex;align-items:center;gap:8px}h2 .sp{flex:1}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.chip{padding:7px 13px;border-radius:99px;border:1.5px solid var(--line);background:var(--card);font-size:13px;font-weight:700;color:var(--mut);white-space:nowrap}
+.chip.on{border-color:var(--ac);color:var(--ac);background:rgba(56,189,248,.1)}
+.bar{display:flex;gap:8px;margin-bottom:12px}
+.in{width:100%;padding:11px 13px;border-radius:12px;border:1.5px solid var(--line);background:var(--card2);color:var(--tx);font-size:15px;outline:none}.in:focus{border-color:var(--ac)}
+.sr{position:relative;flex:1}.sr svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mut);width:18px;height:18px}.sr .in{padding-left:38px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 15px;border-radius:12px;font-weight:800;font-size:14px;background:linear-gradient(135deg,var(--ac2),#0369a1);color:#fff}
+.btn.g{background:var(--card2);border:1.5px solid var(--line);color:var(--tx)}.btn.ok{background:linear-gradient(135deg,#16a34a,#15803d)}.btn.bad{background:linear-gradient(135deg,#ef4444,#b91c1c)}.btn:disabled{opacity:.5}
+.pg{display:grid;gap:12px;grid-template-columns:repeat(2,1fr)}
+.pc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.im{aspect-ratio:1;background:var(--card2) center/cover no-repeat;display:grid;place-items:center;color:var(--mut);position:relative;overflow:hidden}
+.im video,.im img{width:100%;height:100%;object-fit:cover}.im .tag{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);border-radius:8px;padding:2px 8px;font-size:11px;font-weight:800}
+.pb{padding:10px 12px;display:flex;flex-direction:column;gap:4px}.pb .t{font-weight:700;font-size:14px;line-height:1.3}.pb .pr{color:var(--ac);font-weight:800}
+.pb .acts{display:flex;gap:8px;margin-top:6px}.pb .acts button{flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--line);display:grid;place-items:center}
+.sz{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:12px;background:var(--card2);border:1px solid var(--line);margin-top:8px}
+.sz b{flex:1;color:var(--mut)}.sz button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ac);font-weight:800;font-size:18px}
+.sz input{width:56px;text-align:center;padding:7px 4px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--tx);font-weight:800;font-size:15px}
+.low{color:var(--warn)}.out{color:var(--bad)}
+.row{display:flex;align-items:center;gap:12px}.row .sp{flex:1}.mut{color:var(--mut);font-size:12px}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:800}
+.s-PENDING{background:rgba(245,158,11,.15);color:var(--warn)}.s-CONFIRMED{background:rgba(34,197,94,.15);color:var(--ok)}.s-CANCELLED,.s-EXPIRED{background:rgba(239,68,68,.15);color:var(--bad)}.s-AWAITING_PAYMENT{background:rgba(56,189,248,.15);color:var(--ac)}
+.oc{display:flex;flex-direction:column;gap:8px}.oc .it{display:flex;justify-content:space-between;font-size:13px;color:var(--mut)}.oc .tot{display:flex;justify-content:space-between;border-top:1px dashed var(--line);padding-top:8px;font-weight:800}
+.oc .acts{display:flex;gap:8px}.oc .acts .btn{flex:1}
+.av{width:44px;height:44px;border-radius:50%;background:var(--card2) center/cover;display:grid;place-items:center;color:var(--mut);font-weight:800;flex:none}
+.wl{color:var(--ac);font-weight:800}
+.chart{display:flex;align-items:flex-end;gap:5px;height:150px;padding-top:8px}.chart .c{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;height:100%}
+.chart .c i{width:100%;max-width:34px;border-radius:7px 7px 3px 3px;background:linear-gradient(180deg,var(--ac),var(--ac2));min-height:3px}.chart small{font-size:10px;color:var(--mut)}
+.lst>div{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.lst>div:last-child{border:0}
+.ov{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center}.ov.on{display:flex}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:22px 22px 0 0;width:100%;max-width:560px;max-height:92vh;overflow:auto;padding:18px}
+.sheet h3{font-size:17px;font-weight:800;margin-bottom:12px;display:flex;align-items:center}.sheet h3 .sp{flex:1}
+.fl{display:block;font-size:12px;font-weight:700;color:var(--mut);margin:12px 0 5px}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+textarea.in{min-height:80px;resize:vertical}
+.up{display:flex;gap:12px;align-items:center}.up .im{width:92px;border-radius:14px;flex:none}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:90;background:#0f172a;border:1px solid var(--line);padding:11px 16px;border-radius:12px;font-weight:700;font-size:14px;display:none;max-width:90%}
+.login{min-height:70vh;display:grid;place-items:center;text-align:center;padding:24px}.login .box{max-width:360px}
+.empty{text-align:center;color:var(--mut);padding:36px 0;font-size:14px}
+@media(min-width:760px){.kpis{grid-template-columns:repeat(4,1fr)}.pg{grid-template-columns:repeat(4,1fr)}.ov{align-items:center}.sheet{border-radius:22px}.two3{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:900px){body{padding:0 0 0 220px}nav{top:0;bottom:0;right:auto;width:220px;flex-direction:column;justify-content:flex-start;gap:6px;padding:80px 12px 12px;border-top:0;border-right:1px solid var(--line)}nav button{flex-direction:row;gap:12px;font-size:14px;padding:12px 14px;width:100%}nav b{position:static;margin-left:auto}.top{margin-left:-220px;padding-left:236px}.top{position:fixed;left:220px;right:0;margin:0;padding-left:16px}main{padding-top:84px}}
+</style>
 </head>
 <body>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol><symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol><symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></symbol><symbol id="i-video" viewBox="0 0 24 24"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></symbol><symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="#22c55e" stroke="none"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol></svg>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2z"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7.5L12 12.5l8.7-5M12 22V12.5"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 2l10 5-10 5L2 7z"/><path d="M2 12l10 5 10-5M2 17l10 5 10-5"/></symbol>
+<symbol id="i-receipt" viewBox="0 0 24 24"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></symbol>
+<symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+<symbol id="i-img" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.8"/><path d="M21 15l-5-5L5 21"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></symbol>
+<symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></symbol>
+<symbol id="i-cash" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+</defs></svg>
 
+<div class="top"><div class="logo"><svg class="i" style="color:#fff"><use href="#i-layers"/></svg></div><div><h1>Oneday Dashboard</h1><small>CONTROL PANEL</small></div><div class="sp"></div><button class="ib" onclick="reload()" title="Refresh"><svg class="i"><use href="#i-refresh"/></svg></button><button class="ib" id="outBtn" onclick="logout()" style="display:none"><svg class="i"><use href="#i-out"/></svg></button></div>
+<main id="app"></main>
+<nav id="nav" style="display:none">
+<button data-t="dash"><svg class="i"><use href="#i-home"/></svg>ទំព័រដើម</button>
+<button data-t="products"><svg class="i"><use href="#i-box"/></svg>ទំនិញ</button>
+<button data-t="stock"><svg class="i"><use href="#i-layers"/></svg>ស្តុក</button>
+<button data-t="orders"><svg class="i"><use href="#i-receipt"/></svg>ការកុម្ម៉ង់<b id="pendB" style="display:none"></b></button>
+<button data-t="customers"><svg class="i"><use href="#i-users"/></svg>អតិថិជន</button>
+</nav>
+<div class="ov" id="ov" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
 
-    <div class="header">
-        <div class="logo-box">
-            <div class="logo">OneDay Stock-Controller</div>
-            <div class="sub-badge">mini app</div>
-        </div>
-        <div class="header-actions">
-            <button class="btn-header" onclick="toggleSearchBox()"><svg class="ico ico-search" aria-hidden="true"><use href="#i-search"/></svg> Search</button>
-        </div>
-    </div>
+<script>
+const tg = window.Telegram && window.Telegram.WebApp; if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#0b1220'); tg.setBackgroundColor('#0b1220'); } catch (e) {} }
+const $ = s => document.querySelector(s);
+const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ic = n => `<svg class="i"><use href="#i-${n}"/></svg>`;
+const money = n => '$' + Number(n || 0).toFixed(2);
+const S = { tab: 'dash', products: [], orders: [], customers: [], stats: null, range: 7, ostat: 'PENDING', q: '', gender: 'all' };
+const STAT = { PENDING: 'រង់ចាំបញ្ជាក់', CONFIRMED: 'បានបញ្ជាក់', CANCELLED: 'បានបោះបង់', AWAITING_PAYMENT: 'រង់ចាំបង់ប្រាក់', EXPIRED: 'ផុតកំណត់' };
 
-    <div class="search-box-container" id="searchBoxContainer">
-        <input type="text" id="searchInput" class="search-input" placeholder="ស្វែងរកតាមលេខ Ref ឬ ឈ្មោះទំនិញ..." oninput="filterAdminProducts()">
-    </div>
+function toast(m, bad) { const t = $('#toast'); t.textContent = m; t.style.display = 'block'; t.style.borderColor = bad ? 'var(--bad)' : 'var(--ok)'; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = 'none', 2600); }
+async function api(path, opt = {}) {
+    const h = { 'X-Telegram-Init-Data': (tg && tg.initData) || '' }, o = { credentials: 'same-origin', method: opt.method || 'GET', headers: h };
+    if (o.method !== 'GET') h['X-WebAdmin'] = '1';
+    if (opt.body) { h['Content-Type'] = 'application/json'; o.body = JSON.stringify(opt.body); }
+    const r = await fetch('/api/web-admin' + path, o), j = await r.json().catch(() => ({}));
+    if (r.status === 401) { showLogin(); throw new Error('login'); }
+    if (!r.ok) throw new Error(j.error || 'Error');
+    return j;
+}
+const isVid = u => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u || '') || /\/video\/upload\//.test(u || '');
+function thumb(u, w = 400) { if (!u) return ''; if (/res\.cloudinary\.com/.test(u) && /\/(video|image)\/upload\//.test(u)) { return u.replace(/\/(video|image)\/upload\//, '/$1/upload/so_0,w_' + w + ',c_fill,ar_1:1,q_auto/').replace(/\.(mp4|webm|mov|m4v|png|webp|jpe?g|gif)(\?.*)?$/i, '.jpg'); } return u; }
+const media = (u, tag) => u ? `<div class="im"><img loading="lazy" src="${esc(thumb(u))}" onerror="this.style.display='none'">${isVid(u) ? '<span class="tag">VIDEO</span>' : ''}${tag || ''}</div>` : `<div class="im">${ic('img')}</div>`;
 
-    <div id="adminProductList">
-        <div style="text-align: center; color: var(--text-muted); padding: 30px;">កំពុងផ្ទៀងផ្ទាត់សិទ្ធិ Admin...</div>
-    </div>
+/* ---------- login ---------- */
+async function boot() {
+    try { await api('/me'); start(); }
+    catch (e) {
+        if (e.message !== 'login') return toast(e.message, 1);
+        if (tg && tg.initData) { try { await api('/login', { method: 'POST', body: { initData: tg.initData } }); return start(); } catch (e2) { return showLogin(e2.message); } }
+    }
+}
+async function showLogin(err) {
+    $('#nav').style.display = 'none'; $('#outBtn').style.display = 'none';
+    let bot = ''; try { bot = (await (await fetch('/api/web-admin/config')).json()).bot_username || ''; } catch (e) {}
+    $('#app').innerHTML = `<div class="login"><div class="box"><div class="logo" style="margin:0 auto 14px;width:60px;height:60px;border-radius:18px">${ic('layers').replace('class="i"', 'class="i" style="width:30px;height:30px;color:#fff"')}</div><h2 style="justify-content:center;font-size:20px">Oneday Dashboard</h2><p class="mut" style="margin:6px 0 18px">ចូលដោយ Telegram របស់ Admin ក្នុង Bot ហាង</p><div id="tgw"></div>${err ? `<p style="color:var(--bad);margin-top:12px;font-size:14px">${esc(err)}</p>` : ''}${bot ? '' : '<p class="mut">Bot មិនទាន់រួចរាល់</p>'}</div></div>`;
+    if (bot) { const s = document.createElement('script'); s.async = true; s.src = 'https://telegram.org/js/telegram-widget.js?22'; s.setAttribute('data-telegram-login', bot); s.setAttribute('data-size', 'large'); s.setAttribute('data-radius', '12'); s.setAttribute('data-onauth', 'onTg(user)'); s.setAttribute('data-request-access', 'write'); $('#tgw').appendChild(s); }
+}
+async function onTg(user) { try { await api('/login', { method: 'POST', body: { widget: user } }); start(); } catch (e) { showLogin(e.message); } }
+async function logout() { try { await api('/logout', { method: 'POST' }); } catch (e) {} showLogin(); }
+function start() { $('#nav').style.display = 'flex'; $('#outBtn').style.display = tg && tg.initData ? 'none' : 'grid'; go(S.tab); }
 
-    <div id="toast" class="toast">បានកែប្រែស្តុកជោគជ័យ!</div>
+/* ---------- navigation ---------- */
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => go(b.dataset.t));
+async function go(t) {
+    S.tab = t; S.q = ''; document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+    $('#app').innerHTML = '<div class="empty">កំពុងផ្ទុក...</div>';
+    try {
+        if (t === 'dash') { S.stats = await api('/stats?days=' + S.range); pend(); }
+        if (t === 'products' || t === 'stock') S.products = await api('/products');
+        if (t === 'orders') S.orders = await api('/orders?status=' + S.ostat);
+        if (t === 'customers') S.customers = await api('/customers');
+    } catch (e) { if (e.message !== 'login') $('#app').innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+    ({ dash, products: prodView, stock: stockView, orders: ordView, customers: custView })[t]();
+}
+const reload = () => go(S.tab);
+function pend() { const n = S.stats && S.stats.orders_by_status.PENDING || 0; const b = $('#pendB'); b.style.display = n ? 'inline' : 'none'; b.textContent = n; }
 
-    <script>
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.expand();
-        }
+/* ---------- dashboard ---------- */
+function dash() {
+    const st = S.stats, o = st.orders_by_status, days = st.last_days, mx = Math.max(1, ...days.map(d => d.sales));
+    const kp = (c, i, v, l) => `<div class="card kpi"><div class="ic" style="background:${c}22;color:${c}">${ic(i)}</div><div class="v">${v}</div><div class="l">${l}</div></div>`;
+    $('#app').innerHTML = `<div class="grid kpis">${kp('#38bdf8', 'cash', money(st.confirmed_sales), 'ការលក់សរុប (Confirmed)')}${kp('#22c55e', 'trend', money(st.confirmed_profit), 'ចំណេញសរុប')}${kp('#f59e0b', 'receipt', o.PENDING || 0, 'ការកុម្ម៉ង់រង់ចាំ (Pending)')}${kp('#a78bfa', 'users', st.customers_total, 'អតិថិជន')}</div>
+    <h2>${ic('trend')}របាយការណ៍លក់<span class="sp"></span></h2>
+    <div class="chips">${[7, 30, 90].map(d => `<button class="chip ${S.range === d ? 'on' : ''}" onclick="S.range=${d};go('dash')">${d} ថ្ងៃ</button>`).join('')}</div>
+    <div class="card" style="margin-top:10px"><div class="chart">${days.length ? days.map(d => `<div class="c" title="${money(d.sales)}"><small>${d.sales >= 1 ? Math.round(d.sales) : ''}</small><i style="height:${Math.max(2, d.sales / mx * 100)}%"></i><small>${d.d.slice(5)}</small></div>`).join('') : '<div class="empty" style="width:100%">មិនទាន់មានការលក់</div>'}</div></div>
+    <div class="grid kpis" style="margin-top:12px">${kp('#38bdf8', 'box', st.products, 'ទំនិញ')}${kp('#ef4444', 'alert', st.sizes_out_of_stock, 'Size អស់ស្តុក')}${kp('#22c55e', 'wallet', money(st.wallet_total), 'សមតុល្យ Wallet អតិថិជន')}${kp('#f59e0b', 'receipt', (o.AWAITING_PAYMENT || 0), 'រង់ចាំបង់ប្រាក់')}</div>
+    <h2>${ic('trend')}ទំនិញលក់ដាច់បំផុត</h2><div class="card lst">${st.top_sellers.length ? st.top_sellers.map((t, i) => `<div><b style="width:22px;color:var(--ac)">${i + 1}</b><span style="flex:1">${esc(t.title || t.ref)}</span><b>${t.qty} ដុំ</b></div>`).join('') : '<div class="mut">មិនទាន់មាន</div>'}</div>
+    <h2>${ic('alert')}ស្តុកជិតអស់</h2><div class="card lst">${st.low_stock.length ? st.low_stock.map(t => `<div><span style="flex:1">${esc(t.ref)} · ${esc(t.title_km || '')}</span><span class="pill s-PENDING">${esc(t.size)}: ${t.stock_qty}</span></div>`).join('') : '<div class="mut">ស្តុកគ្រប់គ្រាន់</div>'}</div>`;
+}
 
-        // ភ្ជាប់ទៅកាន់ Backend Railway របស់អ្នកផ្ទាល់ (មិនត្រូវថែម /admin នៅទីនេះទេ)
-        const API_BASE = "https://onedaycambodiagithubio-production.up.railway.app"; 
-        let allProductsCache = [];
+/* ---------- products ---------- */
+const title = p => p.title_km || p.title_en || p.ref;
+function filtered() { const q = S.q.toLowerCase(); return S.products.filter(p => (S.gender === 'all' || p.gender === S.gender) && (!q || (p.ref + ' ' + title(p)).toLowerCase().includes(q))); }
+function toolbar(add) { return `<div class="bar"><div class="sr">${ic('search')}<input class="in" placeholder="ស្វែងរក Ref ឬឈ្មោះ..." value="${esc(S.q)}" oninput="S.q=this.value;drawList()"></div>${add ? `<button class="btn" onclick="editProd()">${ic('plus')}បន្ថែម</button>` : ''}</div><div class="chips" style="margin-bottom:12px">${[['all', 'ទាំងអស់'], ['men', 'បុរស'], ['women', 'ស្រ្តី']].map(g => `<button class="chip ${S.gender === g[0] ? 'on' : ''}" onclick="S.gender='${g[0]}';go2()">${g[1]}</button>`).join('')}</div><div id="list"></div>`; }
+const go2 = () => (S.tab === 'products' ? prodView : stockView)();
+const drawList = () => (S.tab === 'products' ? prodList : stockList)();
+function prodView() { $('#app').innerHTML = toolbar(1); prodList(); }
+function prodList() {
+    const l = filtered(); $('#list').innerHTML = l.length ? `<div class="pg">${l.map(p => `<div class="pc">${media(p.video_url)}<div class="pb"><span class="mut">Ref: ${esc(p.ref)}</span><span class="t">${esc(title(p))}</span><span class="pr">${money(p.price)} <span class="mut">· ដើម ${money(p.cost_price)}</span></span><div class="acts"><button onclick="editProd('${esc(p.ref)}')">${ic('edit')}</button><button onclick="delProd('${esc(p.ref)}')" style="color:var(--bad)">${ic('trash')}</button></div></div></div>`).join('')}</div>` : '<div class="empty">រកមិនឃើញទំនិញ</div>';
+}
+function editProd(ref) {
+    const p = S.products.find(x => x.ref === ref) || { gender: 'men', type: 'tops' }, nw = !ref;
+    const f = (k, l, ex = '') => `<label class="fl">${l}</label><input class="in" id="f_${k}" value="${esc(p[k] == null ? '' : p[k])}" ${ex}>`;
+    const sel = (k, l, o) => `<label class="fl">${l}</label><select class="in" id="f_${k}">${o.map(x => `<option value="${x[0]}" ${p[k] === x[0] ? 'selected' : ''}>${x[1]}</option>`).join('')}</select>`;
+    openSheet(`<h3>${nw ? 'បន្ថែមទំនិញថ្មី' : 'កែទំនិញ ' + esc(ref)}<span class="sp"></span><button class="ib" onclick="closeSheet()">${ic('x')}</button></h3>
+    <div class="up"><div id="pv" style="width:92px">${media(p.video_url)}</div><div style="flex:1"><button class="btn g" onclick="$('#file').click()">${ic('img')}ជ្រើសរូប / Video</button><input type="file" id="file" accept="image/*,video/*" hidden onchange="doUpload(this)"><div class="mut" id="upst" style="margin-top:6px">ផ្ទុកឡើង Cloudinary ដោយផ្ទាល់</div></div></div>
+    <input type="hidden" id="f_video_url" value="${esc(p.video_url || '')}">
+    ${f('ref', 'Ref (លេខកូដ)', nw ? '' : 'disabled')}${f('title_km', 'ឈ្មោះទំនិញ (ខ្មែរ)')}
+    <div class="two"><div>${f('price', 'តម្លៃលក់ ($)', 'type="number" step="0.01"')}</div><div>${f('cost_price', 'តម្លៃដើម ($)', 'type="number" step="0.01"')}</div></div>
+    <div class="two"><div>${sel('gender', 'ភេទ', [['men', 'បុរស'], ['women', 'ស្រ្តី']])}</div><div>${sel('type', 'ប្រភេទ', [['tops', 'អាវ'], ['pants', 'ខោ'], ['outerwear', 'អាវក្រៅ'], ['dresses', 'រ៉ូប']])}</div></div>
+    <label class="fl">ពិពណ៌នា</label><textarea class="in" id="f_desc_km">${esc(p.desc_km || '')}</textarea>
+    <div class="mut" style="margin-top:6px">ឈ្មោះ/ពិពណ៌នា English និង 中文 នឹងបកប្រែស្វ័យប្រវត្តិ ប្រសិនបើទុកទទេ</div>
+    <button class="btn" style="width:100%;margin-top:16px" id="saveP" onclick="saveProd('${esc(ref || '')}')">${ic('check')}រក្សាទុក</button>`);
+}
+async function doUpload(inp) {
+    const file = inp.files[0]; if (!file) return; const st = $('#upst'); st.textContent = 'កំពុងផ្ទុកឡើង...'; $('#saveP').disabled = true;
+    try {
+        const sig = await api('/upload-signature'), fd = new FormData(); fd.append('file', file);
+        ['api_key', 'timestamp', 'signature', 'folder'].forEach(k => fd.append(k, sig[k]));
+        const r = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloud_name}/auto/upload`, { method: 'POST', body: fd }), j = await r.json();
+        if (!j.secure_url) throw new Error((j.error && j.error.message) || 'Upload failed');
+        $('#f_video_url').value = j.secure_url; $('#pv').innerHTML = media(j.secure_url); st.textContent = 'ផ្ទុកឡើងរួចរាល់ ✓';
+    } catch (e) { st.textContent = e.message; toast(e.message, 1); }
+    $('#saveP').disabled = false;
+}
+async function saveProd(ref) {
+    const g = k => ($('#f_' + k) || {}).value || '', old = S.products.find(x => x.ref === ref) || {};
+    const body = { ref: ref || g('ref'), title_km: g('title_km'), price: g('price'), cost_price: g('cost_price'), gender: g('gender'), type: g('type'), desc_km: g('desc_km'), video_url: g('video_url'),
+        title_en: old.title_en || '', title_zh: old.title_zh || '', desc_en: old.desc_en || '', desc_zh: old.desc_zh || '', model_3d_url: old.model_3d_url || '' };
+    if (old.title_km && old.title_km !== body.title_km) { body.title_en = ''; body.title_zh = ''; }
+    if (old.desc_km !== undefined && old.desc_km !== body.desc_km) { body.desc_en = ''; body.desc_zh = ''; }
+    $('#saveP').disabled = true;
+    try { await api(ref ? '/products/' + encodeURIComponent(ref) : '/products', { method: ref ? 'PUT' : 'POST', body }); toast('រក្សាទុករួចរាល់'); closeSheet(); reload(); }
+    catch (e) { toast(e.message, 1); $('#saveP').disabled = false; }
+}
+function delProd(ref) {
+    openSheet(`<h3>លុបទំនិញ ${esc(ref)}?<span class="sp"></span></h3><p class="mut">ទំនិញ ស្តុក និងរូបភាព/Video នឹងត្រូវលុបជាអចិន្ត្រៃយ៍។</p><div class="two" style="margin-top:16px"><button class="btn g" onclick="closeSheet()">បោះបង់</button><button class="btn bad" onclick="doDel('${esc(ref)}')">${ic('trash')}លុប</button></div>`);
+}
+async function doDel(ref) { try { await api('/products/' + encodeURIComponent(ref), { method: 'DELETE' }); toast('បានលុប'); closeSheet(); reload(); } catch (e) { toast(e.message, 1); } }
 
-        async function verifyAndLoad() {
-            let user = tg?.initDataUnsafe?.user;
-            let telegramId = user ? user.id : 0;
-            let username = user ? user.username || '' : '';
+/* ---------- stock ---------- */
+function stockView() { $('#app').innerHTML = toolbar(0); stockList(); }
+function stockList() {
+    const l = filtered(); $('#list').innerHTML = l.length ? l.map(p => `<div class="card" style="margin-bottom:12px"><div class="row">${media(p.video_url).replace('class="im"', 'class="im" style="width:54px;border-radius:12px"')}<div class="sp"><div class="mut">Ref: ${esc(p.ref)}</div><b>${esc(title(p))}</b></div><b class="wl">${money(p.price)}</b></div>${(p.sizes || []).map(s => `<div class="sz"><b>Size: ${esc(s.size)}</b><button onclick="stk('${esc(p.ref)}','${esc(s.size)}',-1)">−</button><input type="number" min="0" id="q_${esc(p.ref)}_${esc(s.size)}" value="${s.stock_qty}" class="${s.stock_qty <= 0 ? 'out' : s.stock_qty <= 2 ? 'low' : ''}" onchange="stk('${esc(p.ref)}','${esc(s.size)}',null,this.value)"><button onclick="stk('${esc(p.ref)}','${esc(s.size)}',1)">+</button></div>`).join('')}</div>`).join('') : '<div class="empty">រកមិនឃើញទំនិញ</div>';
+}
+async function stk(ref, size, d, qty) {
+    try {
+        const r = await api('/stock', { method: 'POST', body: d === null ? { ref, size, qty } : { ref, size, delta: d } });
+        const p = S.products.find(x => x.ref === ref), s = p && p.sizes.find(x => x.size === size); if (s) s.stock_qty = r.stock_qty;
+        const el = document.getElementById('q_' + ref + '_' + size); if (el) { el.value = r.stock_qty; el.className = r.stock_qty <= 0 ? 'out' : r.stock_qty <= 2 ? 'low' : ''; }
+    } catch (e) { toast(e.message, 1); }
+}
 
-            try {
-                let checkRes = await fetch(`${API_BASE}/api/check-admin`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': tg?.initData || '' },
-                    body: JSON.stringify({ telegramId, username })
-                });
-                let checkData = await checkRes.json();
+/* ---------- orders ---------- */
+function ordView() {
+    $('#app').innerHTML = `<div class="chips" style="margin-bottom:12px">${Object.keys(STAT).map(k => `<button class="chip ${S.ostat === k ? 'on' : ''}" onclick="S.ostat='${k}';go('orders')">${STAT[k]}</button>`).join('')}</div>` +
+        (S.orders.length ? `<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">${S.orders.map(o => {
+            const c = o.customer || {}, dt = new Date(o.created_at).toLocaleString('km-KH', { dateStyle: 'medium', timeStyle: 'short' });
+            return `<div class="card oc"><div class="row"><b>កុម្ម៉ង់ #${o.id}</b><span class="sp"></span><span class="pill s-${o.status}">${STAT[o.status] || o.status}</span></div><div class="mut">${esc(dt)} · ${esc(o.payment_method || 'COD')}</div>
+            <div style="font-size:14px"><b>${esc(c.name || c.fullName || '')}</b> ${esc(c.phone || c.phoneNumber || '')}<div class="mut">${esc(c.address || c.location || '')}</div></div>
+            ${(o.items || []).map(i => `<div class="it"><span>${esc(i.title || i.ref)} · ${esc(i.size)} × ${i.qty}</span><span>${money((i.price || 0) * (i.qty || 1))}</span></div>`).join('')}
+            <div class="tot"><span>សរុប</span><span>${money(o.pay_amount || o.total)}</span></div>
+            ${o.status === 'PENDING' || o.status === 'CONFIRMED' ? `<div class="acts">${o.status === 'PENDING' ? `<button class="btn ok" onclick="oact(${o.id},'confirm')">${ic('check')}បញ្ជាក់</button>` : ''}<button class="btn bad" onclick="oact(${o.id},'cancel')">${ic('x')}បោះបង់</button></div>` : ''}</div>`;
+        }).join('')}</div>` : '<div class="empty">មិនមានការកុម្ម៉ង់</div>');
+}
+async function oact(id, a) {
+    if (a === 'cancel' && !confirm('បោះបង់ការកុម្ម៉ង់ #' + id + '? ស្តុកនឹងត្រឡប់មកវិញ (បើបង់ពី Wallet លុយក៏សងចូល Wallet)។')) return;
+    try { const r = await api(`/orders/${id}/${a}`, { method: 'POST' }); toast(a === 'confirm' ? 'បានបញ្ជាក់' : (r.refunded ? 'បានបោះបង់ និងសងចូល Wallet' : 'បានបោះបង់')); go('orders'); } catch (e) { toast(e.message, 1); }
+}
 
-                if (!checkData.authorized) {
-                    document.body.innerHTML = `
-                        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: #0f172a; color: #f8fafc; font-family: 'Kantumruy Pro', sans-serif; text-align: center; padding: 20px;">
-                            <h2 style="color: #ef4444; margin-bottom: 10px;"><svg class="ico ico-ban" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg> Access Denied</h2>
-                            <p style="color: #94a3b8; font-size: 13px; line-height: 1.6;">អ្នកមិនមានសិទ្ធិបើកមើល Mini App នេះទេ!<br>សូមចូលទៅកាន់ Bot រួចវាយបញ្ចូល Password ឱ្យបានត្រឹមត្រូវជាមុនសិន។</p>
-                        </div>
-                    `;
-                    return;
-                }
+/* ---------- customers ---------- */
+function custView() { $('#app').innerHTML = `<div class="bar"><div class="sr">${ic('search')}<input class="in" placeholder="ស្វែងរកឈ្មោះ លេខទូរស័ព្ទ ឬ Email..." oninput="S.q=this.value;custList()"></div></div><div class="mut" style="margin-bottom:10px">${S.customers.length} នាក់</div><div id="list"></div>`; custList(); }
+function custList() {
+    const q = S.q.toLowerCase(), l = S.customers.filter(c => !q || ((c.name || '') + (c.phone || '') + (c.email || '')).toLowerCase().includes(q));
+    $('#list').innerHTML = l.length ? `<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">${l.map(c => `<div class="card"><div class="row"><div class="av" style="${c.avatar ? `background-image:url('${esc(c.avatar)}')` : ''}">${c.avatar ? '' : esc((c.name || '?')[0].toUpperCase())}</div><div class="sp"><b>${esc(c.name || 'មិនមានឈ្មោះ')}</b><div class="mut">${esc(c.phone || c.email || '')}</div></div><span class="wl">${ic('wallet').replace('class="i"', 'class="i" style="width:15px;height:15px;vertical-align:-3px"')} ${money(c.wallet)}</span></div>
+    <div class="row mut" style="margin-top:10px"><span>${c.orders} កុម្ម៉ង់</span><span class="sp"></span><span>ចំណាយ ${money(c.spent)}</span></div><div class="mut" style="margin-top:4px">ចូលចុងក្រោយ ${esc(new Date(c.last_login_at || c.created_at).toLocaleDateString('km-KH', { dateStyle: 'medium' }))}</div></div>`).join('')}</div>` : '<div class="empty">រកមិនឃើញអតិថិជន</div>';
+}
 
-                loadAdminProducts();
-
-            } catch (err) {
-                console.error("Verification error:", err);
-                document.getElementById('adminProductList').innerHTML = `<div style="color: #ef4444; text-align: center;">បរាជ័យក្នុងការតភ្ជាប់ Server!</div>`;
-            }
-        }
-
-        function jsq(v) { return escHtml(JSON.stringify(String(v == null ? '' : v))); }
-        function escHtml(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-        async function loadAdminProducts() {
-            try {
-                let res = await fetch(`${API_BASE}/api/products`);
-                allProductsCache = await res.json();
-                renderProductCards(allProductsCache);
-            } catch (err) {
-                console.error("Error loading products:", err);
-                document.getElementById('adminProductList').innerHTML = `<div style="color: #ef4444; text-align: center;">បរាជ័យក្នុងការតភ្ជាប់ Server!</div>`;
-            }
-        }
-
-        function toggleSearchBox() {
-            let box = document.getElementById('searchBoxContainer');
-            box.classList.toggle('active');
-            if (box.classList.contains('active')) {
-                document.getElementById('searchInput').focus();
-            } else {
-                document.getElementById('searchInput').value = '';
-                filterAdminProducts();
-            }
-        }
-
-        function filterAdminProducts() {
-            let keyword = document.getElementById('searchInput').value.trim().toLowerCase();
-            if (!keyword) {
-                renderProductCards(allProductsCache);
-                return;
-            }
-
-            let filtered = allProductsCache.filter(prod => {
-                let ref = String(prod.ref).toLowerCase();
-                let titleKm = (prod.title_km || '').toLowerCase();
-                let titleEn = (prod.title_en || '').toLowerCase();
-                return ref.includes(keyword) || titleKm.includes(keyword) || titleEn.includes(keyword);
-            });
-
-            renderProductCards(filtered);
-        }
-
-        function renderProductCards(products) {
-            let container = document.getElementById('adminProductList');
-            container.innerHTML = '';
-
-            if (products.length === 0) {
-                container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 30px;">រកមិនឃើញទំនិញដែលស្វែងរកទេ!</div>`;
-                return;
-            }
-
-            products.forEach(prod => {
-                let sizes = prod.sizes || [];
-                let sizesHtml = '';
-
-                const sizeList = ['S', 'M', 'L', 'XL', 'XXL'];
-                sizeList.forEach(sz => {
-                    let found = sizes.find(s => s.size.toUpperCase() === sz);
-                    let qty = found ? found.stock_qty : 0;
-                    sizesHtml += `
-                        <div class="size-row">
-                            <div class="size-label">Size: ${sz}</div>
-                            <div class="qty-controls">
-                                <button class="btn-qty" onclick="changeQty(${jsq(prod.ref)}, '${sz}', -1)">-</button>
-                                <input type="number" class="size-input" id="qty-${escHtml(prod.ref)}-${sz}" value="${qty}" min="0" onchange="updateStockAPI(${jsq(prod.ref)}, '${sz}')">
-                                <button class="btn-qty" onclick="changeQty(${jsq(prod.ref)}, '${sz}', 1)">+</button>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                let card = document.createElement('div');
-                card.className = 'product-card';
-                card.innerHTML = `
-                    <div class="prod-header">
-                        <div class="prod-title">Ref: ${escHtml(prod.ref)} - ${escHtml(prod.title_km)}</div>
-                        <div class="prod-price">$${parseFloat(prod.price).toFixed(2)}</div>
-                    </div>
-                    <div>
-                        ${sizesHtml}
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        async function changeQty(ref, size, delta) {
-            let input = document.getElementById(`qty-${ref}-${size}`);
-            if (!input) return;
-            
-            let currentVal = parseInt(input.value) || 0;
-            let newVal = currentVal + delta;
-            if (newVal < 0) newVal = 0;
-            
-            input.value = newVal;
-            await sendStockUpdate(ref, size, newVal);
-        }
-
-        async function updateStockAPI(ref, size) {
-            let input = document.getElementById(`qty-${ref}-${size}`);
-            if (!input) return;
-            let qty = parseInt(input.value) || 0;
-            if (qty < 0) { qty = 0; input.value = 0; }
-            await sendStockUpdate(ref, size, qty);
-        }
-
-        async function sendStockUpdate(ref, size, qty) {
-            try {
-                let res = await fetch(`${API_BASE}/api/admin/update-stock`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': tg?.initData || '' },
-                    body: JSON.stringify({ ref, size, qty })
-                });
-                let data = await res.json();
-                if (data.success) {
-                    showToast(`{{check}} Ref ${ref} (${size}) = ${qty}`);
-                } else {
-                    showToast('{{ban}} ' + (data.error || 'Failed'));
-                }
-            } catch (e) {
-                console.error(`Failed to update stock:`, e);
-            }
-        }
-
-        function ico(name) { return '<svg class="ico ico-' + name + '" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; }
-
-        function showToast(msg) {
-            let toast = document.getElementById('toast');
-            toast.textContent = '';
-            const m = /^\{\{(\w+)\}\}\s*/.exec(msg);
-            if (m) { toast.insertAdjacentHTML('beforeend', ico(m[1]) + ' '); msg = msg.slice(m[0].length); }
-            toast.append(msg);
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            verifyAndLoad();
-        });
-    </script>
+/* ---------- sheet ---------- */
+function openSheet(h) { $('#sheet').innerHTML = h; $('#ov').classList.add('on'); }
+function closeSheet() { $('#ov').classList.remove('on'); }
+boot();
+</script>
 </body>
 </html>

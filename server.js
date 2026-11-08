@@ -45,7 +45,7 @@ app.get('/', (req, res) => {
 
 // 🔒 ផ្លូវទី ២: សម្រាប់ Telegram Mini App (Admin គ្រប់គ្រងស្តុក)
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
+    res.sendFile(path.join(__dirname, 'web-admin.html')); // the full dashboard (same page as /web-admin)
 });
 
 // ភ្ជាប់ Database ស្វ័យប្រវត្តិពី Railway
