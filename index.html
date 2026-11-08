@@ -3488,6 +3488,30 @@
         function wlStop() { clearInterval(wlTimer); clearInterval(wlCount); wlTimer = wlCount = null; wlMd5 = null; }
         function wlClose() { wlStop(); closeModal('walletModal'); wlLoad(); }
 
+        // The wallet screen replaces the screen it was opened from (account / checkout) instead of stacking on top of it;
+        // closing the wallet brings that screen back.
+        let wlOpener = null;
+        function wlHideOpener() {
+            const w = document.getElementById('walletModal');
+            if (w.classList.contains('active')) return;   // already inside the wallet
+            wlOpener = null;
+            for (const id of ['checkoutModal', 'acctModal']) {
+                const el = document.getElementById(id);
+                if (el && el.classList.contains('active')) { wlOpener = id; el.classList.remove('active'); break; }
+            }
+        }
+        (function () {
+            const _cm = closeModal;
+            closeModal = function (id) {
+                if (id === 'walletModal') {
+                    wlStop();
+                    const o = wlOpener; wlOpener = null;
+                    if (o) { const el = document.getElementById(o); if (el) el.classList.add('active'); if (o === 'checkoutModal') wlRefreshCheckout(); }
+                }
+                return _cm.apply(this, arguments);
+            };
+        })();
+
         async function wlOpen() {
             if (!authToken) { openAuth(); return; }
             wlStop(); applyAuthLang();
@@ -3500,6 +3524,7 @@
             document.getElementById('wlAmount').value = '';
             document.getElementById('wlChips').innerHTML = [5, 10, 20, 50].map(v => `<button type="button" class="wl-chip" onclick="wlPick(${v})">$${v}</button>`).join('');
             document.getElementById('wlMethods').innerHTML = `<div class="wl-method"><img src="images/bakong.png" width="30" height="30" alt="" style="border-radius:7px"><div>${esc(at('wl_khqr'))}<small>${esc(at('wl_khqr_sub'))}</small></div></div>`;
+            wlHideOpener();
             openModal('walletModal');
             await wlLoad();
             wlHist();
@@ -3513,6 +3538,7 @@
             document.getElementById('wlHistView').style.display = 'block';
             document.getElementById('wlTitle').textContent = at('wl_hist');
             document.getElementById('wlHistFull').innerHTML = `<div class="wl-sub">${esc(at('loading'))}</div>`;
+            wlHideOpener();
             openModal('walletModal');
             await wlLoad();
             wlHist('wlHistFull');
