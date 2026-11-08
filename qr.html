@@ -54,10 +54,15 @@
         <div id="daysWrap" style="display:none">
             <label for="days">QR មានសុពលភាព</label>
             <select id="days">
-                <option value="1">1 ថ្ងៃ</option>
-                <option value="3">3 ថ្ងៃ</option>
-                <option value="7">7 ថ្ងៃ</option>
-                <option value="30">30 ថ្ងៃ</option>
+                <option value="5">5 នាទី</option>
+                <option value="10">10 នាទី</option>
+                <option value="30">30 នាទី</option>
+                <option value="60">1 ម៉ោង</option>
+                <option value="300">5 ម៉ោង</option>
+                <option value="1440" selected>1 ថ្ងៃ</option>
+                <option value="4320">3 ថ្ងៃ</option>
+                <option value="10080">7 ថ្ងៃ</option>
+                <option value="43200">30 ថ្ងៃ</option>
             </select>
             <div class="hint">QR ដែលមានចំនួនទឹកប្រាក់ ត្រូវតែមានថ្ងៃផុតកំណត់។ សូមសាកស្កេនជាមួយ app ធនាគារមុនផ្ញើឱ្យអតិថិជន</div>
         </div>
@@ -102,7 +107,7 @@
             const API = /github\.io$/.test(location.hostname) ? 'https://onedaycambodiagithubio-production.up.railway.app' : '';
             const r = await fetch(API + '/api/qr/generate', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: a === '' ? 0 : Number(a), days: Number(days.value), note: note.value })
+                body: JSON.stringify({ amount: a === '' ? 0 : Number(a), minutes: Number(days.value), days: Math.max(1, Math.ceil(Number(days.value) / 1440)), note: note.value })
             });
             const d = await r.json();
             if (!d.ok) throw new Error(d.message || 'error');
