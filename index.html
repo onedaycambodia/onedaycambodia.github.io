@@ -261,7 +261,7 @@
 
         /* SMART RESPONSIVE COVER CONTAINER */
         .cover-container { width: 100%; max-width: 1200px; margin: 0 auto; background: var(--card-bg); border-bottom: 1px solid var(--border-color); margin-bottom: 12px; position: relative; }
-        .cover-slider { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
+        .cover-slider { display: flex; align-items: flex-start; transition: height .3s ease; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
         .cover-slider::-webkit-scrollbar { display: none; }
         .cover-slide-item { flex: 0 0 100%; width: 100%; scroll-snap-align: start; }
         
@@ -273,10 +273,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            aspect-ratio: 16/9; 
-        }
-        @media (min-width: 768px) {
-            .cover-image-box { aspect-ratio: 21/9; max-height: 450px; }
+            /* SMART COVER: ratio is set per slide from the real image/video size (see fitCoverSlide) */
+            aspect-ratio: var(--cover-ar, 16/9);
         }
         .cover-image-box::after { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 5; background: transparent; }
         .cover-image-box video, .cover-image-box img { 
@@ -1792,7 +1790,7 @@
                             sliderHtml += `
                                 <div class="cover-slide-item">
                                     <div class="cover-image-box">
-                                        <img src="${esc(imgUrl)}" alt="Cover ${idx + 1}" ${idx === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} style="width:100%; height:100%; object-fit:cover; display:block;">
+                                        <img src="${esc(imgUrl)}" alt="Cover ${idx + 1}" ${idx === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} onload="fitCoverSlide(this)" style="width:100%; height:100%; object-fit:cover; display:block;">
                                     </div>
                                 </div>`;
                         } else {
@@ -1800,7 +1798,7 @@
                             sliderHtml += `
                                 <div class="cover-slide-item">
                                     <div class="cover-image-box">
-                                        <video autoplay loop muted playsinline webkit-playsinline preload="${idx === 0 ? 'auto' : 'metadata'}" style="width:100%; height:100%; object-fit:cover; display:block;">
+                                        <video autoplay loop muted playsinline webkit-playsinline preload="${idx === 0 ? 'auto' : 'metadata'}" onloadedmetadata="fitCoverSlide(this)" style="width:100%; height:100%; object-fit:cover; display:block;">
                                             <source src="${esc(vidUrl)}" type="video/mp4">
                                         </video>
                                     </div>
@@ -1934,6 +1932,26 @@
             renderCart();
         }
 
+        // Smart cover: size each slide to the uploaded media's own aspect ratio (no cropping).
+        // Extreme ratios are clamped so the banner never becomes too tall or too thin.
+        const COVER_MIN_AR = 1.0, COVER_MAX_AR = 3.2;
+        function fitCoverSlide(el) {
+            const w = el.naturalWidth || el.videoWidth, h = el.naturalHeight || el.videoHeight;
+            if (!w || !h) return;
+            const ar = Math.min(COVER_MAX_AR, Math.max(COVER_MIN_AR, w / h));
+            const box = el.closest('.cover-image-box');
+            if (box) box.style.setProperty('--cover-ar', ar.toFixed(4));
+            fitCoverHeight();
+        }
+        function fitCoverHeight() {
+            const slider = document.getElementById('coverSlider');
+            if (!slider || !slider.clientWidth) return;
+            const idx = Math.round(slider.scrollLeft / slider.clientWidth);
+            const slide = slider.children[idx];
+            if (slide) slider.style.height = slide.offsetHeight + 'px';
+        }
+        window.addEventListener('resize', fitCoverHeight);
+
         function updateCoverDots() {
             const slider = document.getElementById('coverSlider');
             const dots = document.getElementById('coverDots').children;
@@ -1941,6 +1959,7 @@
             const scrollLeft = slider.scrollLeft;
             const slideWidth = slider.clientWidth;
             const currentIndex = Math.round(scrollLeft / slideWidth);
+            fitCoverHeight();
             
             for (let i = 0; i < dots.length; i++) {
                 if (i === currentIndex) {
