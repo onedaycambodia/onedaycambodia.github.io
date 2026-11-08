@@ -1423,7 +1423,7 @@
                 <label class="form-label" data-key="label_payment">វិធីបង់ប្រាក់ (Payment)</label>
                 <label id="payRowKhqr" class="pay-opt" style="display:none;">
                     <input type="radio" name="payMethod" value="khqr">
-                    <img src="images/bakong.png" alt="Bakong" width="22" height="22" style="flex:none; border-radius:5px;"><span data-key="pay_khqr">បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)</span>
+                    <img src="images/bakong.png" alt="Bakong" width="22" height="22" style="flex:none; border-radius:5px;"><span data-key="pay_khqr">បង់ប្រាក់ឥឡូវតាម KHQR-Bakong</span>
                 </label>
                 <label id="payRowWallet" class="pay-opt" style="display:none;">
                     <input type="radio" name="payMethod" value="wallet" id="payRadioWallet">
@@ -1664,7 +1664,7 @@
                 alert_phone_invalid: "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យបានត្រឹមត្រូវ (យ៉ាងតិច 8ខ្ទង់)!",
                 toast_added: "បានដាក់ចូលកន្ត្រកជោគជ័យ!",
                 stock_remaining: "ស្តុកនៅសល់: ",
-                in_stock: " (មានក្នុងស្តុក)",
+                in_stock: "",
                 out_of_stock: "អស់ស្តុក (Out of stock)",
                 load_error: "មិនអាចទាញយកទំនិញបានទេ សូមព្យាយាមម្តងទៀត",
                 retry: "ព្យាយាមម្តងទៀត",
@@ -1701,7 +1701,7 @@
                 alert_phone_invalid: "Please enter a valid phone number (at least 8 digits)!",
                 toast_added: "Added to cart successfully!",
                 stock_remaining: "Stock remaining: ",
-                in_stock: " (In stock)",
+                in_stock: "",
                 out_of_stock: "Out of stock",
                 load_error: "Could not load products. Please try again.",
                 retry: "Try again",
@@ -1738,7 +1738,7 @@
                 alert_phone_invalid: "请输入有效的电话号码（至少8位数）！",
                 toast_added: "已成功加入购物车！",
                 stock_remaining: "剩余库存: ",
-                in_stock: " (有货)",
+                in_stock: "",
                 out_of_stock: "缺货 (Out of stock)",
                 load_error: "无法加载商品，请重试。",
                 retry: "重试",
@@ -1761,7 +1761,7 @@
         // KHQR texts (added on top of the dictionaries above)
         Object.assign(translations.km, {
                 ty_title: "អរគុណច្រើន!",
-            label_payment: "វិធីបង់ប្រាក់ (Payment)", pay_khqr: "បង់ប្រាក់ឥឡូវតាម KHQR (Bakong)", pay_cod: "កុម្មង់តាម Telegram (បង់ពេលទទួល)",
+            label_payment: "វិធីបង់ប្រាក់ (Payment)", pay_khqr: "បង់ប្រាក់ឥឡូវតាម KHQR-Bakong", pay_cod: "កុម្មង់តាម Telegram (បង់ពេលទទួល)",
             khqr_title: "ស្កេនដើម្បីបង់ប្រាក់", khqr_waiting: "{{spinner}} កំពុងរង់ចាំការបង់ប្រាក់...", khqr_expires_in: "ផុតកំណត់ក្នុង",
             khqr_hint: "បើកកម្មវិធីធនាគារណាមួយ (ABA, ACLEDA...) រួចស្កេន QR នេះ។ កុំបិទទំព័រនេះ រហូតដល់ឃើញថាបង់ជោគជ័យ។", khqr_close: "បិទ", khqr_check: "{{refresh}} ខ្ញុំបានបង់រួចហើយ - ពិនិត្យម្តងទៀត",
             khqr_paid: "{{check}} បង់ប្រាក់ជោគជ័យ! យើងនឹងទាក់ទងអ្នកឆាប់ៗនេះ។", khqr_expired: "{{hourglass}} QR ផុតកំណត់ហើយ។ ប្រសិនបើអ្នកបានបង់រួច សូមទាក់ទងហាង។ បើមិនទាន់ សូមកុម្មង់ម្តងទៀត។",
@@ -1769,7 +1769,7 @@
         });
         Object.assign(translations.en, {
                 ty_title: "Thank you!",
-            label_payment: "Payment Method", pay_khqr: "Pay now with KHQR (Bakong)", pay_cod: "Order via Telegram (pay on delivery)",
+            label_payment: "Payment Method", pay_khqr: "Pay now with KHQR-Bakong", pay_cod: "Order via Telegram (pay on delivery)",
             khqr_title: "Scan to Pay", khqr_waiting: "{{spinner}} Waiting for payment...", khqr_expires_in: "Expires in",
             khqr_hint: "Open any banking app (ABA, ACLEDA...) and scan this QR. Keep this page open until you see the payment succeed.", khqr_close: "Close", khqr_check: "{{refresh}} I have paid - check again",
             khqr_paid: "{{check}} Payment received! We will contact you shortly.", khqr_expired: "{{hourglass}} This QR has expired. If you already paid, please contact the shop. Otherwise please order again.",
@@ -1777,7 +1777,7 @@
         });
         Object.assign(translations.zh, {
                 ty_title: "非常感谢！",
-            label_payment: "支付方式", pay_khqr: "立即使用 KHQR (Bakong) 支付", pay_cod: "通过 Telegram 下单 (货到付款)",
+            label_payment: "支付方式", pay_khqr: "立即使用 KHQR-Bakong 支付", pay_cod: "通过 Telegram 下单 (货到付款)",
             khqr_title: "扫码支付", khqr_waiting: "{{spinner}} 等待付款...", khqr_expires_in: "剩余时间",
             khqr_hint: "打开任意银行应用 (ABA, ACLEDA...) 扫描此二维码。付款成功前请勿关闭本页面。", khqr_close: "关闭", khqr_check: "{{refresh}} 我已付款 - 重新检查",
             khqr_paid: "{{check}} 付款成功！我们会尽快联系您。", khqr_expired: "{{hourglass}} 二维码已过期。如已付款请联系商店，否则请重新下单。",
@@ -3561,9 +3561,9 @@
 
 
         /* ===================== 💰 WALLET ===================== */
-        Object.assign(AUTH_T.km, { wallet:'Wallet', wl_topup:'បញ្ចូល Wallet', wl_title:'បញ្ចូលលុយចូល Wallet', wl_amount:'ចំនួនទឹកប្រាក់ (USD)', wl_method:'វិធីបង់ប្រាក់', wl_khqr:'KHQR (Bakong)', wl_khqr_sub:'ស្កេនតាម ABA, ACLEDA ឬធនាគារណាមួយ', wl_gen:'បង្កើត QR បង់ប្រាក់', wl_range:'សូមបញ្ចូលចន្លោះ', wl_scan:'ស្កេន QR ដើម្បីបង់ប្រាក់', wl_wait:'កំពុងរង់ចាំការបង់ប្រាក់...', wl_expires:'ផុតកំណត់ក្នុង', wl_ok:'បញ្ចូល Wallet បានជោគជ័យ!', wl_expired:'QR នេះផុតកំណត់ហើយ។ បើអ្នកបានបង់រួច សូមទាក់ទងហាង។', wl_check:'ខ្ញុំបានបង់ហើយ - ពិនិត្យម្តងទៀត', wl_hist:'ប្រវត្តិ Wallet', wl_none:'មិនទាន់មានប្រវត្តិ', wl_t_topup:'បញ្ចូលលុយ', wl_t_order:'បង់ទិញទំនិញ', wl_unavail:'ការបង់ប្រាក់តាម KHQR មិនទាន់ដំណើរការ', wl_toomany:'មាន QR រង់ចាំច្រើនពេក សូមរង់ចាំបន្តិច', wl_pay:'បង់ពី Wallet', wl_bal:'សមតុល្យ', wl_low:'សមតុល្យមិនគ្រប់ សូមបញ្ចូល Wallet', wl_done:'រួចរាល់', wl_hbtn:'ប្រវត្តិ', wl_t_refund:'សងប្រាក់វិញ', wl_hint:'បើកកម្មវិធីធនាគារ (ABA, ACLEDA...) ហើយស្កេន QR នេះ។ សូមបើកទំព័រនេះរហូតដល់ឃើញការបង់ប្រាក់ជោគជ័យ។' });
-        Object.assign(AUTH_T.en, { wallet:'Wallet', wl_topup:'Top up', wl_title:'Top up Wallet', wl_amount:'Amount (USD)', wl_method:'Payment method', wl_khqr:'KHQR (Bakong)', wl_khqr_sub:'Scan with ABA, ACLEDA or any bank app', wl_gen:'Create payment QR', wl_range:'Enter an amount between', wl_scan:'Scan the QR to pay', wl_wait:'Waiting for payment...', wl_expires:'Expires in', wl_ok:'Wallet topped up!', wl_expired:'This QR has expired. If you already paid, please contact the shop.', wl_check:'I have paid - check again', wl_hist:'Wallet history', wl_none:'No history yet', wl_t_topup:'Top up', wl_t_order:'Order payment', wl_unavail:'KHQR payment is not available right now', wl_toomany:'Too many QR codes waiting, please wait a moment', wl_pay:'Pay with Wallet', wl_bal:'Balance', wl_low:'Not enough balance, please top up', wl_done:'Done', wl_hbtn:'History', wl_t_refund:'Refund', wl_hint:'Open any banking app (ABA, ACLEDA...) and scan this QR. Keep this page open until the payment succeeds.' });
-        Object.assign(AUTH_T.zh, { wallet:'钱包', wl_topup:'充值', wl_title:'钱包充值', wl_amount:'金额 (USD)', wl_method:'付款方式', wl_khqr:'KHQR (Bakong)', wl_khqr_sub:'用 ABA、ACLEDA 或任何银行 App 扫码', wl_gen:'生成付款二维码', wl_range:'请输入金额范围', wl_scan:'扫码付款', wl_wait:'等待付款...', wl_expires:'剩余时间', wl_ok:'充值成功！', wl_expired:'二维码已过期。如已付款，请联系商店。', wl_check:'我已付款 - 重新检查', wl_hist:'钱包记录', wl_none:'暂无记录', wl_t_topup:'充值', wl_t_order:'订单付款', wl_unavail:'KHQR 付款暂不可用', wl_toomany:'待付二维码过多，请稍候', wl_pay:'用钱包付款', wl_bal:'余额', wl_low:'余额不足，请先充值', wl_done:'完成', wl_hbtn:'记录', wl_t_refund:'退款', wl_hint:'打开任意银行 App (ABA、ACLEDA...) 扫描二维码，付款成功前请保持此页面打开。' });
+        Object.assign(AUTH_T.km, { wallet:'Wallet', wl_topup:'បញ្ចូល Wallet', wl_title:'បញ្ចូលលុយចូល Wallet', wl_amount:'ចំនួនទឹកប្រាក់ (USD)', wl_method:'វិធីបង់ប្រាក់', wl_khqr:'Scan By KHQR-Bakong', wl_khqr_sub:'ស្កេនតាម ABA, ACLEDA ឬធនាគារណាមួយ', wl_gen:'បង្កើត QR បង់ប្រាក់', wl_range:'សូមបញ្ចូលចន្លោះ', wl_scan:'ស្កេន QR ដើម្បីបង់ប្រាក់', wl_wait:'កំពុងរង់ចាំការបង់ប្រាក់...', wl_expires:'ផុតកំណត់ក្នុង', wl_ok:'បញ្ចូល Wallet បានជោគជ័យ!', wl_expired:'QR នេះផុតកំណត់ហើយ។ បើអ្នកបានបង់រួច សូមទាក់ទងហាង។', wl_check:'ខ្ញុំបានបង់ហើយ - ពិនិត្យម្តងទៀត', wl_hist:'ប្រវត្តិ Wallet', wl_none:'មិនទាន់មានប្រវត្តិ', wl_t_topup:'បញ្ចូលលុយ', wl_t_order:'បង់ទិញទំនិញ', wl_unavail:'ការបង់ប្រាក់តាម KHQR មិនទាន់ដំណើរការ', wl_toomany:'មាន QR រង់ចាំច្រើនពេក សូមរង់ចាំបន្តិច', wl_pay:'បង់ពី Wallet', wl_bal:'សមតុល្យ', wl_low:'សមតុល្យមិនគ្រប់ សូមបញ្ចូល Wallet', wl_done:'រួចរាល់', wl_hbtn:'ប្រវត្តិ', wl_t_refund:'សងប្រាក់វិញ', wl_hint:'បើកកម្មវិធីធនាគារ (ABA, ACLEDA...) ហើយស្កេន QR នេះ។ សូមបើកទំព័រនេះរហូតដល់ឃើញការបង់ប្រាក់ជោគជ័យ។' });
+        Object.assign(AUTH_T.en, { wallet:'Wallet', wl_topup:'Top up', wl_title:'Top up Wallet', wl_amount:'Amount (USD)', wl_method:'Payment method', wl_khqr:'Scan By KHQR-Bakong', wl_khqr_sub:'Scan with ABA, ACLEDA or any bank app', wl_gen:'Create payment QR', wl_range:'Enter an amount between', wl_scan:'Scan the QR to pay', wl_wait:'Waiting for payment...', wl_expires:'Expires in', wl_ok:'Wallet topped up!', wl_expired:'This QR has expired. If you already paid, please contact the shop.', wl_check:'I have paid - check again', wl_hist:'Wallet history', wl_none:'No history yet', wl_t_topup:'Top up', wl_t_order:'Order payment', wl_unavail:'KHQR payment is not available right now', wl_toomany:'Too many QR codes waiting, please wait a moment', wl_pay:'Pay with Wallet', wl_bal:'Balance', wl_low:'Not enough balance, please top up', wl_done:'Done', wl_hbtn:'History', wl_t_refund:'Refund', wl_hint:'Open any banking app (ABA, ACLEDA...) and scan this QR. Keep this page open until the payment succeeds.' });
+        Object.assign(AUTH_T.zh, { wallet:'钱包', wl_topup:'充值', wl_title:'钱包充值', wl_amount:'金额 (USD)', wl_method:'付款方式', wl_khqr:'Scan By KHQR-Bakong', wl_khqr_sub:'用 ABA、ACLEDA 或任何银行 App 扫码', wl_gen:'生成付款二维码', wl_range:'请输入金额范围', wl_scan:'扫码付款', wl_wait:'等待付款...', wl_expires:'剩余时间', wl_ok:'充值成功！', wl_expired:'二维码已过期。如已付款，请联系商店。', wl_check:'我已付款 - 重新检查', wl_hist:'钱包记录', wl_none:'暂无记录', wl_t_topup:'充值', wl_t_order:'订单付款', wl_unavail:'KHQR 付款暂不可用', wl_toomany:'待付二维码过多，请稍候', wl_pay:'用钱包付款', wl_bal:'余额', wl_low:'余额不足，请先充值', wl_done:'完成', wl_hbtn:'记录', wl_t_refund:'退款', wl_hint:'打开任意银行 App (ABA、ACLEDA...) 扫描二维码，付款成功前请保持此页面打开。' });
 
         let wlState = { balance: 0, min: 1, max: 500, khqr_enabled: false, tx: [] };
         let wlTimer = null, wlCount = null, wlMd5 = null, wlAmt = 0, wlPickedAmount = '';
