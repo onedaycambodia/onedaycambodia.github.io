@@ -63,6 +63,20 @@ textarea.in{min-height:80px;resize:vertical}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:90;background:#0f172a;border:1px solid var(--line);padding:11px 16px;border-radius:12px;font-weight:700;font-size:14px;display:none;max-width:90%}
 .login{min-height:70vh;display:grid;place-items:center;text-align:center;padding:24px}.login .box{max-width:360px}
 .empty{text-align:center;color:var(--mut);padding:36px 0;font-size:14px}
+/* compact one-line rows */
+main{padding:12px}.top{padding:9px 14px}.logo{width:32px;height:32px;border-radius:10px}.top h1{font-size:15px}.top small{display:none}.ib{width:34px;height:34px;border-radius:10px}
+.kpi{gap:3px}.kpi .ic{width:30px;height:30px;border-radius:9px}.kpi .v{font-size:18px}.kpi .l{font-size:11px}.card{padding:11px;border-radius:14px}h2{margin:16px 0 8px;font-size:14px}
+.list{display:flex;flex-direction:column}.it2{margin-bottom:6px}
+.rw{display:flex;align-items:center;gap:9px;padding:7px 9px;background:var(--card);border:1px solid var(--line);border-radius:12px;cursor:pointer;min-height:48px}
+.rw.open{border-radius:12px 12px 0 0}.rw .th{width:34px;height:34px;border-radius:9px;background:var(--card2);overflow:hidden;flex:none;display:grid;place-items:center;color:var(--mut)}.th img{width:100%;height:100%;object-fit:cover}.th svg{width:16px;height:16px}
+.rw .nm{flex:1;min-width:0;font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rw .nm small{display:block;font-size:11px;color:var(--mut);font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.rw .pr2{font-weight:800;color:var(--ac);font-size:13.5px;white-space:nowrap}.rw .bd{min-width:28px;text-align:center;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:800;background:rgba(34,197,94,.15);color:var(--ok)}.bd.low{background:rgba(245,158,11,.15);color:var(--warn)}.bd.out{background:rgba(239,68,68,.15);color:var(--bad)}
+.mb{width:30px;height:30px;border-radius:9px;border:1px solid var(--line);display:grid;place-items:center;color:var(--mut);flex:none}.mb svg{width:16px;height:16px}
+svg.chev{width:16px;height:16px;color:var(--mut);transition:.2s;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}.rw.open svg.chev{transform:rotate(180deg)}
+.xp{display:none;padding:10px;background:var(--card2);border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px}.xp.on{display:block}.xw{margin-bottom:6px}
+.szg{display:flex;flex-wrap:wrap;gap:6px}.sz2{display:flex;align-items:center;gap:3px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px 5px}.sz2 b{font-size:12px;color:var(--mut);width:28px;text-align:center}.sz2 button{width:26px;height:26px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--ac);font-weight:800;font-size:15px}.sz2 input{width:38px;text-align:center;padding:4px 2px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--tx);font-weight:800;font-size:13px}.sz2 input.low{color:var(--warn)}.sz2 input.out{color:var(--bad)}
+.xp .ln{display:flex;justify-content:space-between;font-size:12.5px;color:var(--mut);padding:2px 0}.xp .acts{display:flex;gap:8px;margin-top:8px}.xp .acts .btn{flex:1;padding:8px}
+.chip{padding:5px 11px;font-size:12.5px}.bar{margin-bottom:8px}.in{padding:9px 12px;font-size:14px}
 @media(min-width:760px){.kpis{grid-template-columns:repeat(4,1fr)}.pg{grid-template-columns:repeat(4,1fr)}.ov{align-items:center}.sheet{border-radius:22px}.two3{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:900px){body{padding:0 0 0 220px}nav{top:0;bottom:0;right:auto;width:220px;flex-direction:column;justify-content:flex-start;gap:6px;padding:80px 12px 12px;border-top:0;border-right:1px solid var(--line)}nav button{flex-direction:row;gap:12px;font-size:14px;padding:12px 14px;width:100%}nav b{position:static;margin-left:auto}.top{margin-left:-220px;padding-left:236px}.top{position:fixed;left:220px;right:0;margin:0;padding-left:16px}main{padding-top:84px}}
 </style>
@@ -86,6 +100,7 @@ textarea.in{min-height:80px;resize:vertical}
 <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></symbol>
 <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></symbol>
 <symbol id="i-cash" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
 <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
 </defs></svg>
 
@@ -179,8 +194,10 @@ const go2 = () => (S.tab === 'products' ? prodView : stockView)();
 const drawList = () => (S.tab === 'products' ? prodList : stockList)();
 function prodView() { $('#app').innerHTML = toolbar(1); prodList(); }
 function prodList() {
-    const l = filtered(); $('#list').innerHTML = l.length ? `<div class="pg">${l.map(p => `<div class="pc">${media(p.video_url)}<div class="pb"><span class="mut">Ref: ${esc(p.ref)}</span><span class="t">${esc(title(p))}</span><span class="pr">${money(p.price)} <span class="mut">· ដើម ${money(p.cost_price)}</span></span><div class="acts"><button onclick="editProd('${esc(p.ref)}')">${ic('edit')}</button><button onclick="delProd('${esc(p.ref)}')" style="color:var(--bad)">${ic('trash')}</button></div></div></div>`).join('')}</div>` : '<div class="empty">រកមិនឃើញទំនិញ</div>';
+    const l = filtered(); $('#list').innerHTML = l.length ? `<div class="list">${l.map(p => `<div class="rw it2"><div class="th">${thumbImg(p.video_url)}</div><div class="nm">${esc(title(p))}<small>Ref: ${esc(p.ref)} · ដើម ${money(p.cost_price)}</small></div><span class="pr2">${money(p.price)}</span><button class="mb" onclick="editProd('${esc(p.ref)}')">${ic('edit')}</button><button class="mb" style="color:var(--bad)" onclick="delProd('${esc(p.ref)}')">${ic('trash')}</button></div>`).join('')}</div>` : '<div class="empty">រកមិនឃើញទំនិញ</div>';
 }
+const thumbImg = u => u ? `<img loading="lazy" src="${esc(thumb(u, 120))}" onerror="this.style.display='none'">` : ic('img');
+const xt = id => { const x = document.getElementById(id); x.classList.toggle('on'); x.previousElementSibling.classList.toggle('open'); };
 function editProd(ref) {
     const p = S.products.find(x => x.ref === ref) || { gender: 'men', type: 'tops' }, nw = !ref;
     const f = (k, l, ex = '') => `<label class="fl">${l}</label><input class="in" id="f_${k}" value="${esc(p[k] == null ? '' : p[k])}" ${ex}>`;
@@ -223,27 +240,28 @@ async function doDel(ref) { try { await api('/products/' + encodeURIComponent(re
 
 /* ---------- stock ---------- */
 function stockView() { $('#app').innerHTML = toolbar(0); stockList(); }
+const tot = p => (p.sizes || []).reduce((a, s) => a + (s.stock_qty || 0), 0), cls = n => n <= 0 ? 'out' : n <= 2 ? 'low' : '';
 function stockList() {
-    const l = filtered(); $('#list').innerHTML = l.length ? l.map(p => `<div class="card" style="margin-bottom:12px"><div class="row">${media(p.video_url).replace('class="im"', 'class="im" style="width:54px;border-radius:12px"')}<div class="sp"><div class="mut">Ref: ${esc(p.ref)}</div><b>${esc(title(p))}</b></div><b class="wl">${money(p.price)}</b></div>${(p.sizes || []).map(s => `<div class="sz"><b>Size: ${esc(s.size)}</b><button onclick="stk('${esc(p.ref)}','${esc(s.size)}',-1)">−</button><input type="number" min="0" id="q_${esc(p.ref)}_${esc(s.size)}" value="${s.stock_qty}" class="${s.stock_qty <= 0 ? 'out' : s.stock_qty <= 2 ? 'low' : ''}" onchange="stk('${esc(p.ref)}','${esc(s.size)}',null,this.value)"><button onclick="stk('${esc(p.ref)}','${esc(s.size)}',1)">+</button></div>`).join('')}</div>`).join('') : '<div class="empty">រកមិនឃើញទំនិញ</div>';
+    const l = filtered(); $('#list').innerHTML = l.length ? `<div class="list">${l.map((p, i) => `<div class="xw"><div class="rw" onclick="xt('sx${i}')"><div class="th">${thumbImg(p.video_url)}</div><div class="nm">${esc(title(p))}<small>Ref: ${esc(p.ref)}</small></div><span class="bd ${cls(tot(p))}" id="t_${esc(p.ref)}">${tot(p)}</span><svg class="chev"><use href="#i-chev"/></svg></div><div class="xp" id="sx${i}"><div class="szg">${(p.sizes || []).map(s => `<div class="sz2"><b>${esc(s.size)}</b><button onclick="stk('${esc(p.ref)}','${esc(s.size)}',-1)">−</button><input type="number" min="0" id="q_${esc(p.ref)}_${esc(s.size)}" value="${s.stock_qty}" class="${cls(s.stock_qty)}" onchange="stk('${esc(p.ref)}','${esc(s.size)}',null,this.value)"><button onclick="stk('${esc(p.ref)}','${esc(s.size)}',1)">+</button></div>`).join('')}</div></div></div>`).join('')}</div>` : '<div class="empty">រកមិនឃើញទំនិញ</div>';
 }
 async function stk(ref, size, d, qty) {
     try {
         const r = await api('/stock', { method: 'POST', body: d === null ? { ref, size, qty } : { ref, size, delta: d } });
         const p = S.products.find(x => x.ref === ref), s = p && p.sizes.find(x => x.size === size); if (s) s.stock_qty = r.stock_qty;
-        const el = document.getElementById('q_' + ref + '_' + size); if (el) { el.value = r.stock_qty; el.className = r.stock_qty <= 0 ? 'out' : r.stock_qty <= 2 ? 'low' : ''; }
+        const el = document.getElementById('q_' + ref + '_' + size); if (el) { el.value = r.stock_qty; el.className = cls(r.stock_qty); }
+        const t = document.getElementById('t_' + ref); if (t && p) { t.textContent = tot(p); t.className = 'bd ' + cls(tot(p)); }
     } catch (e) { toast(e.message, 1); }
 }
 
 /* ---------- orders ---------- */
 function ordView() {
-    $('#app').innerHTML = `<div class="chips" style="margin-bottom:12px">${Object.keys(STAT).map(k => `<button class="chip ${S.ostat === k ? 'on' : ''}" onclick="S.ostat='${k}';go('orders')">${STAT[k]}</button>`).join('')}</div>` +
-        (S.orders.length ? `<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">${S.orders.map(o => {
+    $('#app').innerHTML = `<div class="chips" style="margin-bottom:8px">${Object.keys(STAT).map(k => `<button class="chip ${S.ostat === k ? 'on' : ''}" onclick="S.ostat='${k}';go('orders')">${STAT[k]}</button>`).join('')}</div>` +
+        (S.orders.length ? `<div class="list">${S.orders.map((o, i) => {
             const c = o.customer || {}, dt = new Date(o.created_at).toLocaleString('km-KH', { dateStyle: 'medium', timeStyle: 'short' });
-            return `<div class="card oc"><div class="row"><b>កុម្ម៉ង់ #${o.id}</b><span class="sp"></span><span class="pill s-${o.status}">${STAT[o.status] || o.status}</span></div><div class="mut">${esc(dt)} · ${esc(o.payment_method || 'COD')}</div>
-            <div style="font-size:14px"><b>${esc(c.name || c.fullName || '')}</b> ${esc(c.phone || c.phoneNumber || '')}<div class="mut">${esc(c.address || c.location || '')}</div></div>
-            ${(o.items || []).map(i => `<div class="it"><span>${esc(i.title || i.ref)} · ${esc(i.size)} × ${i.qty}</span><span>${money((i.price || 0) * (i.qty || 1))}</span></div>`).join('')}
-            <div class="tot"><span>សរុប</span><span>${money(o.pay_amount || o.total)}</span></div>
-            ${o.status === 'PENDING' || o.status === 'CONFIRMED' ? `<div class="acts">${o.status === 'PENDING' ? `<button class="btn ok" onclick="oact(${o.id},'confirm')">${ic('check')}បញ្ជាក់</button>` : ''}<button class="btn bad" onclick="oact(${o.id},'cancel')">${ic('x')}បោះបង់</button></div>` : ''}</div>`;
+            return `<div class="xw"><div class="rw" onclick="xt('ox${i}')"><div class="nm">#${o.id} · ${esc(c.name || c.fullName || '-')}<small>${esc(dt)} · ${esc(o.payment_method || 'COD')}</small></div><span class="pr2">${money(o.pay_amount || o.total)}</span><span class="pill s-${o.status}" style="font-size:11px;padding:2px 8px">${STAT[o.status] || o.status}</span></div>
+            <div class="xp" id="ox${i}"><div class="ln"><span>${esc(c.phone || c.phoneNumber || '')}</span><span>${esc(c.address || c.location || '')}</span></div>
+            ${(o.items || []).map(it => `<div class="ln"><span>${esc(it.title || it.ref)} · ${esc(it.size)} × ${it.qty}</span><span>${money((it.price || 0) * (it.qty || 1))}</span></div>`).join('')}
+            ${o.status === 'PENDING' || o.status === 'CONFIRMED' ? `<div class="acts">${o.status === 'PENDING' ? `<button class="btn ok" onclick="oact(${o.id},'confirm')">${ic('check')}បញ្ជាក់</button>` : ''}<button class="btn bad" onclick="oact(${o.id},'cancel')">${ic('x')}បោះបង់</button></div>` : ''}</div></div>`;
         }).join('')}</div>` : '<div class="empty">មិនមានការកុម្ម៉ង់</div>');
 }
 async function oact(id, a) {
@@ -252,11 +270,11 @@ async function oact(id, a) {
 }
 
 /* ---------- customers ---------- */
-function custView() { $('#app').innerHTML = `<div class="bar"><div class="sr">${ic('search')}<input class="in" placeholder="ស្វែងរកឈ្មោះ លេខទូរស័ព្ទ ឬ Email..." oninput="S.q=this.value;custList()"></div></div><div class="mut" style="margin-bottom:10px">${S.customers.length} នាក់</div><div id="list"></div>`; custList(); }
+function custView() { $('#app').innerHTML = `<div class="bar"><div class="sr">${ic('search')}<input class="in" placeholder="ស្វែងរកឈ្មោះ លេខទូរស័ព្ទ ឬ Email..." oninput="S.q=this.value;custList()"></div></div><div class="mut" style="margin-bottom:8px">${S.customers.length} នាក់</div><div id="list"></div>`; custList(); }
 function custList() {
     const q = S.q.toLowerCase(), l = S.customers.filter(c => !q || ((c.name || '') + (c.phone || '') + (c.email || '')).toLowerCase().includes(q));
-    $('#list').innerHTML = l.length ? `<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">${l.map(c => `<div class="card"><div class="row"><div class="av" style="${c.avatar ? `background-image:url('${esc(c.avatar)}')` : ''}">${c.avatar ? '' : esc((c.name || '?')[0].toUpperCase())}</div><div class="sp"><b>${esc(c.name || 'មិនមានឈ្មោះ')}</b><div class="mut">${esc(c.phone || c.email || '')}</div></div><span class="wl">${ic('wallet').replace('class="i"', 'class="i" style="width:15px;height:15px;vertical-align:-3px"')} ${money(c.wallet)}</span></div>
-    <div class="row mut" style="margin-top:10px"><span>${c.orders} កុម្ម៉ង់</span><span class="sp"></span><span>ចំណាយ ${money(c.spent)}</span></div><div class="mut" style="margin-top:4px">ចូលចុងក្រោយ ${esc(new Date(c.last_login_at || c.created_at).toLocaleDateString('km-KH', { dateStyle: 'medium' }))}</div></div>`).join('')}</div>` : '<div class="empty">រកមិនឃើញអតិថិជន</div>';
+    $('#list').innerHTML = l.length ? `<div class="list">${l.map((c, i) => `<div class="xw"><div class="rw" onclick="xt('cx${i}')"><div class="th" style="border-radius:50%;${c.avatar ? `background:url('${esc(c.avatar)}') center/cover` : ''}">${c.avatar ? '' : esc((c.name || '?')[0].toUpperCase())}</div><div class="nm">${esc(c.name || 'មិនមានឈ្មោះ')}<small>${esc(c.phone || c.email || '')}</small></div><span class="pr2">${money(c.wallet)}</span><span class="bd" style="background:var(--card2);color:var(--mut)">${c.orders}</span></div>
+    <div class="xp" id="cx${i}"><div class="ln"><span>Wallet</span><b class="wl">${money(c.wallet)}</b></div><div class="ln"><span>ចំនួនកុម្ម៉ង់</span><span>${c.orders}</span></div><div class="ln"><span>ចំណាយសរុប</span><span>${money(c.spent)}</span></div><div class="ln"><span>ចូលចុងក្រោយ</span><span>${esc(new Date(c.last_login_at || c.created_at).toLocaleDateString('km-KH', { dateStyle: 'medium' }))}</span></div></div></div>`).join('')}</div>` : '<div class="empty">រកមិនឃើញអតិថិជន</div>';
 }
 
 /* ---------- sheet ---------- */
