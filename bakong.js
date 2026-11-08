@@ -123,7 +123,7 @@ function createKhqr({ amount, billNumber, expiresAt }) {
  *  - with amount -> dynamic QR that expires after `days` days (Bakong requires an expiry for QRs with an amount)
  * Nothing is tracked afterwards: the owner confirms the payment in the banking app.
  */
-function createStandaloneKhqr({ amount, note, days }) {
+function createStandaloneKhqr({ amount, note, days, minutes }) {
     const { BakongKHQR, khqrData, IndividualInfo } = require('bakong-khqr');
     const amt = Number(amount);
     const hasAmount = Number.isFinite(amt) && amt > 0;
@@ -132,8 +132,9 @@ function createStandaloneKhqr({ amount, note, days }) {
     if (bill) opts.billNumber = bill;
     if (hasAmount) {
         opts.amount = Number(amt.toFixed(2));
-        const d = Math.min(30, Math.max(1, Math.floor(Number(days) || 1)));
-        opts.expirationTimestamp = Date.now() + d * 24 * 3600 * 1000;
+        // `minutes` (5 min ... 30 days) wins; the old `days` field still works. Clamped to 1 minute .. 30 days.
+        const mins = Math.min(30 * 1440, Math.max(1, Math.floor(Number(minutes) || (Number(days) || 1) * 1440)));
+        opts.expirationTimestamp = Date.now() + mins * 60 * 1000;
     }
     const info = new IndividualInfo(
         process.env.BAKONG_ACCOUNT_ID,
