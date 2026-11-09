@@ -1158,6 +1158,17 @@
         .wl-tx { display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--border-color); font-size:14px; }
         .wl-tx small { display:block; color:var(--text-muted); font-size:12px; }
         .wl-tx b.pos { color:#16a34a; } .wl-tx b.neg { color:#dc2626; }
+        /* Wallet row when the balance is too low: dark red, softly pulsing; the "+" top-up button stays fully usable */
+        .pay-opt.low { cursor: default; border-color: rgba(239,68,68,.55); background: rgba(110,18,30,.22); animation: payLowPulse 1.9s ease-in-out infinite; }
+        .pay-opt.low > :not(.wl-mini) { opacity: .5; }
+        .pay-opt.low .wl-mini { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,.12); opacity: 1; animation: payLowPlus 1.9s ease-in-out infinite; }
+        body.dark-mode .pay-opt.low { background: rgba(60,10,18,.55); }
+        body.dark-mode .pay-opt.low .wl-mini { color: #fca5a5; }
+        .pay-opt.low.shake { animation: payShake .4s ease, payLowPulse 1.9s ease-in-out infinite; }
+        @keyframes payLowPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); border-color: rgba(239,68,68,.35); } 50% { box-shadow: 0 0 16px 2px rgba(239,68,68,.38); border-color: rgba(239,68,68,.95); } }
+        @keyframes payLowPlus { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+        @keyframes payShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
+        @media (prefers-reduced-motion: reduce) { .pay-opt.low, .pay-opt.low .wl-mini { animation: none; } }
         .pay-opt .wl-mini { margin-left:auto; border:1.5px solid var(--accent); color:var(--accent); background:transparent; border-radius:8px; padding:3px 9px; font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
                 /* Wallet popups: same look as the Account popup (cards, borders, colours follow light/dark theme) */
         #walletModal .wl-pill { border:1.5px solid var(--border-color); background:var(--card-bg); color:var(--accent); }
@@ -3972,7 +3983,7 @@
                         '<div class="ty-amount">' + ico('check') + ' +' + wlMoney(wlAmt) + '</div></div>' +
                         '<button class="btn-modal-telegram" type="button" style="margin-top:18px" onclick="wlClose()"><span>' + esc(at('wl_done')) + '</span></button>';
                     launchConfetti(document.getElementById('wlConfetti'));
-                    wlRefreshCheckout();
+                    payUserPicked = false; wlRefreshCheckout();
                 } else if (s.status === 'EXPIRED' || s.status === 'NOT_FOUND') {
                     wlStop();
                     box.innerHTML = `<div class="wl-note">${ico('hourglass')}<span>${esc(at('wl_expired'))}</span></div><button class="btn-modal-telegram" type="button" style="margin-top:16px" onclick="wlOpen()"><span>${esc(at('wl_topup'))}</span></button>`;
@@ -3993,10 +4004,19 @@
             const radio = document.getElementById('payRadioWallet');
             box.style.display = 'block'; row.style.display = 'flex';
             radio.disabled = !enough;
+            row.classList.toggle('low', !enough);                 // dark-red pulsing look when the balance is too low
             document.getElementById('payWalletText').textContent = at('wl_pay') + ' · ' + at('wl_bal') + ' ' + wlMoney(j.balance) + (enough ? '' : ' (' + at('wl_low') + ')');
             if (!enough && radio.checked) { const d = document.querySelector('input[name="payMethod"][value="' + (khqrEnabled ? 'khqr' : 'cod') + '"]'); if (d) d.checked = true; }
+            // smart default: enough money in the wallet -> pre-select Wallet (unless the customer already picked something themselves)
+            if (enough && !payUserPicked) radio.checked = true;
         }
-        (function () { const _om = openModal; openModal = function (id) { const r = _om.apply(this, arguments); if (id === 'checkoutModal') wlRefreshCheckout(); return r; }; })();
+        let payUserPicked = false;
+        document.addEventListener('change', (e) => { if (e.target && e.target.name === 'payMethod') payUserPicked = true; });
+        document.addEventListener('click', (e) => {            // tapping the greyed-out Wallet row (not the "+") gives a little shake
+            const row = e.target.closest && e.target.closest('#payRowWallet');
+            if (row && row.classList.contains('low') && !e.target.closest('.wl-mini')) { row.classList.remove('shake'); void row.offsetWidth; row.classList.add('shake'); setTimeout(() => row.classList.remove('shake'), 450); }
+        });
+        (function () { const _om = openModal; openModal = function (id) { const r = _om.apply(this, arguments); if (id === 'checkoutModal') { payUserPicked = false; wlRefreshCheckout(); } return r; }; })();
 
         async function startWalletPayment(orderData) {
             if (khqrBusy) return;
