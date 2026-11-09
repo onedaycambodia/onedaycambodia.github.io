@@ -1192,7 +1192,7 @@
         .acct-btn:hover { border-color:var(--accent); color:var(--accent); }
         .acct-btn .ico { width:20px; height:20px; }
         .acct-btn.in { color:#fff; background:var(--accent); border-color:var(--accent); }
-        #authModal { z-index:340; } #acctModal, #ordersModal { z-index:330; }
+        #authModal { z-index:340; } #acctModal, #ordersModal { z-index:330; } #tierModal { z-index:335; }
         .au-sub { color:var(--text-muted); font-size:13px; line-height:1.5; margin:2px 0 14px; }
         .au-field { position:relative; margin-bottom:12px; }
         .au-field > .ico { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:18px; height:18px; color:var(--text-muted); pointer-events:none; }
@@ -1214,6 +1214,18 @@
         .au-avimg img { width:100%; height:100%; object-fit:cover; display:block; } .au-avimg .ico { width:28px; height:28px; }
         .au-cam { position:absolute; right:-3px; bottom:-3px; width:20px; height:20px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; border:2px solid var(--card-bg, #1e293b); }
         .au-cam svg { width:11px; height:11px; }
+        /* 🏅 membership tier */
+        .tier-chip { display:none !important; align-items:center; gap:5px; margin-top:3px; font-size:12px; font-weight:800; }
+        .tier-chip.on { display:inline-flex !important; } .tier-chip svg { width:20px; height:20px; flex:none; }
+        .tier-card { display:flex; align-items:center; gap:12px; padding:12px 14px; margin:0 0 14px; border-radius:14px; background:var(--accent-light); cursor:pointer; text-align:left; width:100%; border:none; color:inherit; font:inherit; }
+        .tier-card svg.tb { width:54px; height:54px; flex:none; }
+        .tier-mid { flex:1; min-width:0; } .tier-name { font-weight:800; font-size:16px; } .tier-sub { font-size:12px; opacity:.75; margin-top:2px; }
+        .tier-bar { height:6px; border-radius:6px; background:rgba(128,128,128,.25); margin-top:8px; overflow:hidden; } .tier-bar i { display:block; height:100%; border-radius:6px; background:var(--accent); transition:width .5s; }
+        .tier-row { display:flex; align-items:center; gap:14px; padding:12px 4px; border-bottom:1px solid rgba(128,128,128,.25); }
+        .tier-row:last-child { border-bottom:none; } .tier-row svg { width:60px; height:60px; flex:none; }
+        .tier-row b { display:block; font-size:17px; } .tier-row span { opacity:.7; font-size:14px; }
+        .tier-row.me { background:var(--accent-light); border-radius:12px; padding-left:10px; padding-right:10px; }
+        .tier-row .you { margin-left:auto; font-size:11px; font-weight:800; padding:3px 8px; border-radius:20px; background:var(--accent); color:#fff; }
         .au-nameRow { display:flex; align-items:center; gap:4px; min-width:0; }
         .au-nameRow b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
         .au-pen { background:none; border:none; color:var(--text-muted); padding:4px; display:flex; cursor:pointer; flex:none; }
@@ -1613,15 +1625,26 @@
             <div class="au-hero">
                 <button class="au-ava" type="button" onclick="document.getElementById('acFile').click()" aria-label="Change photo"><span class="au-avimg" id="acAvaImg"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg></span><span class="au-cam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></span></button>
                 <input type="file" id="acFile" accept="image/*" style="display:none" onchange="acPickPhoto(this)">
-                <div class="au-who"><div class="au-nameRow" id="acNameRow"><b id="acName"></b><button class="au-pen" type="button" onclick="acEditName()" aria-label="Edit name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg></button></div><span id="acPhone"></span></div>
+                <div class="au-who"><div class="au-nameRow" id="acNameRow"><b id="acName"></b><button class="au-pen" type="button" onclick="acEditName()" aria-label="Edit name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg></button></div><span id="acPhone"></span><div class="tier-chip" id="acTierChip"></div></div>
                 <button class="au-btn2 danger au-out" onclick="authLogout()"><svg class="ico" aria-hidden="true"><use href="#i-logout"/></svg><span data-at="logout">ចាកចេញ</span></button>
             </div>
             <div class="wl-card">
                 <div><div class="wl-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg><span data-at="wallet"></span></div><div class="wl-bal" id="wlBal">$0.00</div></div>
                 <div class="wl-btns"><button class="wl-add wl-ghost" type="button" onclick="wlOpenHist()"><span data-at="wl_hbtn"></span></button><button class="wl-add" type="button" onclick="wlOpen()">+ <span data-at="wl_topup"></span></button></div>
             </div>
+            <button class="tier-card" id="tierCard" type="button" onclick="openTiers()" style="display:none"></button>
             <div class="au-sec"><svg class="ico" aria-hidden="true"><use href="#i-receipt"/></svg><span data-at="my_orders"></span></div>
             <div id="ordersBody" class="od-list"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="tierModal" onclick="handleModalClick(event, 'tierModal')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><span id="tierModalTitle"></span></div>
+                <button class="btn-close" onclick="closeModal('tierModal')"><svg class="ico ico-x" aria-hidden="true"><use href="#i-x"/></svg></button>
+            </div>
+            <div id="tierList"></div>
         </div>
     </div>
 
@@ -3684,7 +3707,7 @@
             if (!authEnabled) return;
             authMeta = null;
             applyAuthLang();
-            if (authToken) { acRenderName(); openModal('acctModal'); wlLoad(); openOrders(); } else openAuth();
+            if (authToken) { acRenderName(); openModal('acctModal'); wlLoad(); tierLoad(); openOrders(); } else openAuth();
         }
         function openAuth(after) {
             authPending = after || null;
@@ -3810,6 +3833,85 @@
 
         // ---- My orders ----
         function odChip(cls, icon, text) { return `<span class="od-chip ${cls}"><svg class="ico" aria-hidden="true"><use href="#i-${icon}"/></svg>${esc(text)}</span>`; }
+        /* ===================== 🏅 MEMBERSHIP TIERS (Bronze / Silver / Gold / Diamond / VIP) ===================== */
+        const TIER_T = {
+            km: { title:'កម្រិតសមាជិក', spent:'ចំណាយសរុប', new:'សមាជិកថ្មី', from:'ចាប់ពី', more:'ទិញបន្ថែម $%1 ដើម្បីដល់ %2', top:'អ្នកបានដល់កម្រិតខ្ពស់បំផុតហើយ 🎉', you:'អ្នក' },
+            en: { title:'Membership levels', spent:'Total spent', new:'New member', from:'From', more:'Spend $%1 more to reach %2', top:'You reached the top level 🎉', you:'You' },
+            zh: { title:'会员等级', spent:'累计消费', new:'新会员', from:'满', more:'再消费 $%1 升级至 %2', top:'您已达到最高等级 🎉', you:'当前' }
+        };
+        const tt = (k) => (TIER_T[currentLang] || TIER_T.en)[k] || TIER_T.en[k];
+        const TIER_NAME = { bronze:'Bronze', silver:'Silver', gold:'Gold', diamond:'Diamond', vip:'VIP' };
+        const TIER_COLOR = { bronze:'#b8683a', silver:'#8b93a3', gold:'#c9971f', diamond:'#2f82c4', vip:'#6a42d8' };
+        let tierData = null;
+        // clothes-hanger logo used in the middle of every badge
+        function tierIcon(c, cx, cy, s) {
+            return '<g transform="translate(' + cx + ' ' + cy + ') scale(' + s + ')" fill="none" stroke="' + c + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' +
+                '<path d="M-2 -12a4.5 4.5 0 1 1 6.5 4c-2.2 1.3-2.5 2.4-2.5 4"/><path d="M2 -4 16 7q2 3.5-1.5 3.5h-25Q-14 10.5 -12 7Z"/><path d="M-17 -3h-7M-20 3h-7"/></g>';
+        }
+        function tierSvg(k) {
+            const star = (x, y, r, c) => '<path d="M' + x + ' ' + (y - r) + 'Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y + r) + 'Q' + x + ' ' + y + ' ' + (x - r) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y - r) + 'Z" fill="' + c + '"/>';
+            let b = '';
+            if (k === 'bronze' || k === 'silver') {
+                const m = k === 'bronze'
+                    ? { rib:'#8a4526', out:'#b8683a', ring:'#8f4d28', inn:'#cf8453', ico:'#7a3d1c', hi:'#e0a070' }
+                    : { rib:'#3a5fc4', out:'#aab1be', ring:'#7f8797', inn:'#c6ccd6', ico:'#4a5568', hi:'#eef1f6' };
+                b = '<path d="M20 44 14 66 24 60 30 68 36 46Z" fill="' + m.rib + '"/><path d="M52 44 58 66 48 60 42 68 36 46Z" fill="' + m.rib + '"/>' +
+                    '<circle cx="36" cy="30" r="26" fill="' + m.out + '" stroke="' + m.ring + '" stroke-width="2"/><circle cx="36" cy="30" r="19.5" fill="' + m.inn + '" stroke="' + m.ring + '" stroke-width="1.5"/>' +
+                    '<path d="M18 22a19 19 0 0 1 14-12" fill="none" stroke="' + m.hi + '" stroke-width="3" stroke-linecap="round" opacity=".8"/>' + tierIcon(m.ico, 36, 31, .62);
+            } else if (k === 'gold') {
+                b = '<path d="M36 4 62 13V36Q62 54 36 68 10 54 10 36V13Z" fill="#ddae45" stroke="#b9892b" stroke-width="2.5" stroke-linejoin="round"/>' +
+                    '<path d="M36 9 57 16V36Q57 51 36 63Z" fill="#f2d279" opacity=".55"/><path d="M36 14 38 19 43 19.5 39.3 23 40.3 28 36 25.5 31.7 28 32.7 23 29 19.5 34 19Z" fill="#fbeab5"/>' +
+                    '<circle cx="36" cy="38" r="17" fill="#fbeab5" stroke="#a87a22" stroke-width="2"/>' + tierIcon('#8a5a14', 36, 39, .6);
+            } else if (k === 'diamond') {
+                b = '<path d="M36 5 63 20.5V51.5L36 67 9 51.5V20.5Z" fill="#3f82b8" stroke="#3573a6" stroke-width="2" stroke-linejoin="round"/>' +
+                    '<path d="M36 11 58 23.5V48.5L36 61 14 48.5V23.5Z" fill="#8fd0f2"/><path d="M36 11 58 23.5 36 36 14 23.5Z" fill="#b9e6fb"/>' +
+                    '<circle cx="36" cy="36" r="17" fill="#eaf8ff" stroke="#3573a6" stroke-width="1.5"/>' + tierIcon('#2f6fa3', 36, 37, .6) +
+                    star(62, 8, 6, '#5bb8f5') + star(8, 14, 4, '#7ccaf8') + star(60, 64, 4, '#7ccaf8');
+            } else {
+                b = '<path d="M36 40C26 30 12 34 6 44c-3 6 6 8 12 8 6 0 10-2 18-2Z" fill="#dcae45"/><path d="M36 40c10-10 24-6 30 4 3 6-6 8-12 8-6 0-10-2-18-2Z" fill="#dcae45"/>' +
+                    '<path d="M24 14 28 26 36 8 44 26 48 14 50 30H22Z" fill="#f0c95c" stroke="#b9892b" stroke-width="2" stroke-linejoin="round"/><rect x="22" y="28" width="28" height="5" rx="2" fill="#e8b94a" stroke="#b9892b" stroke-width="1.5"/>' +
+                    '<circle cx="24" cy="13" r="3.2" fill="#e5484d"/><circle cx="36" cy="6" r="3.2" fill="#4da9f0"/><circle cx="48" cy="13" r="3.2" fill="#e5484d"/>' +
+                    '<path d="M36 34 56 41V52Q56 64 36 72 16 64 16 52V41Z" fill="#4b2fb5" stroke="#b9892b" stroke-width="2.5" stroke-linejoin="round"/>' +
+                    '<path d="M36 34 56 41V52Q56 64 36 72Z" fill="#3a2396" opacity=".55"/>' + tierIcon('#f0c24a', 36, 52, .58);
+            }
+            return '<svg class="tb" viewBox="0 0 72 72" aria-hidden="true">' + b + '</svg>';
+        }
+        const tierFrom = (t) => t.from > 0 ? tt('from') + ' $' + t.from : tt('new');
+        function tierRender() {
+            const d = tierData, card = document.getElementById('tierCard'), chip = document.getElementById('acTierChip');
+            if (!d || !card) return;
+            const cur = d.tiers.find(t => t.key === d.tier);
+            const nm = TIER_NAME[d.tier];
+            if (chip) { chip.innerHTML = tierSvg(d.tier).replace(' class="tb"', '') + '<span style="color:' + TIER_COLOR[d.tier] + '">' + nm + '</span>'; chip.classList.add('on'); }
+            let sub, pct = 100;
+            if (d.next) {
+                const need = Math.max(0, d.next_at - d.spent);
+                pct = Math.max(4, Math.min(100, ((d.spent - cur.from) / (d.next_at - cur.from)) * 100));
+                sub = tt('more').replace('%1', need.toFixed(2).replace(/\.00$/, '')).replace('%2', TIER_NAME[d.next]);
+            } else sub = tt('top');
+            card.innerHTML = tierSvg(d.tier) + '<div class="tier-mid"><div class="tier-name" style="color:' + TIER_COLOR[d.tier] + '">' + nm + '</div>' +
+                '<div class="tier-sub">' + esc(tt('spent')) + ': $' + Number(d.spent).toFixed(2) + ' · ' + esc(sub) + '</div>' +
+                '<div class="tier-bar"><i style="width:' + pct.toFixed(0) + '%"></i></div></div>';
+            card.style.display = '';
+        }
+        async function tierLoad() {
+            try {
+                const r = await fetch(`${RAILWAY_API_URL}/api/my/tier`, { headers: authHeaders(), cache: 'no-store' });
+                if (!r.ok) return;
+                const j = await r.json();
+                if (j && j.ok) { tierData = j; tierRender(); }
+            } catch (e) { /* tier is optional - hide silently */ }
+        }
+        function openTiers() {
+            if (!tierData) return;
+            document.getElementById('tierModalTitle').textContent = tt('title');
+            document.getElementById('tierList').innerHTML = tierData.tiers.map(t =>
+                '<div class="tier-row' + (t.key === tierData.tier ? ' me' : '') + '">' + tierSvg(t.key) +
+                '<div><b>' + TIER_NAME[t.key] + '</b><span>' + esc(tierFrom(t)) + '</span></div>' +
+                (t.key === tierData.tier ? '<span class="you">' + esc(tt('you')) + '</span>' : '') + '</div>').join('');
+            openModal('tierModal');
+        }
+
         async function openOrders() {
             applyAuthLang();
             const body = document.getElementById('ordersBody');

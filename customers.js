@@ -460,5 +460,26 @@ module.exports = function (app, { pool }) {
         }
     });
 
+    // ---------- membership tier (by total spent on real orders) ----------
+    const TIERS = [['bronze', 0], ['silver', 20], ['gold', 50], ['diamond', 100], ['vip', 300]];
+    app.get('/api/my/tier', async (req, res) => {
+        const c = await authCustomer(req);
+        if (!c) return res.status(401).json({ ok: false });
+        try {
+            // orders that are waiting for payment, cancelled or expired do not count
+            const r = await pool.query(
+                `SELECT COALESCE(SUM(COALESCE(pay_amount, total)), 0) AS spent FROM orders
+                 WHERE customer_id = $1 AND status NOT IN ('AWAITING_PAYMENT', 'CANCELLED', 'EXPIRED')`, [c.id]);
+            const spent = Math.round(Number(r.rows[0].spent) * 100) / 100;
+            let idx = 0;
+            TIERS.forEach((t, i) => { if (spent >= t[1]) idx = i; });
+            const next = TIERS[idx + 1] || null;
+            res.json({ ok: true, spent, tier: TIERS[idx][0], next: next ? next[0] : null, next_at: next ? next[1] : null, tiers: TIERS.map(t => ({ key: t[0], from: t[1] })) });
+        } catch (e) {
+            console.error('my/tier:', e.message);
+            res.status(500).json({ ok: false });
+        }
+    });
+
     return { enabled, authCustomer, provider };
 };
