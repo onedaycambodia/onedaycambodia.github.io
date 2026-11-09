@@ -1240,7 +1240,7 @@
         .tier-line i { position:absolute; left:0; top:0; bottom:0; border-radius:7px; background:var(--accent); transition:width .6s; overflow:hidden; }
         .tier-line i::after { content:''; position:absolute; top:0; bottom:0; width:40px; left:-40px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent); animation:tier-flow 1.6s linear infinite; }
         @keyframes tier-flow { to { left:100%; } }
-        .tier-sub { font-size:11px; opacity:.8; margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .tier-sub { font-size:11px; opacity:.85; margin-top:5px; line-height:1.35; }
         @media (prefers-reduced-motion: reduce) { .tb, .tb *, .tier-line i::after { animation:none !important; } }
         .tier-row { display:flex; align-items:center; gap:14px; padding:12px 4px; border-bottom:1px solid rgba(128,128,128,.25); }
         .tier-row:last-child { border-bottom:none; } .tier-row svg.tb { width:60px; height:60px; flex:none; }
@@ -3856,9 +3856,9 @@
         function odChip(cls, icon, text) { return `<span class="od-chip ${cls}"><svg class="ico" aria-hidden="true"><use href="#i-${icon}"/></svg>${esc(text)}</span>`; }
         /* ===================== 🏅 MEMBERSHIP TIERS (Bronze / Silver / Gold / Diamond / VIP) ===================== */
         const TIER_T = {
-            km: { title:'កម្រិតសមាជិក', spent:'ចំណាយសរុប', new:'សមាជិកថ្មី', from:'ចាប់ពី', more:'ទិញបន្ថែម $%1', top:'អ្នកបានដល់កម្រិតខ្ពស់បំផុតហើយ 🎉', you:'អ្នក' },
-            en: { title:'Membership levels', spent:'Total spent', new:'New member', from:'From', more:'Spend $%1 more', top:'You reached the top level 🎉', you:'You' },
-            zh: { title:'会员等级', spent:'累计消费', new:'新会员', from:'满', more:'再消费 $%1', top:'您已达到最高等级 🎉', you:'当前' }
+            km: { title:'កម្រិតសមាជិក', spent:'ចំណាយសរុប', new:'សមាជិកថ្មី', from:'ចាប់ពី', more:'ទិញទំនិញបន្ថែម $%1 ទៀតដើម្បីទទួលបានកម្រិត %2', top:'អ្នកបានដល់កម្រិតខ្ពស់បំផុតហើយ 🎉', you:'អ្នក' },
+            en: { title:'Membership levels', spent:'Total spent', new:'New member', from:'From', more:'Spend $%1 more to reach %2', top:'You reached the top level 🎉', you:'You' },
+            zh: { title:'会员等级', spent:'累计消费', new:'新会员', from:'满', more:'再消费 $%1 即可升级至 %2', top:'您已达到最高等级 🎉', you:'当前' }
         };
         const tt = (k) => (TIER_T[currentLang] || TIER_T.en)[k] || TIER_T.en[k];
         const TIER_NAME = { bronze:'Bronze', silver:'Silver', gold:'Gold', diamond:'Diamond', vip:'VIP' };
@@ -3908,11 +3908,11 @@
             if (!d || !card) return;
             const cur = d.tiers.find(t => t.key === d.tier);
             if (chip) { chip.innerHTML = tierSvg(d.tier) + '<span style="color:' + TIER_COLOR[d.tier] + '">' + TIER_NAME[d.tier] + '</span>'; chip.classList.add('on'); }
-            let pct = 100, sub = '$' + Number(d.spent).toFixed(2) + ' · ' + tt('top');
+            let pct = 100, sub = tt('top');
             if (d.next) {
                 const need = Math.max(0, d.next_at - d.spent);
                 pct = Math.max(5, Math.min(100, ((d.spent - cur.from) / (d.next_at - cur.from)) * 100));
-                sub = '$' + Number(d.spent).toFixed(2) + ' · ' + tt('more').replace('%1', need.toFixed(2).replace(/\.00$/, ''));
+                sub = tt('more').replace('%1', need.toFixed(2).replace(/\.00$/, '')).replace('%2', TIER_NAME[d.next]);
             }
             const bd = (k, cls) => '<div class="tier-bd' + cls + '">' + tierSvg(k) + '<small style="color:' + TIER_COLOR[k] + '">' + TIER_NAME[k] + '</small></div>';
             card.innerHTML = bd(d.tier, '') +
