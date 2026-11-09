@@ -1214,7 +1214,7 @@
         .au-avimg img { width:100%; height:100%; object-fit:cover; display:block; } .au-avimg .ico { width:28px; height:28px; }
         .au-cam { position:absolute; right:-3px; bottom:-3px; width:20px; height:20px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; border:2px solid var(--card-bg, #1e293b); }
         .au-cam svg { width:11px; height:11px; }
-        /* 🏅 membership tier */
+        /* membership tier */
         .au-line { display:flex; align-items:center; gap:6px; min-width:0; } .au-line .au-nameRow { flex:0 1 auto; }
         .tier-chip { display:none !important; align-items:center; gap:3px; flex:none; font-size:12px; font-weight:800; }
         .tier-chip.on { display:inline-flex !important; } .tier-chip svg { width:24px; height:24px; flex:none; }
@@ -1242,7 +1242,7 @@
         @keyframes tier-flow { to { left:100%; } }
         .tier-sub { font-size:11px; opacity:.85; margin-top:5px; line-height:1.35; }
         @media (prefers-reduced-motion: reduce) { .tb, .tb *, .tier-line i::after { animation:none !important; } }
-        /* 🎨 account popup themes by tier (data-tier on the modal) */
+        /* account popup themes by tier (data-tier on the modal) */
         @property --ang { syntax:'<angle>'; inherits:false; initial-value:0deg; }
         #acctModal .modal-content[data-tier] { border:2px solid transparent; }
         #acctModal .au-hero { position:relative; overflow:hidden; border-radius:16px; padding:12px; margin-bottom:6px; background-size:200% 200%; }
@@ -1287,6 +1287,18 @@
         #acctModal [data-tier="vip"] .au-hero::after { opacity:1; background:radial-gradient(circle at 8% 80%,#f7d36b 0 1.8px,transparent 2.8px),radial-gradient(circle at 20% 60%,#fff 0 1.3px,transparent 2.3px),radial-gradient(circle at 36% 85%,#f0c24a 0 2px,transparent 3px),radial-gradient(circle at 52% 66%,#d9c4ff 0 1.4px,transparent 2.4px),radial-gradient(circle at 68% 84%,#f7d36b 0 1.8px,transparent 2.8px),radial-gradient(circle at 82% 62%,#fff 0 1.4px,transparent 2.4px),radial-gradient(circle at 94% 82%,#f0c24a 0 1.9px,transparent 2.9px); animation:hero-rise 2.4s ease-in infinite; }
         @keyframes th-aura { 0%,100% { box-shadow:0 10px 30px rgba(0,0,0,.25),0 0 18px rgba(122,77,240,.5),0 0 40px rgba(240,194,74,.15) } 50% { box-shadow:0 10px 30px rgba(0,0,0,.25),0 0 32px rgba(122,77,240,.75),0 0 60px rgba(240,194,74,.35) } }
         @media (prefers-reduced-motion: reduce) { #acctModal [data-tier], #acctModal [data-tier] .au-hero, #acctModal [data-tier] .au-hero::before, #acctModal [data-tier] .au-hero::after { animation:none !important; } }
+        .tier-card.max { position:relative; overflow:hidden; gap:12px; padding:10px 14px; background:linear-gradient(120deg,rgba(122,77,240,.30),rgba(240,194,74,.16),rgba(122,77,240,.26)); background-size:200% 200%; border:1px solid rgba(240,194,74,.5); animation:hero-flow 5s ease-in-out infinite; }
+        .tier-card.max::before { content:''; position:absolute; top:-10%; bottom:-10%; width:50px; left:-80px; background:linear-gradient(100deg,transparent,rgba(255,255,255,.3),transparent); transform:skewX(-20deg); animation:hero-sweep 3.8s ease-in-out infinite; pointer-events:none; }
+        .tier-card.max > * { position:relative; z-index:1; }
+        .tier-card.max > svg.tb { width:58px; height:58px; flex:none; }
+        .tmax-mid { flex:1; min-width:0; text-align:left; }
+        .tmax-name { display:flex; align-items:center; gap:6px; font-size:19px; font-weight:900; letter-spacing:1.5px; line-height:1.1; }
+        .tmax-name b { background:linear-gradient(90deg,#f0c24a,#fff3b8,#f0c24a); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation:hero-flow 3s linear infinite; }
+        .tspark { width:13px; height:13px; flex:none; overflow:visible; }
+        .tmax-sub { font-size:11px; opacity:.85; margin-top:4px; line-height:1.35; }
+        .tmax-spent { flex:none; text-align:right; padding-left:10px; border-left:1px solid rgba(240,194,74,.4); }
+        .tmax-spent small { display:block; font-size:10px; opacity:.75; } .tmax-spent b { font-size:15px; font-weight:800; color:#f0c24a; }
+        @media (prefers-reduced-motion: reduce) { .tier-card.max, .tier-card.max::before, .tmax-name b { animation:none !important; } }
         .tier-row { display:flex; align-items:center; gap:14px; padding:12px 4px; border-bottom:1px solid rgba(128,128,128,.25); }
         .tier-row:last-child { border-bottom:none; } .tier-row svg.tb { width:60px; height:60px; flex:none; }
         .tier-row b { display:block; font-size:17px; } .tier-row span { opacity:.7; font-size:14px; }
@@ -3899,11 +3911,11 @@
 
         // ---- My orders ----
         function odChip(cls, icon, text) { return `<span class="od-chip ${cls}"><svg class="ico" aria-hidden="true"><use href="#i-${icon}"/></svg>${esc(text)}</span>`; }
-        /* ===================== 🏅 MEMBERSHIP TIERS (Bronze / Silver / Gold / Diamond / VIP) ===================== */
+        /* ===================== MEMBERSHIP TIERS (Bronze / Silver / Gold / Diamond / VIP) ===================== */
         const TIER_T = {
-            km: { title:'កម្រិតសមាជិក', spent:'ចំណាយសរុប', new:'សមាជិកថ្មី', from:'ចាប់ពី', more:'ទិញទំនិញបន្ថែម $%1 ទៀតដើម្បីទទួលបានកម្រិត %2', top:'អ្នកបានដល់កម្រិតខ្ពស់បំផុតហើយ 🎉', you:'អ្នក' },
-            en: { title:'Membership levels', spent:'Total spent', new:'New member', from:'From', more:'Spend $%1 more to reach %2', top:'You reached the top level 🎉', you:'You' },
-            zh: { title:'会员等级', spent:'累计消费', new:'新会员', from:'满', more:'再消费 $%1 即可升级至 %2', top:'您已达到最高等级 🎉', you:'当前' }
+            km: { title:'កម្រិតសមាជិក', spent:'ចំណាយសរុប', new:'សមាជិកថ្មី', from:'ចាប់ពី', more:'ទិញទំនិញបន្ថែម $%1 ទៀតដើម្បីទទួលបានកម្រិត %2', top:'អ្នកបានដល់កម្រិតខ្ពស់បំផុតហើយ', you:'អ្នក' },
+            en: { title:'Membership levels', spent:'Total spent', new:'New member', from:'From', more:'Spend $%1 more to reach %2', top:'You reached the top level', you:'You' },
+            zh: { title:'会员等级', spent:'累计消费', new:'新会员', from:'满', more:'再消费 $%1 即可升级至 %2', top:'您已达到最高等级', you:'当前' }
         };
         const tt = (k) => (TIER_T[currentLang] || TIER_T.en)[k] || TIER_T.en[k];
         const TIER_NAME = { bronze:'Bronze', silver:'Silver', gold:'Gold', diamond:'Diamond', vip:'VIP' };
@@ -3959,8 +3971,19 @@
             const cur = d.tiers.find(t => t.key === d.tier);
             tierTheme(d.tier);
             if (chip) { chip.innerHTML = tierSvg(d.tier) + '<span style="color:' + TIER_COLOR[d.tier] + '">' + TIER_NAME[d.tier] + '</span>'; chip.classList.add('on'); }
-            let pct = 100, sub = tt('top');
-            if (d.next) {
+            if (!d.next) {
+                // top rank: no progress line, a clean gold/purple card (SVG only)
+                const sp = (dl) => '<svg class="tspark" viewBox="0 0 24 24" aria-hidden="true"><path class="tb-tw" style="animation-delay:' + dl + 's" d="M12 1Q12 12 23 12Q12 12 12 23Q12 12 1 12Q12 12 12 1Z" fill="#f0c24a"/></svg>';
+                card.className = 'tier-card max';
+                card.innerHTML = tierSvg(d.tier) +
+                    '<div class="tmax-mid"><div class="tmax-name">' + sp(0) + '<b>' + TIER_NAME[d.tier] + '</b>' + sp(.7) + '</div><div class="tmax-sub">' + esc(tt('top')) + '</div></div>' +
+                    '<div class="tmax-spent"><small>' + esc(tt('spent')) + '</small><b>$' + Number(d.spent).toFixed(2) + '</b></div>';
+                card.style.display = '';
+                return;
+            }
+            card.className = 'tier-card';
+            let pct = 100, sub = '';
+            {
                 const need = Math.max(0, d.next_at - d.spent);
                 pct = Math.max(5, Math.min(100, ((d.spent - cur.from) / (d.next_at - cur.from)) * 100));
                 sub = tt('more').replace('%1', need.toFixed(2).replace(/\.00$/, '')).replace('%2', TIER_NAME[d.next]);
@@ -3968,7 +3991,7 @@
             const bd = (k, cls) => '<div class="tier-bd' + cls + '">' + tierSvg(k) + '<small style="color:' + TIER_COLOR[k] + '">' + TIER_NAME[k] + '</small></div>';
             card.innerHTML = bd(d.tier, '') +
                 '<div class="tier-mid"><div class="tier-line"><i style="width:' + pct.toFixed(0) + '%"></i></div><div class="tier-sub">' + esc(sub) + '</div></div>' +
-                (d.next ? bd(d.next, ' nxt') : '');
+                bd(d.next, ' nxt');
             card.style.display = '';
         }
         async function tierLoad() {
