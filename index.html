@@ -1242,6 +1242,51 @@
         @keyframes tier-flow { to { left:100%; } }
         .tier-sub { font-size:11px; opacity:.85; margin-top:5px; line-height:1.35; }
         @media (prefers-reduced-motion: reduce) { .tb, .tb *, .tier-line i::after { animation:none !important; } }
+        /* 🎨 account popup themes by tier (data-tier on the modal) */
+        @property --ang { syntax:'<angle>'; inherits:false; initial-value:0deg; }
+        #acctModal .modal-content[data-tier] { border:2px solid transparent; }
+        #acctModal .au-hero { position:relative; overflow:hidden; border-radius:16px; padding:12px; margin-bottom:6px; background-size:200% 200%; }
+        #acctModal .au-hero > * { position:relative; z-index:1; }
+        #acctModal [data-tier] .au-hero::before { content:''; position:absolute; z-index:0; top:-10%; bottom:-10%; width:56px; left:-90px; background:linear-gradient(100deg,transparent,rgba(255,255,255,.38),transparent); transform:skewX(-20deg); animation:hero-sweep 3.8s ease-in-out infinite; pointer-events:none; }
+        #acctModal [data-tier] .au-hero::after { content:''; position:absolute; z-index:0; inset:0; pointer-events:none; opacity:0; }
+        @keyframes hero-sweep { 0%,40% { left:-90px } 100% { left:115% } }
+        @keyframes hero-spin { to { --ang:360deg } }
+        @keyframes hero-flow { 0%,100% { background-position:0% 50% } 50% { background-position:100% 50% } }
+        @keyframes hero-twinkle { 0%,100% { opacity:.15; transform:translateY(0) } 50% { opacity:1; transform:translateY(-6px) } }
+        @keyframes hero-rise { 0% { opacity:0; transform:translateY(14px) } 30% { opacity:1 } 100% { opacity:0; transform:translateY(-22px) } }
+
+        /* 1 · BRONZE – warm copper, breathing glow */
+        #acctModal [data-tier="bronze"] { --accent:#c2703d; --accent-light:rgba(194,112,61,.18); border-color:rgba(194,112,61,.7); animation:th-glow-bronze 3s ease-in-out infinite; }
+        #acctModal [data-tier="bronze"] .au-hero { background-image:linear-gradient(135deg,rgba(194,112,61,.30),rgba(138,69,38,.10),rgba(194,112,61,.26)); animation:hero-flow 7s ease-in-out infinite; }
+        @keyframes th-glow-bronze { 0%,100% { box-shadow:0 10px 30px rgba(0,0,0,.2),0 0 0 rgba(194,112,61,0) } 50% { box-shadow:0 10px 30px rgba(0,0,0,.2),0 0 22px rgba(194,112,61,.5) } }
+
+        /* 2 · SILVER – cool metal, sliding shine */
+        #acctModal [data-tier="silver"] { --accent:#7d8798; --accent-light:rgba(160,170,186,.2); border-color:rgba(176,186,202,.85); animation:th-glow-silver 3.4s ease-in-out infinite; }
+        #acctModal [data-tier="silver"] .au-hero { background-image:linear-gradient(120deg,rgba(176,186,202,.35),rgba(236,240,246,.16),rgba(150,160,178,.32)); animation:hero-flow 6s ease-in-out infinite; }
+        @keyframes th-glow-silver { 0%,100% { box-shadow:0 10px 30px rgba(0,0,0,.2),0 0 0 rgba(190,200,215,0) } 50% { box-shadow:0 10px 30px rgba(0,0,0,.2),0 0 20px rgba(190,200,215,.55) } }
+
+        /* 3 · GOLD – spinning gold border, golden sparkles */
+        #acctModal [data-tier="gold"] { --accent:#c9971f; --accent-light:rgba(233,180,52,.2); border-color:transparent;
+            background:linear-gradient(var(--modal-bg),var(--modal-bg)) padding-box, conic-gradient(from var(--ang),#f7d36b,#b9892b,#fff1b0,#c9971f,#f7d36b) border-box;
+            animation:hero-spin 5s linear infinite; box-shadow:0 10px 30px rgba(0,0,0,.2),0 0 22px rgba(233,180,52,.35); }
+        #acctModal [data-tier="gold"] .au-hero { background-image:linear-gradient(120deg,rgba(247,211,107,.38),rgba(185,137,43,.14),rgba(247,211,107,.34)); animation:hero-flow 5s ease-in-out infinite; }
+        #acctModal [data-tier="gold"] .au-hero::after { opacity:1; background:radial-gradient(circle at 12% 72%,#ffe58a 0 1.6px,transparent 2.6px),radial-gradient(circle at 34% 28%,#fff3b8 0 1.3px,transparent 2.2px),radial-gradient(circle at 58% 78%,#ffd75a 0 1.8px,transparent 2.8px),radial-gradient(circle at 80% 30%,#fff3b8 0 1.4px,transparent 2.4px),radial-gradient(circle at 92% 70%,#ffe58a 0 1.5px,transparent 2.5px); animation:hero-twinkle 2.2s ease-in-out infinite; }
+
+        /* 4 · DIAMOND – icy facets, twinkling stars */
+        #acctModal [data-tier="diamond"] { --accent:#2f82c4; --accent-light:rgba(91,184,245,.2); border-color:transparent;
+            background:linear-gradient(var(--modal-bg),var(--modal-bg)) padding-box, conic-gradient(from var(--ang),#7ccaf8,#2f82c4,#e8f8ff,#5bb8f5,#7ccaf8) border-box;
+            animation:hero-spin 4s linear infinite; box-shadow:0 10px 30px rgba(0,0,0,.2),0 0 26px rgba(91,184,245,.45); }
+        #acctModal [data-tier="diamond"] .au-hero { background-image:linear-gradient(135deg,rgba(91,184,245,.34),rgba(232,248,255,.14),rgba(47,130,196,.32),rgba(185,230,251,.2)); animation:hero-flow 4.5s ease-in-out infinite; }
+        #acctModal [data-tier="diamond"] .au-hero::after { opacity:1; background:radial-gradient(circle at 10% 30%,#fff 0 1.6px,transparent 2.6px),radial-gradient(circle at 26% 76%,#b9e6fb 0 1.4px,transparent 2.4px),radial-gradient(circle at 47% 22%,#fff 0 1.8px,transparent 2.8px),radial-gradient(circle at 66% 70%,#b9e6fb 0 1.5px,transparent 2.5px),radial-gradient(circle at 84% 26%,#fff 0 1.7px,transparent 2.7px),radial-gradient(circle at 94% 78%,#b9e6fb 0 1.3px,transparent 2.3px); animation:hero-twinkle 1.6s ease-in-out infinite; }
+
+        /* 5 · VIP – royal purple + gold, aura and rising particles */
+        #acctModal [data-tier="vip"] { --accent:#7a4df0; --accent-light:rgba(122,77,240,.2); border-color:transparent;
+            background:linear-gradient(var(--modal-bg),var(--modal-bg)) padding-box, conic-gradient(from var(--ang),#f0c24a,#7a4df0,#f7d36b,#4b2fb5,#f0c24a) border-box;
+            animation:hero-spin 3s linear infinite, th-aura 2.6s ease-in-out infinite; }
+        #acctModal [data-tier="vip"] .au-hero { background-image:linear-gradient(120deg,rgba(122,77,240,.42),rgba(240,194,74,.26),rgba(75,47,181,.4),rgba(240,194,74,.22)); animation:hero-flow 4s ease-in-out infinite; }
+        #acctModal [data-tier="vip"] .au-hero::after { opacity:1; background:radial-gradient(circle at 8% 80%,#f7d36b 0 1.8px,transparent 2.8px),radial-gradient(circle at 20% 60%,#fff 0 1.3px,transparent 2.3px),radial-gradient(circle at 36% 85%,#f0c24a 0 2px,transparent 3px),radial-gradient(circle at 52% 66%,#d9c4ff 0 1.4px,transparent 2.4px),radial-gradient(circle at 68% 84%,#f7d36b 0 1.8px,transparent 2.8px),radial-gradient(circle at 82% 62%,#fff 0 1.4px,transparent 2.4px),radial-gradient(circle at 94% 82%,#f0c24a 0 1.9px,transparent 2.9px); animation:hero-rise 2.4s ease-in infinite; }
+        @keyframes th-aura { 0%,100% { box-shadow:0 10px 30px rgba(0,0,0,.25),0 0 18px rgba(122,77,240,.5),0 0 40px rgba(240,194,74,.15) } 50% { box-shadow:0 10px 30px rgba(0,0,0,.25),0 0 32px rgba(122,77,240,.75),0 0 60px rgba(240,194,74,.35) } }
+        @media (prefers-reduced-motion: reduce) { #acctModal [data-tier], #acctModal [data-tier] .au-hero, #acctModal [data-tier] .au-hero::before, #acctModal [data-tier] .au-hero::after { animation:none !important; } }
         .tier-row { display:flex; align-items:center; gap:14px; padding:12px 4px; border-bottom:1px solid rgba(128,128,128,.25); }
         .tier-row:last-child { border-bottom:none; } .tier-row svg.tb { width:60px; height:60px; flex:none; }
         .tier-row b { display:block; font-size:17px; } .tier-row span { opacity:.7; font-size:14px; }
@@ -3903,10 +3948,16 @@
             return '<svg class="tb" viewBox="0 0 72 72" aria-hidden="true">' + b + '</svg>';
         }
         const tierFrom = (t) => t.from > 0 ? tt('from') + ' $' + t.from : tt('new');
+        function tierTheme(k) {
+            const box = document.querySelector('#acctModal .modal-content');
+            if (!box) return;
+            if (k) box.setAttribute('data-tier', k); else box.removeAttribute('data-tier');
+        }
         function tierRender() {
             const d = tierData, card = document.getElementById('tierCard'), chip = document.getElementById('acTierChip');
             if (!d || !card) return;
             const cur = d.tiers.find(t => t.key === d.tier);
+            tierTheme(d.tier);
             if (chip) { chip.innerHTML = tierSvg(d.tier) + '<span style="color:' + TIER_COLOR[d.tier] + '">' + TIER_NAME[d.tier] + '</span>'; chip.classList.add('on'); }
             let pct = 100, sub = tt('top');
             if (d.next) {
@@ -3921,9 +3972,16 @@
             card.style.display = '';
         }
         async function tierLoad() {
+            // preview any style without spending: add ?tierpreview=bronze|silver|gold|diamond|vip to the URL
+            const pv = new URLSearchParams(location.search).get('tierpreview');
+            if (pv && TIER_NAME[pv]) {
+                const T = [['bronze', 0], ['silver', 20], ['gold', 50], ['diamond', 100], ['vip', 300]], i = T.findIndex(t => t[0] === pv), n = T[i + 1];
+                tierData = { ok: true, spent: T[i][1] + 5, tier: pv, next: n ? n[0] : null, next_at: n ? n[1] : null, tiers: T.map(t => ({ key: t[0], from: t[1] })) };
+                tierRender(); return;
+            }
             try {
                 const r = await fetch(`${RAILWAY_API_URL}/api/my/tier`, { headers: authHeaders(), cache: 'no-store' });
-                if (!r.ok) return;
+                if (!r.ok) { tierData = null; tierTheme(null); return; }
                 const j = await r.json();
                 if (j && j.ok) { tierData = j; tierRender(); }
             } catch (e) { /* tier is optional - hide silently */ }
