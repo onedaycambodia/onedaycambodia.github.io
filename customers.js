@@ -426,7 +426,7 @@ module.exports = function (app, { pool }) {
 
     // paid | unpaid (waiting for KHQR) | cod (pay on delivery) | cancelled | expired
     function payState(o) {
-        if (o.status === 'CANCELLED') return 'cancelled';
+        if (o.status === 'CANCELLED') return o.payment_method === 'WALLET' ? 'refunded' : 'cancelled'; // wallet money is returned on cancel
         if (o.status === 'EXPIRED') return 'expired';
         if (o.status === 'AWAITING_PAYMENT') return 'unpaid';
         if (o.payment_method === 'WALLET') return 'paid';

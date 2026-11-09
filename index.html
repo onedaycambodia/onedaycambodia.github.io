@@ -74,10 +74,13 @@
         html, body {
             touch-action: manipulation; /* pinch-zoom in AND out works; double-tap zoom stays off */
             -webkit-text-size-adjust: 100%;
-            overflow-x: hidden;
             width: 100%;
             position: relative;
         }
+        /* overflow-x:hidden on BOTH html and body made body its own scroll container, which broke the sticky header.
+           Hide sideways overflow on html only, and just clip (no scroll container) on body. */
+        html { overflow-x: hidden; }
+        body { overflow-x: clip; }
 
         * { 
             box-sizing: border-box; 
@@ -156,6 +159,7 @@
         .logo-img { height: 28px !important; width: auto !important; max-width: 120px !important; object-fit: contain; display: none; }
 
         .nav-right { display: flex; align-items: center; gap: 8px; }
+        nav.is-scrolled { box-shadow: 0 6px 22px rgba(0,0,0,.16); }
 
         /* Enhanced & Medium Navigation Buttons */
         .guide-top-btn { 
@@ -1257,7 +1261,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></symbol><symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></symbol><symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 4H5v16h4"/><path d="M16 8l4 4-4 4M20 12H9"/></symbol><symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h11v10H2zM13 9h4l4 4v3h-8"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></symbol><symbol id="i-back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol><symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></symbol><symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol><symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol><symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></symbol><symbol id="i-video" viewBox="0 0 24 24"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></symbol><symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="#22c55e" stroke="none"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" opacity=".2"/><path d="M21 12a9 9 0 0 0-9-9"/></symbol><symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol></svg>
 
 
-    <nav>
+    <nav id="mainNav">
         <a class="logo" href="./" aria-label="Oneday Cambodia">
             <img id="site-logo" class="logo-img" src="" alt="Site Logo" loading="lazy">
             <svg class="logo-mark" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1279,13 +1283,6 @@
                 <span data-key="guide_btn_text">របៀបកុម្មង់</span>
             </button>
             
-            <button class="acct-btn" id="accountBtn" style="display:none" onclick="openAccount()" aria-label="Account"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg></button>
-
-            <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle theme">
-                <svg class="nav-ico ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>
-                <svg class="nav-ico ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>
-            </button>
-
             <div class="lang-select-wrapper">
                 <img id="langFlagImg" src="images/IMG_5833.png" alt="Language Flag" class="lang-flag-img" loading="lazy">
                 <select class="lang-select" id="langSelect" onchange="changeLanguage(this.value)">
@@ -1294,6 +1291,13 @@
                     <option value="zh">中文</option>
                 </select>
             </div>
+
+            <button class="acct-btn" id="accountBtn" style="display:none" onclick="openAccount()" aria-label="Account"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg></button>
+
+            <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle theme">
+                <svg class="nav-ico ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>
+                <svg class="nav-ico ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>
+            </button>
         </div>
     </nav>
 
@@ -2953,6 +2957,9 @@
 
         // ✨ After a successful payment, when the customer closes the result popup, a burst of golden stars and sparkles
         // flies from the close button along smooth curves to the Account button, shedding glitter; the button flashes on arrival.
+        (function () { const n = document.getElementById('mainNav'); if (!n) return;
+            const f = () => n.classList.toggle('is-scrolled', window.scrollY > 8);
+            window.addEventListener('scroll', f, { passive: true }); f(); })();
         let khqrPlanePending = false;
         function flyStarsToAccount(sx, sy) {
             try {
@@ -3600,17 +3607,17 @@
                 err_name:'សូមបញ្ចូលឈ្មោះ', err_phone:'លេខទូរស័ព្ទមិនត្រឹមត្រូវ', err_no_tg:'លេខនេះមិនមាន Telegram ទេ សូមប្រើលេខដែលមាន Telegram', err_wait:'សូមរង់ចាំបន្តិច មុនផ្ញើកូដម្តងទៀត', err_many:'ព្យាយាមច្រើនពេក សូមរង់ចាំ', err_send:'មិនអាចផ្ញើកូដបានទេ សូមសាកល្បងម្តងទៀត', err_wrong:'កូដមិនត្រឹមត្រូវ', err_expired:'កូដផុតកំណត់ សូមផ្ញើម្តងទៀត', err_locked:'ខុសច្រើនដង សូមផ្ញើកូដថ្មី', err_net:'មិនអាចភ្ជាប់ Server បានទេ',
                 gg_btn:'បន្តដោយប្រើ Google', login_lead:'ចូលគណនីដើម្បីរក្សាទុកព័ត៌មានរបស់អ្នក និងតាមដានការកុម្មង់ ដោយមិនបាច់បំពេញម្តងទៀត។', connecting:'កំពុងតភ្ជាប់...', tt_btn:'បន្តដោយប្រើ TikTok', account:'គណនី', my_orders:'ការកុម្មង់របស់ខ្ញុំ', logout:'ចាកចេញ', saved:'បានរក្សាទុក', err_save:'រក្សាទុកមិនបាន សូមសាកល្បងម្តងទៀត', no_orders:'មិនទាន់មានការកុម្មង់ទេ', loading:'កំពុងផ្ទុក...', tg_sub:'ចុចប៊ូតុងខាងក្រោម រួចចុច Accept ក្នុង Telegram ជាការស្រេច — មិនបាច់វាយលេខ ឬកូដទេ។', tg_btn:'បន្តដោយប្រើ Telegram', tg_wait:'កំពុងរង់ចាំ Telegram...', err_tg_phone:'Telegram មិនបានផ្តល់លេខទូរស័ព្ទ សូមអនុញ្ញាត (Allow) ការចូលមើលលេខទូរស័ព្ទ', err_tg:'Login មិនបានសម្រេច សូមសាកល្បងម្តងទៀត',
                 st_PENDING:'រង់ចាំបញ្ជាក់', st_CONFIRMED:'ហាងបានបញ្ជាក់', st_AWAITING_PAYMENT:'រង់ចាំបង់ប្រាក់', st_CANCELLED:'បានលុបចោល', st_EXPIRED:'ផុតកំណត់',
-                pay_paid:'បង់ប្រាក់រួច', pay_unpaid:'មិនទាន់បង់', pay_cod:'បង់ពេលទទួល', pay_none:'មិនបានបង់', total:'សរុប', order:'កុម្មង់ #' },
+                pay_paid:'បង់ប្រាក់រួច', pay_unpaid:'មិនទាន់បង់', pay_cod:'បង់ពេលទទួល', pay_none:'មិនបានបង់', pay_refunded:'ទឹកប្រាក់បានបង្វិល', total:'សរុប', order:'កុម្មង់ #' },
             en: { login_title:'Sign in', login_sub:'Enter your name and phone number. We will send a 4-digit code to your Telegram.', name:'Your name', phone:'Phone number (Telegram)', next:'Next', code_sub:'A 4-digit code was sent to the Telegram of', verify:'Verify', resend:'Resend code', resend_in:'Resend in ', back:'Back',
                 err_name:'Please enter your name', err_phone:'Invalid phone number', err_no_tg:'This number is not on Telegram. Please use a Telegram number.', err_wait:'Please wait a moment before resending', err_many:'Too many attempts, please wait', err_send:'Could not send the code, please try again', err_wrong:'Wrong code', err_expired:'Code expired, please resend', err_locked:'Too many wrong tries, request a new code', err_net:'Cannot reach the server',
                 gg_btn:'Continue with Google', login_lead:'Log in to save your details and track your orders, with no need to fill them in again.', connecting:'Connecting...', tt_btn:'Continue with TikTok', account:'Account', my_orders:'My orders', logout:'Log out', saved:'Saved', err_save:'Could not save, please try again', no_orders:'No orders yet', loading:'Loading...', tg_sub:'Tap the button below, then tap Accept in Telegram. No typing, no code.', tg_btn:'Continue with Telegram', tg_wait:'Waiting for Telegram...', err_tg_phone:'Telegram did not share your phone number. Please allow phone access.', err_tg:'Login failed, please try again',
                 st_PENDING:'Awaiting confirmation', st_CONFIRMED:'Confirmed', st_AWAITING_PAYMENT:'Awaiting payment', st_CANCELLED:'Cancelled', st_EXPIRED:'Expired',
-                pay_paid:'Paid', pay_unpaid:'Unpaid', pay_cod:'Pay on delivery', pay_none:'Not paid', total:'Total', order:'Order #' },
+                pay_paid:'Paid', pay_unpaid:'Unpaid', pay_cod:'Pay on delivery', pay_none:'Not paid', pay_refunded:'Refunded', total:'Total', order:'Order #' },
             zh: { login_title:'登录', login_sub:'请输入姓名和手机号，我们会向您的 Telegram 发送 4 位验证码。', name:'您的姓名', phone:'手机号 (Telegram)', next:'下一步', code_sub:'4 位验证码已发送至以下号码的 Telegram：', verify:'确认', resend:'重新发送', resend_in:'重新发送：', back:'返回',
                 err_name:'请输入姓名', err_phone:'手机号无效', err_no_tg:'该号码未注册 Telegram，请使用 Telegram 号码', err_wait:'请稍候再重新发送', err_many:'尝试次数过多，请稍候', err_send:'验证码发送失败，请重试', err_wrong:'验证码错误', err_expired:'验证码已过期，请重新发送', err_locked:'错误次数过多，请重新获取', err_net:'无法连接服务器',
                 gg_btn:'使用 Google 继续', login_lead:'登录后可保存您的信息并跟踪订单，无需重复填写。', connecting:'正在连接...', tt_btn:'使用 TikTok 继续', account:'账户', my_orders:'我的订单', logout:'退出登录', saved:'已保存', err_save:'保存失败，请重试', no_orders:'暂无订单', loading:'加载中...', tg_sub:'点击下方按钮，然后在 Telegram 中点击“接受”即可，无需输入号码或验证码。', tg_btn:'使用 Telegram 继续', tg_wait:'等待 Telegram...', err_tg_phone:'Telegram 未提供手机号，请允许访问手机号。', err_tg:'登录失败，请重试',
                 st_PENDING:'等待确认', st_CONFIRMED:'商家已确认', st_AWAITING_PAYMENT:'等待付款', st_CANCELLED:'已取消', st_EXPIRED:'已过期',
-                pay_paid:'已付款', pay_unpaid:'未付款', pay_cod:'货到付款', pay_none:'未付款', total:'合计', order:'订单 #' }
+                pay_paid:'已付款', pay_unpaid:'未付款', pay_cod:'货到付款', pay_none:'未付款', pay_refunded:'已退款', total:'合计', order:'订单 #' }
         };
         function at(k) { const d = AUTH_T[currentLang] || AUTH_T.km; return d[k] != null ? d[k] : (AUTH_T.km[k] || k); }
         function applyAuthLang() {
@@ -3806,7 +3813,7 @@
                 body.innerHTML = list.map(o => {
                     const stIcon = o.status === 'CONFIRMED' ? 'check' : (o.status === 'CANCELLED' || o.status === 'EXPIRED') ? 'ban' : 'hourglass';
                     const stCls = (o.status === 'CANCELLED' || o.status === 'EXPIRED') ? 'bad' : o.status === 'CONFIRMED' ? 'paid' : '';
-                    const pay = { paid: ['paid', 'check', 'pay_paid'], unpaid: ['unpaid', 'hourglass', 'pay_unpaid'], cod: ['', 'truck', 'pay_cod'], cancelled: ['bad', 'ban', 'pay_none'], expired: ['bad', 'ban', 'pay_none'] }[o.pay] || ['', 'dot', 'pay_cod'];
+                    const pay = { paid: ['paid', 'check', 'pay_paid'], unpaid: ['unpaid', 'hourglass', 'pay_unpaid'], cod: ['', 'truck', 'pay_cod'], cancelled: ['bad', 'ban', 'pay_none'], expired: ['bad', 'ban', 'pay_none'], refunded: ['paid', 'refresh', 'pay_refunded'] }[(o.status === 'CANCELLED' && String(o.method).toUpperCase() === 'WALLET') ? 'refunded' : o.pay] || ['', 'dot', 'pay_cod'];
                     const amount = (o.pay_amount != null ? o.pay_amount : o.total);
                     return `<div class="od-card">
                         <div class="od-top"><div><div class="od-id">${esc(at('order'))}${Number(o.id)}</div><div class="od-date">${esc(new Date(o.created_at).toLocaleString(loc, { dateStyle: 'medium', timeStyle: 'short' }))}</div></div>
