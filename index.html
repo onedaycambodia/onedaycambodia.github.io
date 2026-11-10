@@ -4112,7 +4112,7 @@
             if (KH_IMG[k]) bg.innerHTML = '<div class="kh-bgimg ' + KH_IMG[k] + '"></div>'; else
             bg.innerHTML = bgs.length === 1 ? khSvg(bgs[0], 'kh-bgart') :
                 '<svg class="kh-bgart" viewBox="0 0 200 200">' + bgs.map((n, i) => khSvg(n, '').replace('<svg class="" ', '<svg x="' + (i % 2) * 100 + '" y="' + Math.floor(i / 2) * 100 + '" width="100" height="100" ')).join('') + '</svg>';
-            box.insertBefore(bg, top.nextSibling);
+            /* background art removed for all ranks (1-5) */
             const hero = box.querySelector('.au-hero');
             if (hero) {
                 const leaf = (a) => '<path transform="rotate(' + a + ')" d="M0 0C5 3.5 13 3.5 22 0C13 -3.5 5 -3.5 0 0Z"/>';
