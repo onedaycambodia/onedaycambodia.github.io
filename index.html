@@ -1334,11 +1334,14 @@
         #acctModal [data-tier="diamond"] .kh-c { opacity:0.7; }
         #acctModal [data-tier="vip"] { --kh-tile:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='12' viewBox='0 0 28 12'%3E%3Cpath d='M14 0L16 4L17.5 4L17.5 6.5L19 6.5L19 9L20.5 9L20.5 12L7.5 12L7.5 9L9 9L9 6.5L10.5 6.5L10.5 4L12 4Z'/%3E%3Ccircle cx='2.5' cy='9.5' r='1.7'/%3E%3Ccircle cx='25.5' cy='9.5' r='1.7'/%3E%3Cpath d='M0 11.4H6V12H0ZM22 11.4H28V12H22Z'/%3E%3C/svg%3E"); --tc2:#f0c24a; }
         #acctModal [data-tier="vip"] .kh-c { opacity:0.85; }
-        #acctModal .au-hero > .hero-naga { position:absolute; z-index:0; right:106px; top:-38%; width:100px; height:230%; pointer-events:none;
+        #acctModal [data-tier="diamond"] .au-hero { min-height:96px; }
+        #acctModal .au-hero > .hero-naga { position:absolute; z-index:0; right:94px; top:5px; width:78px; height:calc(100% - 10px); pointer-events:none;
             background:linear-gradient(135deg,#1b5a96,#2f82c4); opacity:.55;
             -webkit-mask:var(--kh-img) center/contain no-repeat; mask:var(--kh-img) center/contain no-repeat; }
-        body.dark-mode #acctModal .au-hero > .hero-naga { background:#4a88c6; opacity:.34; }
-        body.dark-mode #acctModal [data-tier="diamond"] .au-hero { background-image:none !important; background-color:#243a57; animation:hero-in .55s ease-out both; }
+        body.dark-mode #acctModal [data-tier="diamond"] .au-hero { background-image:linear-gradient(135deg,#d3e4f4,#bdd6ee,#d6e6f5) !important; background-color:#cfe1f3; animation:hero-in .55s ease-out both; }
+        body.dark-mode #acctModal [data-tier="diamond"] .au-hero b { color:#0f172a; }
+        body.dark-mode #acctModal [data-tier="diamond"] .au-hero > div span:not(.tier-chip), body.dark-mode #acctModal [data-tier="diamond"] .au-hero .au-pen { color:#475569; }
+        body.dark-mode #acctModal [data-tier="diamond"] .au-hero .au-out { background:#fff; border-color:#cbd5e1; color:#334155; } body.dark-mode #acctModal [data-tier="diamond"] .au-hero .au-out span { color:#334155; }
         body.dark-mode #acctModal [data-tier="diamond"] .au-hero::before, body.dark-mode #acctModal [data-tier="diamond"] .au-hero::after { display:none; }
         .kh-top, #acctModal .au-hero > .kh-band { display:none !important; }
         .kh-top, #acctModal .au-hero > .kh-band { -webkit-mask-image:var(--kh-tile); mask-image:var(--kh-tile); -webkit-mask-repeat:repeat-x; mask-repeat:repeat-x; -webkit-mask-size:auto 100%; mask-size:auto 100%; -webkit-mask-position:center; mask-position:center;
