@@ -1221,8 +1221,12 @@
         .tier-chip span { overflow:visible !important; }
         .tb { overflow:visible; animation:tb-float 3.2s ease-in-out infinite; }
         .tb-hi { animation:tb-pulse 2.4s ease-in-out infinite; }
-        .tb-rib { transform-origin:36px 44px; animation:tb-sway 2.8s ease-in-out infinite; } .tb-rib.r2 { animation-delay:-1.4s; }
+        .tb-rib { transform-box:fill-box; transform-origin:50% 0%; animation:tb-sway 2.8s ease-in-out infinite; } .tb-rib.r2 { animation-delay:-1.4s; }
         .tb-tw { transform-box:fill-box; transform-origin:center; animation:tb-twinkle 1.9s ease-in-out infinite; }
+        .tb-spin { transform-box:fill-box; transform-origin:center; animation:tb-turn 36s linear infinite; } .tb-spin.rev { animation-duration:50s; animation-direction:reverse; }
+        .tb-flick { transform-box:fill-box; transform-origin:50% 100%; animation:tb-flick 1.8s ease-in-out infinite; }
+        @keyframes tb-turn { to { transform:rotate(360deg) } }
+        @keyframes tb-flick { 0%,100% { transform:scale(.9,.86) } 50% { transform:scale(1.06,1.1) rotate(3deg) } }
         .tb-crown { animation:tb-bob 2.2s ease-in-out infinite; }
         .tb-sweep { animation:tb-sweep 3.4s ease-in-out infinite; }
         @keyframes tb-float { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-2px) } }
@@ -1319,6 +1323,24 @@
         .tmax-spent { flex:none; text-align:right; padding-left:10px; border-left:1px solid rgba(240,194,74,.4); }
         .tmax-spent small { display:block; font-size:10px; opacity:.75; } .tmax-spent b { font-size:15px; font-weight:800; color:#f0c24a; }
         @media (prefers-reduced-motion: reduce) { .tier-card.max, .tier-card.max::before, .tmax-name b { animation:none !important; } }
+/* Khmer ornament set: lotus (bronze), double lotus (silver), kanok flame (gold), lattice (diamond), prang + kanok (vip) */
+        #acctModal [data-tier="bronze"] { --kh-tile:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='10' viewBox='0 0 24 10'%3E%3Cpath d='M0 10Q9 10 12 1Q15 10 24 10Z'/%3E%3Ccircle cx='0' cy='2' r='1.3'/%3E%3Ccircle cx='24' cy='2' r='1.3'/%3E%3C/svg%3E"); --tc2:#ffd8b5; }
+        #acctModal [data-tier="bronze"] .kh-c { opacity:0.45; }
+        #acctModal [data-tier="silver"] { --kh-tile:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='10' viewBox='0 0 24 10'%3E%3Cpath fill-rule='evenodd' d='M0 10Q9 10 12 .5Q15 10 24 10ZM7 10Q10 10 12 3.5Q14 10 17 10Z'/%3E%3Ccircle cx='0' cy='2' r='1.3'/%3E%3Ccircle cx='24' cy='2' r='1.3'/%3E%3C/svg%3E"); --tc2:#ffffff; }
+        #acctModal [data-tier="silver"] .kh-c { opacity:0.5; }
+        #acctModal [data-tier="gold"] { --kh-tile:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='12' viewBox='0 0 26 12'%3E%3Cpath d='M13 11.5C8.5 9.5 7.5 5 11 .8C11 4 13 5 14.2 3C17.5 6.2 17.5 9.5 13 11.5Z'/%3E%3Cpath d='M0 11H26V12H0Z'/%3E%3Cpath d='M2 11C3 8 6 7 8 8C6 8 5 9.5 5 11Z'/%3E%3Cpath d='M24 11C23 8 20 7 18 8C20 8 21 9.5 21 11Z'/%3E%3C/svg%3E"); --tc2:#fff1b0; }
+        #acctModal [data-tier="gold"] .kh-c { opacity:0.65; }
+        #acctModal [data-tier="diamond"] { --kh-tile:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='10' viewBox='0 0 20 10'%3E%3Cpath fill-rule='evenodd' d='M10 0L20 5L10 10L0 5ZM10 2.4L16.4 5L10 7.6L3.6 5Z'/%3E%3Ccircle cx='10' cy='5' r='1.1'/%3E%3C/svg%3E"); --tc2:#d4f1ff; }
+        #acctModal [data-tier="diamond"] .kh-c { opacity:0.7; }
+        #acctModal [data-tier="vip"] { --kh-tile:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='12' viewBox='0 0 28 12'%3E%3Cpath d='M14 0L16 4L17.5 4L17.5 6.5L19 6.5L19 9L20.5 9L20.5 12L7.5 12L7.5 9L9 9L9 6.5L10.5 6.5L10.5 4L12 4Z'/%3E%3Ccircle cx='2.5' cy='9.5' r='1.7'/%3E%3Ccircle cx='25.5' cy='9.5' r='1.7'/%3E%3Cpath d='M0 11.4H6V12H0ZM22 11.4H28V12H22Z'/%3E%3C/svg%3E"); --tc2:#f0c24a; }
+        #acctModal [data-tier="vip"] .kh-c { opacity:0.85; }
+        .kh-top, #acctModal .au-hero > .kh-band { -webkit-mask-image:var(--kh-tile); mask-image:var(--kh-tile); -webkit-mask-repeat:repeat-x; mask-repeat:repeat-x; -webkit-mask-size:auto 100%; mask-size:auto 100%; -webkit-mask-position:center; mask-position:center;
+            background:linear-gradient(90deg,var(--tc),var(--tc2),var(--tc)); background-size:200% 100%; animation:hero-flow 4s linear infinite; pointer-events:none; }
+        .kh-top { height:12px; margin:-8px 0 8px; transform:scaleY(-1); }
+        #acctModal .au-hero > .kh-band { position:absolute; left:0; right:0; bottom:0; height:9px; opacity:.75; z-index:0; }
+        #acctModal .au-hero > .kh-c { position:absolute; width:30px; height:30px; z-index:0; color:var(--tc); pointer-events:none; overflow:visible; }
+        .kh-c.tl { top:2px; left:2px; } .kh-c.tr { top:2px; right:2px; transform:scaleX(-1); } .kh-c.bl { bottom:10px; left:2px; transform:scaleY(-1); } .kh-c.br { bottom:10px; right:2px; transform:scale(-1,-1); }
+        @media (prefers-reduced-motion: reduce) { .kh-top, #acctModal .au-hero > .kh-band { animation:none !important; } }
         .tier-row { display:flex; align-items:center; gap:14px; padding:12px 4px; border-bottom:1px solid rgba(128,128,128,.25); }
         .tier-row:last-child { border-bottom:none; } .tier-row svg.tb { width:60px; height:60px; flex:none; }
         .tier-row b { display:block; font-size:17px; } .tier-row span { opacity:.7; font-size:14px; }
@@ -3949,50 +3971,57 @@
         }
         function tierSvg(k) {
             const star = (x, y, r, c, d) => '<path class="tb-tw" style="animation-delay:' + d + 's" d="M' + x + ' ' + (y - r) + 'Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y + r) + 'Q' + x + ' ' + y + ' ' + (x - r) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y - r) + 'Z" fill="' + c + '"/>';
-            const sweep = (clip) => '<clipPath id="tc-' + k + '">' + clip + '</clipPath><g clip-path="url(#tc-' + k + ')"><polygon class="tb-sweep" points="-30,0 -16,0 -26,80 -40,80" fill="#fff" opacity=".5"/></g>';
-            let b = '';
-            if (k === 'bronze' || k === 'silver') {
-                const m = k === 'bronze'
-                    ? { r1:'#f6bd8a', r2:'#733819', d1:'#eaa571', d2:'#b8683a', d3:'#8a4526', ico:'#5a290f', ico2:'#f8cfa6', rb1:'#b0602f', rb2:'#6a3217', hi:'#fff1e2' }
-                    : { r1:'#ffffff', r2:'#6b7487', d1:'#f3f5fa', d2:'#bcc4d1', d3:'#8a94a6', ico:'#384152', ico2:'#ffffff', rb1:'#6286ea', rb2:'#2a459c', hi:'#ffffff' };
-                const g = 'tg-' + k;
-                b = '<defs><linearGradient id="' + g + '-r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + m.r1 + '"/><stop offset=".55" stop-color="' + m.d3 + '"/><stop offset="1" stop-color="' + m.r2 + '"/></linearGradient>' +
-                    '<radialGradient id="' + g + '-d" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="' + m.d1 + '"/><stop offset=".6" stop-color="' + m.d2 + '"/><stop offset="1" stop-color="' + m.d3 + '"/></radialGradient>' +
-                    '<linearGradient id="' + g + '-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + m.rb1 + '"/><stop offset="1" stop-color="' + m.rb2 + '"/></linearGradient></defs>' +
-                    '<path class="tb-rib" d="M20 44 14 66 24 60 30 68 36 46Z" fill="url(#' + g + '-b)"/><path class="tb-rib" d="M20 44 24 60 30 68 36 46Z" fill="#000" opacity=".14"/>' +
-                    '<path class="tb-rib r2" d="M52 44 58 66 48 60 42 68 36 46Z" fill="url(#' + g + '-b)"/><path class="tb-rib r2" d="M52 44 48 60 42 68 36 46Z" fill="#000" opacity=".14"/>' +
-                    '<circle cx="36" cy="30" r="26" fill="url(#' + g + '-r)"/><circle cx="36" cy="30" r="23.8" fill="none" stroke="' + m.hi + '" stroke-width=".8" opacity=".6"/>' +
-                    '<circle cx="36" cy="30" r="21.7" fill="none" stroke="' + m.r2 + '" stroke-width="1.7" stroke-dasharray="1.2 1.8" opacity=".5"/>' +
-                    '<circle cx="36" cy="30" r="19" fill="url(#' + g + '-d)" stroke="' + m.r2 + '" stroke-width="1"/><circle cx="36" cy="30" r="17.4" fill="none" stroke="' + m.hi + '" stroke-width=".8" opacity=".55"/>' +
-                    '<path class="tb-hi" d="M17.5 21a19.5 19.5 0 0 1 15-11.5" fill="none" stroke="' + m.hi + '" stroke-width="3" stroke-linecap="round"/>' +
-                    tierIcon(m.ico2, 36, 32.3, .62) + tierIcon(m.ico, 36, 31, .62) +
-                    sweep('<circle cx="36" cy="30" r="26"/>');
-            } else if (k === 'gold') {
-                b = '<path d="M36 4 62 13V36Q62 54 36 68 10 54 10 36V13Z" fill="#ddae45" stroke="#b9892b" stroke-width="2.5" stroke-linejoin="round"/>' +
-                    '<path class="tb-hi" d="M36 9 57 16V36Q57 51 36 63Z" fill="#f2d279"/><path class="tb-tw" d="M36 14 38 19 43 19.5 39.3 23 40.3 28 36 25.5 31.7 28 32.7 23 29 19.5 34 19Z" fill="#fbeab5"/>' +
-                    '<circle cx="36" cy="38" r="17" fill="#fbeab5" stroke="#a87a22" stroke-width="2"/>' + tierIcon('#8a5a14', 36, 39, .6) +
-                    sweep('<path d="M36 4 62 13V36Q62 54 36 68 10 54 10 36V13Z"/>');
-            } else if (k === 'diamond') {
-                b = '<path d="M36 5 63 20.5V51.5L36 67 9 51.5V20.5Z" fill="#3f82b8" stroke="#3573a6" stroke-width="2" stroke-linejoin="round"/>' +
-                    '<path d="M36 11 58 23.5V48.5L36 61 14 48.5V23.5Z" fill="#8fd0f2"/><path class="tb-hi" d="M36 11 58 23.5 36 36 14 23.5Z" fill="#b9e6fb"/>' +
-                    '<circle cx="36" cy="36" r="17" fill="#eaf8ff" stroke="#3573a6" stroke-width="1.5"/>' + tierIcon('#2f6fa3', 36, 37, .6) +
-                    sweep('<path d="M36 5 63 20.5V51.5L36 67 9 51.5V20.5Z"/>') +
-                    star(62, 8, 6, '#5bb8f5', 0) + star(8, 14, 4, '#7ccaf8', .6) + star(60, 64, 4, '#7ccaf8', 1.2);
-            } else {
-                b = '<path d="M36 40C26 30 12 34 6 44c-3 6 6 8 12 8 6 0 10-2 18-2Z" fill="#dcae45"/><path d="M36 40c10-10 24-6 30 4 3 6-6 8-12 8-6 0-10-2-18-2Z" fill="#dcae45"/>' +
-                    '<g class="tb-crown"><path d="M24 14 28 26 36 8 44 26 48 14 50 30H22Z" fill="#f0c95c" stroke="#b9892b" stroke-width="2" stroke-linejoin="round"/><rect x="22" y="28" width="28" height="5" rx="2" fill="#e8b94a" stroke="#b9892b" stroke-width="1.5"/>' +
-                    '<circle class="tb-tw" cx="24" cy="13" r="3.2" fill="#e5484d"/><circle class="tb-tw" style="animation-delay:.5s" cx="36" cy="6" r="3.2" fill="#4da9f0"/><circle class="tb-tw" style="animation-delay:1s" cx="48" cy="13" r="3.2" fill="#e5484d"/></g>' +
-                    '<path d="M36 34 56 41V52Q56 64 36 72 16 64 16 52V41Z" fill="#4b2fb5" stroke="#b9892b" stroke-width="2.5" stroke-linejoin="round"/>' +
-                    '<path class="tb-hi" d="M36 34 56 41V52Q56 64 36 72Z" fill="#3a2396"/>' + tierIcon('#f0c24a', 36, 52, .58) +
-                    sweep('<path d="M36 34 56 41V52Q56 64 36 72 16 64 16 52V41Z"/>');
-            }
-            return '<svg class="tb" viewBox="0 0 72 72" aria-hidden="true">' + b + '</svg>';
+            const P = {
+                bronze:  { r1:'#f6bd8a', r2:'#733819', d1:'#eaa571', d2:'#b8683a', d3:'#8a4526', ico:'#5a290f', ico2:'#f8cfa6', rb1:'#b0602f', rb2:'#6a3217', hi:'#fff1e2', p1:'#e9a56f', p2:'#8a4526' },
+                silver:  { r1:'#ffffff', r2:'#6b7487', d1:'#f3f5fa', d2:'#bcc4d1', d3:'#8a94a6', ico:'#384152', ico2:'#ffffff', rb1:'#6286ea', rb2:'#2a459c', hi:'#ffffff', p1:'#f4f6fb', p2:'#8a94a6' },
+                gold:    { r1:'#fff1b0', r2:'#7a4d0e', d1:'#fff6d2', d2:'#f3c94f', d3:'#c9971f', ico:'#7a4d0e', ico2:'#fffbe6', rb1:'#e0525a', rb2:'#8f1f2a', hi:'#fffbe6', p1:'#ffe58a', p2:'#b9892b' },
+                diamond: { r1:'#eefaff', r2:'#245f93', d1:'#f6fcff', d2:'#a4def8', d3:'#4aa3dc', ico:'#1f5f94', ico2:'#ffffff', rb1:'#4aa3dc', rb2:'#245f93', hi:'#ffffff', p1:'#c8edff', p2:'#3f86bf' },
+                vip:     { r1:'#ffe9a0', r2:'#6a4a10', d1:'#8a63ff', d2:'#4b2fb5', d3:'#2c1a80', ico:'#f0c24a', ico2:'#1a0e55', rb1:'#8a63ff', rb2:'#3a2396', hi:'#fff3c4', p1:'#f7d36b', p2:'#b9892b' }
+            }[k];
+            const C = { bronze:{ n:8, l2:0, sp:0, rb:1, wing:0 }, silver:{ n:12, l2:0, sp:0, rb:1, wing:0 }, gold:{ n:12, l2:1, sp:1, rb:1, wing:0 }, diamond:{ n:12, l2:1, sp:2, rb:0, wing:0 }, vip:{ n:16, l2:1, sp:3, rb:0, wing:1 } }[k];
+            const g = 'tg-' + k;
+            // Khmer lotus petal pointing up from radius 17
+            const petal = (a, len, w, fill) => '<path transform="translate(36 36) rotate(' + a.toFixed(1) + ')" d="M0 -17C' + w + ' -' + (17 + len * .3) + ' ' + w + ' -' + (17 + len * .72) + ' 0 -' + (17 + len) + 'C-' + w + ' -' + (17 + len * .72) + ' -' + w + ' -' + (17 + len * .3) + ' 0 -17Z" fill="' + fill + '" stroke="' + P.r2 + '" stroke-width=".7" stroke-opacity=".55"/>';
+            // Angkor prang (stepped tower)
+            const prang = (x, y, s) => '<path transform="translate(' + x + ' ' + y + ') scale(' + s + ')" d="M-8 0L-8 -3L-6.5 -3L-6.5 -6L-5 -6L-5 -9L-3.5 -9L-2 -13L0 -19L2 -13L3.5 -9L5 -9L5 -6L6.5 -6L6.5 -3L8 -3L8 0Z" fill="url(#' + g + '-p)" stroke="' + P.r2 + '" stroke-width="' + (.9 / s).toFixed(2) + '" stroke-linejoin="round"/>';
+            // Kanok flame
+            const flame = (a) => '<g transform="translate(36 36) rotate(' + a + ') translate(0 -27)"><path class="tb-flick" d="M0 0C3 -3 5 -8 1 -14C7 -10 10 -3 7 2C5 5 2 4 0 0Z" fill="url(#' + g + '-p)" stroke="' + P.r2 + '" stroke-width=".6"/></g>';
+            let b = '<defs><linearGradient id="' + g + '-r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + P.r1 + '"/><stop offset=".55" stop-color="' + P.d3 + '"/><stop offset="1" stop-color="' + P.r2 + '"/></linearGradient>' +
+                '<radialGradient id="' + g + '-d" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="' + P.d1 + '"/><stop offset=".6" stop-color="' + P.d2 + '"/><stop offset="1" stop-color="' + P.d3 + '"/></radialGradient>' +
+                '<linearGradient id="' + g + '-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + P.rb1 + '"/><stop offset="1" stop-color="' + P.rb2 + '"/></linearGradient>' +
+                '<linearGradient id="' + g + '-p" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="' + P.p2 + '"/><stop offset="1" stop-color="' + P.p1 + '"/></linearGradient>' +
+                '<linearGradient id="' + g + '-q" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="' + P.r2 + '"/><stop offset="1" stop-color="' + P.p2 + '"/></linearGradient>' +
+                '<clipPath id="tc-' + k + '"><circle cx="36" cy="36" r="29"/></clipPath></defs>';
+            if (C.rb) b += '<path class="tb-rib" d="M24 50 18 71 28 65 33 73 38 52Z" fill="url(#' + g + '-b)"/><path class="tb-rib" d="M24 50 28 65 33 73 38 52Z" fill="#000" opacity=".14"/>' +
+                '<path class="tb-rib r2" d="M48 50 54 71 44 65 39 73 34 52Z" fill="url(#' + g + '-b)"/><path class="tb-rib r2" d="M48 50 44 65 39 73 34 52Z" fill="#000" opacity=".14"/>';
+            if (C.wing) b += '<g>' + [-62, -88, -114, 62, 88, 114].map(flame).join('') + '</g>';
+            if (C.l2) { let q = ''; for (let i = 0; i < C.n; i++) q += petal(i * 360 / C.n + 180 / C.n, 12.5, 5.2, 'url(#' + g + '-q)'); b += '<g class="tb-spin rev">' + q + '</g>'; }
+            { let f = ''; const len = C.l2 ? 9.6 : 10.5, w = C.n === 8 ? 5.6 : 3.9; for (let i = 0; i < C.n; i++) f += petal(i * 360 / C.n, len, w, 'url(#' + g + '-p)'); b += '<g class="tb-spin">' + f + '</g>'; }
+            b += '<circle cx="36" cy="36" r="19.6" fill="url(#' + g + '-r)"/><circle cx="36" cy="36" r="17.9" fill="none" stroke="' + P.r2 + '" stroke-width="1.5" stroke-dasharray="1.1 1.7" opacity=".5"/>' +
+                '<circle cx="36" cy="36" r="15.6" fill="url(#' + g + '-d)" stroke="' + P.r2 + '" stroke-width="1"/><circle cx="36" cy="36" r="14.2" fill="none" stroke="' + P.hi + '" stroke-width=".7" opacity=".55"/>' +
+                '<path class="tb-hi" d="M21.6 31A15 15 0 0 1 30 22" fill="none" stroke="' + P.hi + '" stroke-width="2.6" stroke-linecap="round"/>' +
+                tierIcon(P.ico2, 36, 37.3, .5) + tierIcon(P.ico, 36, 36, .5);
+            if (C.sp >= 2) b += prang(26.5, 14, C.sp === 3 ? .55 : .4) + prang(45.5, 14, C.sp === 3 ? .55 : .4);
+            if (C.sp >= 1) b += prang(36, 11.5, C.sp === 3 ? .85 : (C.sp === 2 ? .7 : .55));
+            if (C.sp === 3) b += '<circle class="tb-tw" cx="36" cy="-4.6" r="1.5" fill="#e5484d"/>';
+            b += '<g clip-path="url(#tc-' + k + ')"><polygon class="tb-sweep" points="-30,0 -16,0 -26,80 -40,80" fill="#fff" opacity=".45"/></g>';
+            if (k === 'diamond') b += star(68, 4, 6, '#5bb8f5', 0) + star(4, 12, 4, '#7ccaf8', .6) + star(66, 68, 4, '#7ccaf8', 1.2);
+            return '<svg class="tb" viewBox="-4 -6 80 80" aria-hidden="true">' + b + '</svg>';
         }
         const tierFrom = (t) => t.from > 0 ? tt('from') + ' $' + t.from : tt('new');
         function tierTheme(k) {
             const box = document.querySelector('#acctModal .modal-content');
             if (!box) return;
             if (k) box.setAttribute('data-tier', k); else box.removeAttribute('data-tier');
+            box.querySelectorAll('.kh-orn').forEach(n => n.remove());
+            if (!k) return;
+            const top = document.createElement('div'); top.className = 'kh-top kh-orn'; top.setAttribute('aria-hidden', 'true'); box.insertBefore(top, box.firstChild);
+            const hero = box.querySelector('.au-hero');
+            if (hero) {
+                const leaf = (a) => '<path transform="rotate(' + a + ')" d="M0 0C5 3.5 13 3.5 22 0C13 -3.5 5 -3.5 0 0Z"/>';
+                const corner = (pos) => '<svg class="kh-orn kh-c ' + pos + '" viewBox="0 0 30 30" aria-hidden="true"><g transform="translate(3 3)" fill="currentColor">' + leaf(8) + leaf(40) + leaf(72) + '<circle r="2.3"/><path d="M13 1A12 12 0 0 1 1 13" fill="none" stroke="currentColor" stroke-width="1"/></g></svg>';
+                hero.insertAdjacentHTML('beforeend', corner('tl') + corner('tr') + corner('bl') + corner('br') + '<div class="kh-orn kh-band" aria-hidden="true"></div>');
+            }
         }
         function tierRender() {
             const d = tierData, card = document.getElementById('tierCard'), chip = document.getElementById('acTierChip');
