@@ -24,7 +24,8 @@ a { color:var(--accent); }
 .lang button { border:1px solid var(--line); background:var(--card); color:var(--text); padding:6px 14px; border-radius:20px; font:inherit; font-size:14px; cursor:pointer; }
 .lang button.on { background:var(--accent); color:#fff; border-color:var(--accent); }
 [data-l] { display:none; }
-body.km [data-l="km"], body.en [data-l="en"] { display:block; }
+body.km [data-l="km"], body.en [data-l="en"], body.zh [data-l="zh"] { display:block; }
+body.km span[data-l="km"], body.en span[data-l="en"], body.zh span[data-l="zh"] { display:inline; }
 </style>
 </head>
 <body class="km">
@@ -33,15 +34,16 @@ body.km [data-l="km"], body.en [data-l="en"] { display:block; }
 <div class="lang">
 <button id="bKm" class="on" onclick="setL('km')">ខ្មែរ</button>
 <button id="bEn" onclick="setL('en')">English</button>
+<button id="bZh" onclick="setL('zh')">中文</button>
 </div>
 <div class="card">
 <div data-l="km"><h1>គោលការណ៍ភាពឯកជន</h1>
-<p class="muted">Oneday Clothing · ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ៖ ៧ វិច្ឆិកា ២០២៦</p>
+<p class="muted">Oneday Clothing · ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ៖ ១០ វិច្ឆិកា ២០២៦</p>
 <p>គេហទំព័រ <b>Oneday Clothing</b> (https://onedaycambodia.github.io/) គឺជាហាងលក់សម្លៀកបំពាក់អនឡាញនៅកម្ពុជា។ ទំព័រនេះពន្យល់ពីព័ត៌មានដែលយើងប្រមូល និងរបៀបដែលយើងប្រើវា នៅពេលអ្នកចូលគណនី ឬកុម្មង់ទំនិញ។</p>
 <h2>១. ព័ត៌មានដែលយើងប្រមូល</h2>
 <ul>
-<li>ពេលចូលតាម <b>Facebook</b>៖ ឈ្មោះ អ៊ីមែល (បើអ្នកអនុញ្ញាត) លេខសម្គាល់ Facebook (ID) និងរូបភាពប្រូហ្វាល់ជាសាធារណៈ។ យើងមិនទទួលបានពាក្យសម្ងាត់ Facebook របស់អ្នកទេ។</li>
-<li>ពេលចូលតាម <b>Telegram</b> ឬ <b>Google</b>៖ ឈ្មោះ លេខទូរស័ព្ទ (Telegram) ឬអ៊ីមែល (Google) និងរូបភាពប្រូហ្វាល់។</li>
+<li>ពេលចូលតាម <b>Google</b>៖ ឈ្មោះ អ៊ីមែល និងរូបភាពប្រូហ្វាល់។ យើងមិនទទួលបានពាក្យសម្ងាត់ Google របស់អ្នកទេ។</li>
+<li>ពេលចូលតាម <b>Telegram</b>៖ ឈ្មោះ ឈ្មោះអ្នកប្រើ (username) លេខសម្គាល់ Telegram និងរូបភាពប្រូហ្វាល់ (និងលេខទូរស័ព្ទ បើអ្នកអនុញ្ញាត)។</li>
 <li>ពេលចូលតាម <b>TikTok</b>៖ ឈ្មោះបង្ហាញ រូបភាពប្រូហ្វាល់ និងលេខសម្គាល់អ្នកប្រើ TikTok (scope <i>user.info.basic</i>)។ យើងមិនទទួលពាក្យសម្ងាត់ TikTok ហើយមិនបង្ហោះ ឬអានវីដេអូ TikTok របស់អ្នកទេ។</li>
 <li>ព័ត៌មានដែលអ្នកបញ្ចូលពេលកុម្មង់ ដូចជាឈ្មោះ លេខទូរស័ព្ទ ទីតាំងដឹកជញ្ជូន និងទំនិញដែលបានកុម្មង់។</li>
 </ul>
@@ -60,12 +62,12 @@ body.km [data-l="km"], body.en [data-l="en"] { display:block; }
 <h2>៦. ទំនាក់ទំនង</h2>
 <p>មានសំណួរ សូមទាក់ទង៖ <a href="mailto:fennmybad@gmail.com">fennmybad@gmail.com</a></p></div>
 <div data-l="en"><h1>Privacy Policy</h1>
-<p class="muted">Oneday Clothing · Last updated: November 7, 2026</p>
+<p class="muted">Oneday Clothing · Last updated: November 10, 2026</p>
 <p><b>Oneday Clothing</b> (https://onedaycambodia.github.io/) is an online clothing shop in Cambodia. This page explains what information we collect and how we use it when you sign in or place an order.</p>
 <h2>1. Information we collect</h2>
 <ul>
-<li>When you sign in with <b>Facebook</b>: your name, email (if you allow it), Facebook user ID and public profile picture. We never receive your Facebook password.</li>
-<li>When you sign in with <b>Telegram</b> or <b>Google</b>: your name, phone number (Telegram) or email (Google), and profile picture.</li>
+<li>When you sign in with <b>Google</b>: your name, email address and profile picture. We never receive your Google password.</li>
+<li>When you sign in with <b>Telegram</b>: your name, username, Telegram user ID and profile picture (and phone number, if you allow it).</li>
 <li>When you sign in with <b>TikTok</b>: your TikTok display name, profile picture and a TikTok user ID (scope <i>user.info.basic</i>). We never receive your TikTok password and we do not post to or read your TikTok videos.</li>
 <li>Information you enter when ordering, such as your name, phone number, delivery location and the items you order.</li>
 </ul>
@@ -83,9 +85,33 @@ body.km [data-l="km"], body.en [data-l="en"] { display:block; }
 <p>You can ask to see, correct or delete your information at any time. See how to delete your data on the <a href="data-deletion.html">data deletion page</a>.</p>
 <h2>6. Contact</h2>
 <p>Questions? Contact us at <a href="mailto:fennmybad@gmail.com">fennmybad@gmail.com</a></p></div>
+<div data-l="zh"><h1>隐私政策</h1>
+<p class="muted">Oneday Clothing · 最后更新：2026年11月10日</p>
+<p><b>Oneday Clothing</b>（https://onedaycambodia.github.io/）是柬埔寨的线上服装店。本页说明您登录或下单时，我们收集哪些信息以及如何使用。</p>
+<h2>1. 我们收集的信息</h2>
+<ul>
+<li>使用 <b>Google</b> 登录：您的姓名、电子邮箱和头像。我们不会获取您的 Google 密码。</li>
+<li>使用 <b>Telegram</b> 登录：您的姓名、用户名、Telegram 用户 ID 和头像（如您允许，还包括手机号码）。</li>
+<li>使用 <b>TikTok</b> 登录：您的 TikTok 显示名称、头像和 TikTok 用户 ID（权限范围 <i>user.info.basic</i>）。我们不会获取您的 TikTok 密码，也不会发布或读取您的 TikTok 视频。</li>
+<li>您下单时填写的信息，例如姓名、电话号码、收货地点和所订商品。</li>
+</ul>
+<h2>2. 我们如何使用信息</h2>
+<ul>
+<li>让您登录并查看订单记录。</li>
+<li>处理、配送和确认您的订单。</li>
+<li>就订单事宜与您联系。</li>
+</ul>
+<h2>3. 信息共享</h2>
+<p>我们<b>不会出售</b>您的信息。信息存储在我们的服务器上，并可能经过我们用于运营商店的技术服务（例如托管服务，以及用于向店主通知订单的 Telegram）。</p>
+<h2>4. 保存期限</h2>
+<p>只要您的账户处于活跃状态，我们就会保存您的账户信息，并应您的要求予以删除。</p>
+<h2>5. 您的权利</h2>
+<p>您可以随时要求查看、更正或删除您的信息。删除数据的方法请见<a href="data-deletion.html">数据删除页面</a>。</p>
+<h2>6. 联系我们</h2>
+<p>如有疑问，请联系：<a href="mailto:fennmybad@gmail.com">fennmybad@gmail.com</a></p></div>
 </div>
 <p class="muted">
-<a href="data-deletion.html"><span data-l="km" style="display:inline">ការណែនាំលុបទិន្នន័យ</span><span data-l="en" style="display:inline">Data deletion instructions</span></a>
+<a href="data-deletion.html"><span data-l="km">ការណែនាំលុបទិន្នន័យ</span><span data-l="en">Data deletion instructions</span><span data-l="zh">数据删除说明</span></a>
 </p>
 </div>
 <script>
@@ -93,9 +119,10 @@ function setL(l) {
   document.body.className = l;
   document.getElementById('bKm').className = l === 'km' ? 'on' : '';
   document.getElementById('bEn').className = l === 'en' ? 'on' : '';
+  document.getElementById('bZh').className = l === 'zh' ? 'on' : '';
   try { localStorage.setItem('oneday_legal_lang', l); } catch (e) {}
 }
-(function () { var l = 'km'; try { l = localStorage.getItem('oneday_legal_lang') || 'km'; } catch (e) {} setL(l === 'en' ? 'en' : 'km'); })();
+(function () { var l = 'km'; try { l = localStorage.getItem('oneday_legal_lang') || 'km'; } catch (e) {} setL(l === 'en' || l === 'zh' ? l : 'km'); })();
 </script>
 </body>
 </html>

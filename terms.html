@@ -24,7 +24,8 @@ a { color:var(--accent); }
 .lang button { border:1px solid var(--line); background:var(--card); color:var(--text); padding:6px 14px; border-radius:20px; font:inherit; font-size:14px; cursor:pointer; }
 .lang button.on { background:var(--accent); color:#fff; border-color:var(--accent); }
 [data-l] { display:none; }
-body.km [data-l="km"], body.en [data-l="en"] { display:block; }
+body.km [data-l="km"], body.en [data-l="en"], body.zh [data-l="zh"] { display:block; }
+body.km span[data-l="km"], body.en span[data-l="en"], body.zh span[data-l="zh"] { display:inline; }
 </style>
 </head>
 <body class="km">
@@ -33,6 +34,7 @@ body.km [data-l="km"], body.en [data-l="en"] { display:block; }
 <div class="lang">
 <button id="bKm" class="on" onclick="setL('km')">ខ្មែរ</button>
 <button id="bEn" onclick="setL('en')">English</button>
+<button id="bZh" onclick="setL('zh')">中文</button>
 </div>
 <div class="card">
 <div data-l="km"><h1>លក្ខខណ្ឌប្រើប្រាស់</h1>
@@ -111,9 +113,47 @@ body.km [data-l="km"], body.en [data-l="en"] { display:block; }
 <p>These terms are governed by the laws of the Kingdom of Cambodia.</p>
 <h2>12. Contact</h2>
 <p>For questions about these terms, contact us through the contact channels on the <a href="https://onedaycambodia.github.io/">Oneday Clothing website</a>.</p></div>
+<div data-l="zh"><h1>服务条款</h1>
+<p class="muted">Oneday Clothing · 最后更新：2026年11月10日</p>
+<p>使用 <b>Oneday Clothing</b> 网站（https://onedaycambodia.github.io/），即表示您同意以下条款。如果您不同意，请勿使用本网站。</p>
+<h2>1. 关于服务</h2>
+<p>Oneday Clothing 是柬埔寨的线上服装店。您可以在本网站浏览商品、下单并跟踪订单。</p>
+<h2>2. 账户与登录</h2>
+<ul>
+<li>您可以使用 <b>Telegram</b>、<b>Google</b> 或 <b>TikTok</b> 登录。我们仅使用您的姓名、头像和基本联系方式来创建账户并显示您的订单。</li>
+<li>您需对账户内的所有活动负责，并应提供真实准确的信息。</li>
+<li>我们可能暂停或关闭被用于违法或欺诈用途的账户。</li>
+</ul>
+<h2>3. 订单与价格</h2>
+<ul>
+<li>订单在我们收到付款或与您确认后生效。</li>
+<li>价格和库存可能随时变动，恕不另行通知。如出现价格错误或缺货，我们有权拒绝或取消订单，并会退还您已支付的款项。</li>
+</ul>
+<h2>4. 付款</h2>
+<p>可通过 KHQR/Bakong 或网站上显示的其他方式付款。我们不会保存您的银行卡信息或网银密码。</p>
+<h2>5. 配送、换货与退款</h2>
+<p>配送时间和费用会在下单时告知。如商品有问题或尺码不合，请尽快通过网站上的联系渠道与我们联系，我们将逐案处理。</p>
+<h2>6. 禁止行为</h2>
+<ul>
+<li>将本网站用于违法或欺诈目的</li>
+<li>未经授权试图访问我们的系统或干扰网站运行</li>
+<li>未经许可复制或使用 Oneday Clothing 的内容、图片和品牌标识</li>
+</ul>
+<h2>7. 知识产权</h2>
+<p>本网站上的内容、图片和标志归 Oneday Clothing 或其许可方所有。</p>
+<h2>8. 责任限制</h2>
+<p>本网站按“现状”提供。我们会努力保持服务可用，但不保证不中断或无错误。在法律允许的范围内，我们的责任以相关订单的金额为限。</p>
+<h2>9. 隐私</h2>
+<p>我们如何收集和使用您的信息，详见我们的<a href="privacy.html">隐私政策</a>。</p>
+<h2>10. 条款变更</h2>
+<p>我们可能随时更新这些条款。条款变更后继续使用本网站，即表示您接受新条款。</p>
+<h2>11. 适用法律</h2>
+<p>本条款受柬埔寨王国法律管辖。</p>
+<h2>12. 联系我们</h2>
+<p>如对本条款有疑问，请通过 <a href="https://onedaycambodia.github.io/">Oneday Clothing 网站</a>上的联系渠道与我们联系。</p></div>
 </div>
 <p class="muted">
-<a href="privacy.html"><span data-l="km" style="display:inline">គោលការណ៍ភាពឯកជន</span><span data-l="en" style="display:inline">Privacy Policy</span></a>
+<a href="privacy.html"><span data-l="km">គោលការណ៍ភាពឯកជន</span><span data-l="en">Privacy Policy</span><span data-l="zh">隐私政策</span></a>
 </p>
 </div>
 <script>
@@ -121,9 +161,10 @@ function setL(l) {
   document.body.className = l;
   document.getElementById('bKm').className = l === 'km' ? 'on' : '';
   document.getElementById('bEn').className = l === 'en' ? 'on' : '';
+  document.getElementById('bZh').className = l === 'zh' ? 'on' : '';
   try { localStorage.setItem('oneday_legal_lang', l); } catch (e) {}
 }
-(function () { var l = 'km'; try { l = localStorage.getItem('oneday_legal_lang') || 'km'; } catch (e) {} setL(l === 'en' ? 'en' : 'km'); })();
+(function () { var l = 'km'; try { l = localStorage.getItem('oneday_legal_lang') || 'km'; } catch (e) {} setL(l === 'en' || l === 'zh' ? l : 'km'); })();
 </script>
 </body>
 </html>

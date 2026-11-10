@@ -24,7 +24,8 @@ a { color:var(--accent); }
 .lang button { border:1px solid var(--line); background:var(--card); color:var(--text); padding:6px 14px; border-radius:20px; font:inherit; font-size:14px; cursor:pointer; }
 .lang button.on { background:var(--accent); color:#fff; border-color:var(--accent); }
 [data-l] { display:none; }
-body.km [data-l="km"], body.en [data-l="en"] { display:block; }
+body.km [data-l="km"], body.en [data-l="en"], body.zh [data-l="zh"] { display:block; }
+body.km span[data-l="km"], body.en span[data-l="en"], body.zh span[data-l="zh"] { display:inline; }
 </style>
 </head>
 <body class="km">
@@ -33,31 +34,54 @@ body.km [data-l="km"], body.en [data-l="en"] { display:block; }
 <div class="lang">
 <button id="bKm" class="on" onclick="setL('km')">ខ្មែរ</button>
 <button id="bEn" onclick="setL('en')">English</button>
+<button id="bZh" onclick="setL('zh')">中文</button>
 </div>
 <div class="card">
 <div data-l="km"><h1>ការណែនាំអំពីការលុបទិន្នន័យ</h1>
-<p class="muted">Oneday Clothing · ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ៖ ៧ វិច្ឆិកា ២០២៦</p>
-<p>បើអ្នកបានចូលគណនី Oneday Clothing ដោយប្រើ Facebook ហើយចង់ឲ្យលុបទិន្នន័យរបស់អ្នក សូមធ្វើតាមជំហានខាងក្រោម។</p>
+<p class="muted">Oneday Clothing · ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ៖ ១០ វិច្ឆិកា ២០២៦</p>
+<p>បើអ្នកបានចូលគណនី Oneday Clothing ដោយប្រើ Google, TikTok ឬ Telegram ហើយចង់ឲ្យលុបទិន្នន័យរបស់អ្នក សូមធ្វើតាមជំហានខាងក្រោម។</p>
 <h2>ជំហានទី ១៖ ផ្ញើសំណើលុប</h2>
-<p>ផ្ញើអ៊ីមែលទៅ <a href="mailto:fennmybad@gmail.com?subject=Delete%20my%20data">fennmybad@gmail.com</a> ដោយដាក់ប្រធានបទ <b>Delete my data</b> ហើយបញ្ជាក់ឈ្មោះដែលអ្នកប្រើក្នុងគណនី (ឈ្មោះ Facebook របស់អ្នក)។</p>
+<p>ផ្ញើអ៊ីមែលទៅ <a href="mailto:fennmybad@gmail.com?subject=Delete%20my%20data">fennmybad@gmail.com</a> ដោយដាក់ប្រធានបទ <b>Delete my data</b> ហើយបញ្ជាក់វិធីចូលគណនីដែលអ្នកបានប្រើ (Google, TikTok ឬ Telegram) និងឈ្មោះ ឬអ៊ីមែល/username នៅលើគណនីនោះ។</p>
 <h2>ជំហានទី ២៖ យើងលុបទិន្នន័យ</h2>
-<p>យើងនឹងលុបគណនី និងព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នក (ឈ្មោះ អ៊ីមែល លេខសម្គាល់ Facebook និងរូបភាព) ក្នុងរយៈពេល <b>៧ ថ្ងៃ</b> ហើយនឹងឆ្លើយតបបញ្ជាក់។ កំណត់ត្រាកុម្មង់ដែលបានបញ្ចប់អាចត្រូវរក្សាទុកដោយមិនភ្ជាប់ទៅអត្តសញ្ញាណរបស់អ្នក សម្រាប់គណនេយ្យ។</p>
-<h2>ជំហានបន្ថែម៖ ដកកម្មវិធីចេញពី Facebook</h2>
-<p>អ្នកអាចដកការអនុញ្ញាតបានដោយខ្លួនឯង៖ Facebook → Settings → Security and login → <b>Apps and websites</b> → ជ្រើស <b>Oneday Cambodia</b> → Remove។</p>
+<p>យើងនឹងលុបគណនី និងព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នក (ឈ្មោះ អ៊ីមែល លេខសម្គាល់គណនី Google/TikTok/Telegram និងរូបភាព) ក្នុងរយៈពេល <b>៧ ថ្ងៃ</b> ហើយនឹងឆ្លើយតបបញ្ជាក់។ កំណត់ត្រាកុម្មង់ដែលបានបញ្ចប់អាចត្រូវរក្សាទុកដោយមិនភ្ជាប់ទៅអត្តសញ្ញាណរបស់អ្នក សម្រាប់គណនេយ្យ។</p>
+<h2>ជំហានបន្ថែម៖ ដកការអនុញ្ញាតពីសេវា login</h2>
+<ul>
+<li><b>Google</b>៖ Google Account → Security → <b>Third-party apps &amp; services</b> → ជ្រើស <b>Oneday</b> → Remove access។</li>
+<li><b>TikTok</b>៖ TikTok → Settings and privacy → Security &amp; permissions → <b>Apps and services</b> → ជ្រើស <b>Oneday Cambodia</b> → Remove។</li>
+<li><b>Telegram</b>៖ Telegram → Settings → Privacy and Security → <b>Logged-in Websites</b> (ឬ Devices) → ចាកចេញពី Oneday។</li>
+</ul>
 <p>មើលបន្ថែមនៅ <a href="privacy.html">គោលការណ៍ភាពឯកជន</a>។</p></div>
 <div data-l="en"><h1>Data Deletion Instructions</h1>
-<p class="muted">Oneday Clothing · Last updated: November 7, 2026</p>
-<p>If you signed in to Oneday Clothing with Facebook and want your data deleted, follow the steps below.</p>
+<p class="muted">Oneday Clothing · Last updated: November 10, 2026</p>
+<p>If you signed in to Oneday Clothing with Google, TikTok or Telegram and want your data deleted, follow the steps below.</p>
 <h2>Step 1: Send a deletion request</h2>
-<p>Email <a href="mailto:fennmybad@gmail.com?subject=Delete%20my%20data">fennmybad@gmail.com</a> with the subject <b>Delete my data</b> and include the name on your account (your Facebook name).</p>
+<p>Email <a href="mailto:fennmybad@gmail.com?subject=Delete%20my%20data">fennmybad@gmail.com</a> with the subject <b>Delete my data</b> and tell us which sign-in method you used (Google, TikTok or Telegram) and the name, email or username on that account.</p>
 <h2>Step 2: We delete your data</h2>
-<p>Within <b>7 days</b> we will delete your account and personal information (name, email, Facebook ID and picture) and reply to confirm. Completed order records may be kept without any link to your identity, for accounting purposes.</p>
-<h2>Optional: remove the app from Facebook</h2>
-<p>You can also revoke access yourself: Facebook → Settings → Security and login → <b>Apps and websites</b> → select <b>Oneday Cambodia</b> → Remove.</p>
+<p>Within <b>7 days</b> we will delete your account and personal information (name, email, Google/TikTok/Telegram account ID and picture) and reply to confirm. Completed order records may be kept without any link to your identity, for accounting purposes.</p>
+<h2>Optional: revoke access from the sign-in provider</h2>
+<ul>
+<li><b>Google</b>: Google Account → Security → <b>Third-party apps &amp; services</b> → select <b>Oneday</b> → Remove access.</li>
+<li><b>TikTok</b>: TikTok → Settings and privacy → Security &amp; permissions → <b>Apps and services</b> → select <b>Oneday Cambodia</b> → Remove.</li>
+<li><b>Telegram</b>: Telegram → Settings → Privacy and Security → <b>Logged-in Websites</b> (or Devices) → log out of Oneday.</li>
+</ul>
 <p>See also our <a href="privacy.html">Privacy Policy</a>.</p></div>
+<div data-l="zh"><h1>数据删除说明</h1>
+<p class="muted">Oneday Clothing · 最后更新：2026年11月10日</p>
+<p>如果您使用 Google、TikTok 或 Telegram 登录过 Oneday Clothing，并希望删除您的数据，请按以下步骤操作。</p>
+<h2>第 1 步：发送删除请求</h2>
+<p>发送邮件至 <a href="mailto:fennmybad@gmail.com?subject=Delete%20my%20data">fennmybad@gmail.com</a>，主题写 <b>Delete my data</b>，并说明您使用的登录方式（Google、TikTok 或 Telegram）以及该账户上的姓名、邮箱或用户名。</p>
+<h2>第 2 步：我们删除数据</h2>
+<p>我们将在 <b>7 天</b>内删除您的账户和个人信息（姓名、邮箱、Google/TikTok/Telegram 账户 ID 和头像），并回复确认。已完成的订单记录可能会在与您身份无关联的情况下保留，用于会计目的。</p>
+<h2>可选：从登录服务商撤销授权</h2>
+<ul>
+<li><b>Google</b>：Google 账户 → 安全性 → <b>第三方应用和服务</b> → 选择 <b>Oneday</b> → 移除访问权限。</li>
+<li><b>TikTok</b>：TikTok → 设置和隐私 → 安全与权限 → <b>应用和服务</b> → 选择 <b>Oneday Cambodia</b> → 移除。</li>
+<li><b>Telegram</b>：Telegram → 设置 → 隐私与安全 → <b>已登录的网站</b>（或设备）→ 退出 Oneday。</li>
+</ul>
+<p>另请参阅我们的<a href="privacy.html">隐私政策</a>。</p></div>
 </div>
 <p class="muted">
-<a href="privacy.html"><span data-l="km" style="display:inline">គោលការណ៍ភាពឯកជន</span><span data-l="en" style="display:inline">Privacy policy</span></a>
+<a href="privacy.html"><span data-l="km">គោលការណ៍ភាពឯកជន</span><span data-l="en">Privacy policy</span><span data-l="zh">隐私政策</span></a>
 </p>
 </div>
 <script>
@@ -65,9 +89,10 @@ function setL(l) {
   document.body.className = l;
   document.getElementById('bKm').className = l === 'km' ? 'on' : '';
   document.getElementById('bEn').className = l === 'en' ? 'on' : '';
+  document.getElementById('bZh').className = l === 'zh' ? 'on' : '';
   try { localStorage.setItem('oneday_legal_lang', l); } catch (e) {}
 }
-(function () { var l = 'km'; try { l = localStorage.getItem('oneday_legal_lang') || 'km'; } catch (e) {} setL(l === 'en' ? 'en' : 'km'); })();
+(function () { var l = 'km'; try { l = localStorage.getItem('oneday_legal_lang') || 'km'; } catch (e) {} setL(l === 'en' || l === 'zh' ? l : 'km'); })();
 </script>
 </body>
 </html>
