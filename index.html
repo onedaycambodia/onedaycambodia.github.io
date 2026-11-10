@@ -1341,6 +1341,15 @@
         #acctModal .au-hero > .kh-c { position:absolute; width:30px; height:30px; z-index:0; color:var(--tc); pointer-events:none; overflow:visible; }
         .kh-c.tl { top:2px; left:2px; } .kh-c.tr { top:2px; right:2px; transform:scaleX(-1); } .kh-c.bl { bottom:10px; left:2px; transform:scaleY(-1); } .kh-c.br { bottom:10px; right:2px; transform:scale(-1,-1); }
         @media (prefers-reduced-motion: reduce) { .kh-top, #acctModal .au-hero > .kh-band { animation:none !important; } }
+        /* Khmer guardians (lion / naga / garuda / hanuman) */
+        #acctModal .modal-content[data-tier] { isolation:isolate; }
+        .kh-bg { position:sticky; top:0; height:0; z-index:-1; pointer-events:none; }
+        .kh-bgart { position:absolute; right:-46px; top:130px; width:320px; height:320px; color:var(--tc); opacity:.16; animation:kh-float 9s ease-in-out infinite; }
+        #acctModal .au-hero > .kh-pet { position:absolute; width:96px; height:96px; top:50%; margin-top:-48px; z-index:0; color:var(--tc); opacity:.42; pointer-events:none; animation:kh-bob 4s ease-in-out infinite; }
+        #acctModal .au-hero > .kh-pet.l { left:-8px; transform:scaleX(-1); } #acctModal .au-hero > .kh-pet.r { right:-6px; animation-delay:-2s; }
+        @keyframes kh-float { 0%,100% { translate:0 0; opacity:.12 } 50% { translate:0 -10px; opacity:.2 } }
+        @keyframes kh-bob { 0%,100% { translate:0 0 } 50% { translate:0 -4px } }
+        @media (prefers-reduced-motion: reduce) { .kh-bgart, #acctModal .au-hero > .kh-pet { animation:none !important; } }
         .tier-row { display:flex; align-items:center; gap:14px; padding:12px 4px; border-bottom:1px solid rgba(128,128,128,.25); }
         .tier-row:last-child { border-bottom:none; } .tier-row svg.tb { width:60px; height:60px; flex:none; }
         .tier-row b { display:block; font-size:17px; } .tier-row span { opacity:.7; font-size:14px; }
@@ -4009,6 +4018,24 @@
             return '<svg class="tb" viewBox="-4 -6 80 80" aria-hidden="true">' + b + '</svg>';
         }
         const tierFrom = (t) => t.from > 0 ? tt('from') + ' $' + t.from : tt('new');
+        /* ===== Khmer guardians as background art: Lion (tor), Naga, Garuda, Hanuman ===== */
+        const KH_ART = {
+            lion: { w: () => { let m = ''; for (let i = 0; i < 14; i++) m += '<path transform="translate(50 54) rotate(' + (i * 360 / 14).toFixed(1) + ')" d="M0 -22C7 -30 7 -40 0 -49C-7 -40 -7 -30 0 -22Z"/>'; return m + '<circle cx="50" cy="54" r="25"/><circle cx="28" cy="35" r="6"/><circle cx="72" cy="35" r="6"/>'; },
+                    b: () => '<path d="M34 49Q41 43 47 50Q41 53 34 49Z"/><path d="M66 49Q59 43 53 50Q59 53 66 49Z"/><path d="M44 58H56L50 65Z"/><path d="M50 38L53 45L50 49L47 45Z"/><path d="M50 65V70M41 69Q46 76 50 70Q54 76 59 69" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round"/>' },
+            naga: { w: () => { let m = ''; [[-66, 52], [-44, 64], [-22, 72], [0, 76], [22, 72], [44, 64], [66, 52]].forEach(([a, len]) => { const L = len - 22; m += '<g transform="translate(50 84) rotate(' + a + ')"><path d="M-1.8 0V-' + L + 'h3.6V0Z"/><g transform="translate(0 -' + L + ')"><path d="M0 9C-9 5 -10 -5 0 -11C10 -5 9 5 0 9Z"/><circle cx="0" cy="-14" r="4"/><path d="M-3 -16.5L0 -22L3 -16.5Z"/></g></g>'; }); return m + '<path d="M10 97C12 82 32 77 50 80C68 77 88 82 90 97Z"/>'; },
+                    b: () => { let m = ''; [[-66, 52], [-44, 64], [-22, 72], [0, 76], [22, 72], [44, 64], [66, 52]].forEach(([a, len]) => { const L = len - 22; m += '<g transform="translate(50 84) rotate(' + a + ')"><g transform="translate(0 -' + L + ')"><circle cx="-1.7" cy="-14.6" r=".95"/><circle cx="1.7" cy="-14.6" r=".95"/><path d="M-4 -3C-2 -6 2 -6 4 -3C2 -1 -2 -1 -4 -3Z"/><path d="M0 0L2 3.5L0 6.5L-2 3.5Z"/></g></g>'; }); return m + '<path d="M22 91Q50 84 78 91" fill="none" stroke="#000" stroke-width="1.6"/>'; } },
+            garuda: { w: () => { let wing = ''; [160, 185, 208, 232, 256].forEach(a => { wing += '<path transform="translate(42 44) rotate(' + a + ')" d="M0 0C10 -5 28 -9 46 -3C30 2 12 5 0 0Z"/>'; });
+                        return '<circle cx="50" cy="27" r="8.5"/><path d="M45 31Q50 42 59 38Q54 33 50 30Z"/><path d="M41 22L43 12L47 18L50 5L53 18L57 12L59 22Z"/><path d="M41 38H59L62 62Q50 70 38 62Z"/>' + wing + '<g transform="translate(100 0) scale(-1 1)">' + wing + '<path d="M43 64L38 82L45 79L48 66Z"/></g><path d="M43 64L38 82L45 79L48 66Z"/>'; },
+                    b: () => '<circle cx="46.5" cy="25.5" r="1.5"/><circle cx="53.5" cy="25.5" r="1.5"/><path d="M50 42L54 50L50 58L46 50Z"/>' },
+            hanuman: { w: () => '<path d="M36 32L40 20L45 27L50 8L55 27L60 20L64 32Z"/><circle cx="29" cy="50" r="7"/><circle cx="71" cy="50" r="7"/><ellipse cx="50" cy="52" rx="21" ry="22"/><ellipse cx="50" cy="66" rx="13" ry="10"/>',
+                       b: () => '<circle cx="29" cy="50" r="3.4"/><circle cx="71" cy="50" r="3.4"/><path d="M36 47Q42 42 47 48Q42 51 36 47Z"/><path d="M64 47Q58 42 53 48Q58 51 64 47Z"/><circle cx="46" cy="64" r="1.7"/><circle cx="54" cy="64" r="1.7"/><circle cx="50" cy="27" r="2.2"/><path d="M35 41Q42 37 48 42M65 41Q58 37 52 42M42 71Q50 77 58 71" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"/>' }
+        };
+        function khSvg(name, cls) {
+            const a = KH_ART[name];
+            return '<svg class="' + cls + '" viewBox="0 0 100 100" aria-hidden="true"><defs><mask id="khm-' + name + '" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100" fill="#000"/><g fill="#fff">' + a.w() + '</g><g fill="#000">' + a.b() + '</g></mask></defs><rect width="100" height="100" fill="currentColor" mask="url(#khm-' + name + ')"/></svg>';
+        }
+        const KH_PAIR = { bronze:['lion', 'lion'], silver:['naga', 'naga'], gold:['garuda', 'garuda'], diamond:['hanuman', 'hanuman'], vip:['naga', 'garuda'] };
+        const KH_BG = { bronze:['lion'], silver:['naga'], gold:['garuda'], diamond:['hanuman'], vip:['lion', 'naga', 'garuda', 'hanuman'] };
         function tierTheme(k) {
             const box = document.querySelector('#acctModal .modal-content');
             if (!box) return;
@@ -4016,11 +4043,16 @@
             box.querySelectorAll('.kh-orn').forEach(n => n.remove());
             if (!k) return;
             const top = document.createElement('div'); top.className = 'kh-top kh-orn'; top.setAttribute('aria-hidden', 'true'); box.insertBefore(top, box.firstChild);
+            const bgs = KH_BG[k], bg = document.createElement('div'); bg.className = 'kh-bg kh-orn'; bg.setAttribute('aria-hidden', 'true');
+            bg.innerHTML = bgs.length === 1 ? khSvg(bgs[0], 'kh-bgart') :
+                '<svg class="kh-bgart" viewBox="0 0 200 200">' + bgs.map((n, i) => khSvg(n, '').replace('<svg class="" ', '<svg x="' + (i % 2) * 100 + '" y="' + Math.floor(i / 2) * 100 + '" width="100" height="100" ')).join('') + '</svg>';
+            box.insertBefore(bg, top.nextSibling);
             const hero = box.querySelector('.au-hero');
             if (hero) {
                 const leaf = (a) => '<path transform="rotate(' + a + ')" d="M0 0C5 3.5 13 3.5 22 0C13 -3.5 5 -3.5 0 0Z"/>';
                 const corner = (pos) => '<svg class="kh-orn kh-c ' + pos + '" viewBox="0 0 30 30" aria-hidden="true"><g transform="translate(3 3)" fill="currentColor">' + leaf(8) + leaf(40) + leaf(72) + '<circle r="2.3"/><path d="M13 1A12 12 0 0 1 1 13" fill="none" stroke="currentColor" stroke-width="1"/></g></svg>';
-                hero.insertAdjacentHTML('beforeend', corner('tl') + corner('tr') + corner('bl') + corner('br') + '<div class="kh-orn kh-band" aria-hidden="true"></div>');
+                const pr = KH_PAIR[k];
+                hero.insertAdjacentHTML('beforeend', khSvg(pr[0], 'kh-orn kh-pet l') + khSvg(pr[1], 'kh-orn kh-pet r') + corner('tl') + corner('tr') + corner('bl') + corner('br') + '<div class="kh-orn kh-band" aria-hidden="true"></div>');
             }
         }
         function tierRender() {
