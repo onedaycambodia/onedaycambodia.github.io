@@ -1424,6 +1424,17 @@
         @keyframes kc-flick { 0%,100% { transform:scale(.9); opacity:.7 } 50% { transform:scale(1.12); opacity:1 } }
         @keyframes kc-gem { 0%,100% { opacity:.65; r:2.2px } 50% { opacity:1; r:3.2px } }
         @media (prefers-reduced-motion: reduce) { #acctModal .au-hero #acName, #acctModal .au-hero #acNameRow::after, .kh-k *, .kh-k { animation:none !important; } }
+        /* ===== VIP hero: new artwork as the hero background (dark royal scene, light text) ===== */
+        #acctModal .au-hero > .vip-art { position:absolute; inset:0; z-index:0; pointer-events:none; border-radius:inherit; overflow:hidden; }
+        #acctModal .au-hero > .vip-art svg { display:block; width:100%; height:100%; }
+        #acctModal [data-tier="vip"] .au-hero, body.dark-mode #acctModal [data-tier="vip"] .au-hero {
+            --nm1:#fff3c4; --nm2:#e8c768; --nm3:#fbeab0; --kc2:#f6e2a0;
+            background:#0a1030 !important; background-image:none !important; border-radius:14px; min-height:124px; padding:20px 30px 20px 32px;
+            box-shadow:0 0 0 1px rgba(167,139,250,.35),0 0 24px rgba(124,58,237,.45); }
+        #acctModal [data-tier="vip"] .au-hero > div span:not(.tier-chip), #acctModal [data-tier="vip"] .au-hero .au-pen { color:#d9cdf6 !important; }
+        #acctModal [data-tier="vip"] .au-hero .au-out, body.dark-mode #acctModal [data-tier="vip"] .au-hero .au-out { background:rgba(255,255,255,.1) !important; border-color:rgba(240,194,74,.55) !important; color:#fbeab0 !important; }
+        #acctModal [data-tier="vip"] .au-hero .au-out span, body.dark-mode #acctModal [data-tier="vip"] .au-hero .au-out span { color:#fbeab0 !important; }
+
         .tier-row { display:flex; align-items:center; gap:14px; padding:12px 4px; border-bottom:1px solid rgba(128,128,128,.25); }
         .tier-row:last-child { border-bottom:none; } .tier-row svg.tb { width:60px; height:60px; flex:none; }
         .tier-row b { display:block; font-size:17px; } .tier-row span { opacity:.7; font-size:14px; }
@@ -1487,107 +1498,7 @@
         .od-item span:last-child { color:var(--text-muted); white-space:nowrap; }
         .od-total { display:flex; justify-content:space-between; border-top:1px dashed var(--border-color); margin-top:8px; padding-top:8px; font-weight:800; }
         .od-empty { text-align:center; color:var(--text-muted); padding:36px 10px; } .od-empty .ico { width:40px; height:40px; display:block; margin:0 auto 10px; opacity:.6; }
-
-        /* ===== Rank 5 VIP: restrained Khmer royal frame ===== */
-        #acctModal .modal-content[data-tier="vip"] {
-            border:1px solid rgba(214,177,92,.82) !important;
-            background:linear-gradient(var(--modal-bg),var(--modal-bg)) padding-box,
-                       linear-gradient(135deg,#d8b66b,#8062c9 48%,#e6ca83) border-box !important;
-            animation:none !important;
-            box-shadow:0 12px 34px rgba(0,0,0,.24),0 0 18px rgba(122,77,240,.16) !important;
-        }
-        #acctModal [data-tier="vip"] .au-hero {
-            position:relative;
-            min-height:118px;
-            border:1px solid rgba(224,190,112,.88);
-            border-radius:15px;
-            background:linear-gradient(118deg,#211b36 0%,#29213f 52%,#20283a 100%) !important;
-            box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 0 13px rgba(122,77,240,.17) !important;
-            animation:vip-frame-enter .55s ease-out both !important;
-            overflow:hidden;
-        }
-        #acctModal [data-tier="vip"] .au-hero::before {
-            width:44px; left:-72px; opacity:.6;
-            background:linear-gradient(100deg,transparent,rgba(255,230,170,.32),transparent);
-            animation:vip-frame-sheen 6.5s ease-in-out infinite !important;
-        }
-        #acctModal [data-tier="vip"] .au-hero::after {
-            display:block !important; opacity:.5;
-            background:radial-gradient(circle at 16% 22%,rgba(245,211,133,.8) 0 1px,transparent 2px),
-                       radial-gradient(circle at 82% 72%,rgba(196,164,255,.8) 0 1px,transparent 2px),
-                       radial-gradient(circle at 92% 24%,rgba(245,211,133,.65) 0 1px,transparent 2px);
-            animation:vip-frame-twinkle 3.8s ease-in-out infinite !important;
-        }
-        #acctModal [data-tier="vip"] .au-hero b { color:#fff2cf !important; }
-        #acctModal [data-tier="vip"] .au-hero > .kh-k {
-            width:29px; height:29px; opacity:.88;
-            filter:drop-shadow(0 0 3px rgba(196,164,255,.24));
-        }
-        #acctModal [data-tier="vip"] .au-hero .kh-k .kc-line { stroke:#d9b96f; stroke-width:1.55; }
-        #acctModal [data-tier="vip"] .au-hero .kh-k .kc-in { stroke:#bda5f2; stroke-width:1.05; }
-        #acctModal [data-tier="vip"] .au-hero .kh-k .kc-flame path { fill:#d9b96f; }
-        #acctModal [data-tier="vip"] .au-hero .kh-k .kc-flame path + path { fill:#a98ae8; }
-        #acctModal [data-tier="vip"] .au-hero .kh-k .kc-tip { fill:#e8cc8c; }
-        #acctModal [data-tier="vip"] .au-hero .kh-k .kc-gem { fill:#7256b5; stroke:#f1d38d; }
-        #acctModal [data-tier="vip"] .au-hero > .hero-naga,
-        #acctModal [data-tier="vip"] .au-hero > .kh-pet,
-        #acctModal [data-tier="vip"] .au-hero > .kh-band { display:none !important; }
-        #acctModal [data-tier="vip"] .au-ava {
-            box-shadow:0 0 0 2px #29213f,0 0 0 4px #d9b96f,0 0 12px rgba(122,77,240,.28) !important;
-            animation:vip-avatar-breathe 3.2s ease-in-out infinite !important;
-        }
-        #acctModal [data-tier="vip"] .au-ava::before {
-            background:conic-gradient(from 0deg,#d9b96f,#8062c9,#f0d99b,#8062c9,#d9b96f) !important;
-            animation-duration:12s !important;
-        }
-        #acctModal [data-tier="vip"] .au-ava::after { animation-duration:3.2s !important; }
-        body.dark-mode #acctModal [data-tier="vip"] .au-hero { background:linear-gradient(118deg,#211b36 0%,#29213f 52%,#20283a 100%) !important; }
-        body.dark-mode #acctModal [data-tier="vip"] .au-hero > div span:not(.tier-chip),
-        body.dark-mode #acctModal [data-tier="vip"] .au-hero .au-pen { color:#d7cce9 !important; }
-        body.dark-mode #acctModal [data-tier="vip"] .au-hero .au-out { background:rgba(255,255,255,.94) !important; }
-        @keyframes vip-frame-enter { from { opacity:0; transform:translateY(5px) } to { opacity:1; transform:none } }
-        @keyframes vip-frame-sheen { 0%,65% { left:-72px } 100% { left:115% } }
-        @keyframes vip-frame-twinkle { 0%,100% { opacity:.22 } 50% { opacity:.62 } }
-        @keyframes vip-avatar-breathe { 0%,100% { filter:drop-shadow(0 0 1px rgba(217,185,111,.15)) } 50% { filter:drop-shadow(0 0 5px rgba(122,77,240,.35)) } }
-        @media (prefers-reduced-motion: reduce) {
-            #acctModal .modal-content[data-tier="vip"],
-            #acctModal [data-tier="vip"] .au-hero,
-            #acctModal [data-tier="vip"] .au-hero::before,
-            #acctModal [data-tier="vip"] .au-hero::after,
-            #acctModal [data-tier="vip"] .au-ava,
-            #acctModal [data-tier="vip"] .au-ava::before,
-            #acctModal [data-tier="vip"] .au-ava::after { animation:none !important; }
-        }
-
-    
-/* Rank 5 VIP — exact Khmer royal SVG frame supplied by the user */
-#acctModal [data-tier="vip"] .au-hero {
-    position: relative; isolation: isolate; min-height: 118px;
-    padding: 16px 22px; border-radius: 18px; overflow: hidden;
-    background: #0a1030 url("rank5-frame.svg") center / 100% 100% no-repeat !important;
-    border: 0 !important; box-shadow: none !important; gap: 14px;
-}
-#acctModal [data-tier="vip"] .au-hero > * { position: relative; z-index: 1; }
-#acctModal [data-tier="vip"] .au-hero b,
-#acctModal [data-tier="vip"] .au-hero > div span:not(.tier-chip),
-#acctModal [data-tier="vip"] .au-hero .au-pen,
-body.dark-mode #acctModal [data-tier="vip"] .au-hero b,
-body.dark-mode #acctModal [data-tier="vip"] .au-hero > div span:not(.tier-chip),
-body.dark-mode #acctModal [data-tier="vip"] .au-hero .au-pen { color: #fff4d2 !important; }
-#acctModal [data-tier="vip"] .au-hero .au-out,
-body.dark-mode #acctModal [data-tier="vip"] .au-hero .au-out {
-    background: rgba(15, 18, 52, .82) !important; color: #fbeab0 !important;
-    border: 1px solid rgba(232, 199, 104, .65) !important;
-}
-#acctModal [data-tier="vip"] .au-hero .au-out span { color: #fbeab0 !important; }
-#acctModal [data-tier="vip"] .au-hero::before,
-#acctModal [data-tier="vip"] .au-hero::after,
-#acctModal [data-tier="vip"] .au-hero .kh-orn { display: none !important; }
-@media (max-width: 480px) {
-  #acctModal [data-tier="vip"] .au-hero { padding: 14px 16px; gap: 10px; min-height: 108px; }
-}
-
-</style>
+    </style>
 </head>
 <body>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></symbol><symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></symbol><symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 4H5v16h4"/><path d="M16 8l4 4-4 4M20 12H9"/></symbol><symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h11v10H2zM13 9h4l4 4v3h-8"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></symbol><symbol id="i-back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol><symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></symbol><symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol><symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol><symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></symbol><symbol id="i-video" viewBox="0 0 24 24"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></symbol><symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="#22c55e" stroke="none"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" opacity=".2"/><path d="M21 12a9 9 0 0 0-9-9"/></symbol><symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol></svg>
@@ -4266,6 +4177,153 @@ body.dark-mode #acctModal [data-tier="vip"] .au-hero .au-out {
         function khSvg(name, cls) {
             return '<svg class="' + cls + '" viewBox="0 0 100 100" aria-hidden="true"><defs><mask id="khm-' + name + '" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100" fill="#000"/><g transform="translate(50 50) scale(.93) translate(-50 -50)">' + KH_ART[name]() + '</g></mask></defs><rect width="100" height="100" fill="currentColor" mask="url(#khm-' + name + ')"/></svg>';
         }
+        /* VIP hero artwork (gold frame, Angkor night scene, Khmer corners) */
+        const VIP_HERO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="40 40 1200 400" preserveAspectRatio="none" aria-hidden="true" fill="none">
+  <defs>
+    <linearGradient id="vh-gold" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1200" y2="400">
+      <stop offset="0" stop-color="#fbeab0"/>
+      <stop offset="0.22" stop-color="#d9b44a"/>
+      <stop offset="0.48" stop-color="#8f6b1f"/>
+      <stop offset="0.74" stop-color="#e8c768"/>
+      <stop offset="1" stop-color="#a47b25"/>
+    </linearGradient>
+    <linearGradient id="vh-goldSoft" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6e2a0"/>
+      <stop offset="1" stop-color="#b8902b"/>
+    </linearGradient>
+    <linearGradient id="vh-bevelLight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.45"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.45"/>
+    </linearGradient>
+    <linearGradient id="vh-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1030"/>
+      <stop offset="0.5" stop-color="#1a1250"/>
+      <stop offset="1" stop-color="#2d1670"/>
+    </linearGradient>
+    <radialGradient id="vh-moon" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#9b6bff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#9b6bff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="vh-temple" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a6dff" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#2a1a78" stop-opacity="0.7"/>
+    </linearGradient>
+    <linearGradient id="vh-sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="0.35" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="vh-blur10" x="-10%" y="-20%" width="120%" height="140%"><feGaussianBlur stdDeviation="10"/></filter>
+    <filter id="vh-blur4" x="-10%" y="-20%" width="120%" height="140%"><feGaussianBlur stdDeviation="3.5"/></filter>
+    <filter id="vh-blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.6"/></filter>
+    <clipPath id="vh-frameClip"><rect width="1200" height="400" rx="36"/></clipPath>
+
+    <path id="vh-star" d="M0 -6 Q0.7 -0.7 6 0 Q0.7 0.7 0 6 Q-0.7 0.7 -6 0 Q-0.7 -0.7 0 -6Z"/>
+
+    <!-- Khmer-inspired corner ornament (top-left) -->
+    <g id="vh-corner" stroke="url(#vh-gold)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M26 104 V58 Q26 26 58 26 H104"/>
+      <path d="M38 88 V60 Q38 38 60 38 H88" opacity="0.55" stroke-width="0.9"/>
+      <!-- lotus / kbach motif at the corner -->
+      <path d="M46 46 L56 34 L66 46 L56 58 Z" fill="#d9b44a" fill-opacity="0.18"/>
+      <path d="M56 40 L61 46 L56 52 L51 46 Z" fill="#f6e2a0" fill-opacity="0.55" stroke="none"/>
+      <!-- flame scrolls along each edge -->
+      <path d="M104 26 C122 26 130 36 122 44 C116 49 108 45 110 39 C111 35 117 35 118 39"/>
+      <path d="M26 104 C26 122 36 130 44 122 C49 116 45 108 39 110 C35 111 35 117 39 118"/>
+      <path d="M78 26 Q84 14 92 22 Q86 26 78 26" opacity="0.8"/>
+      <path d="M26 78 Q14 84 22 92 Q26 86 26 78" opacity="0.8"/>
+      <path d="M70 38 Q78 46 70 54" opacity="0.5" stroke-width="0.8"/>
+      <path d="M38 70 Q46 78 54 70" opacity="0.5" stroke-width="0.8"/>
+      <circle cx="136" cy="26" r="1.8" fill="#f6e2a0" stroke="none"/>
+      <circle cx="26" cy="136" r="1.8" fill="#f6e2a0" stroke="none"/>
+      <circle cx="22" cy="22" r="2.4" fill="#fbeab0" stroke="none"/>
+    </g>
+
+    <!-- Angkor towers -->
+    <path id="vh-towerMain" d="M556 380 V352 H568 V324 H578 V298 H587 V272 Q600 238 600 208 Q600 238 613 272 V298 H622 V324 H632 V352 H644 V380 Z"/>
+    <path id="vh-towerSide" d="M496 380 V344 H506 V320 H513 V302 Q524 268 535 302 V320 H542 V344 H552 V380 Z"/>
+    <path id="vh-towerOuter" d="M430 380 V356 H438 V338 H444 V324 Q452 300 460 324 V338 H466 V356 H474 V380 Z"/>
+  </defs>
+
+  <g transform="translate(40 40)">
+    <!-- Soft purple neon glow -->
+    <rect width="1200" height="400" rx="36" stroke="#7c3aed" stroke-width="10" opacity="0.55" filter="url(#vh-blur10)"/>
+    <rect width="1200" height="400" rx="36" stroke="#a78bfa" stroke-width="3" opacity="0.75" filter="url(#vh-blur4)"/>
+
+    <!-- Background -->
+    <rect width="1200" height="400" rx="36" fill="url(#vh-bg)"/>
+
+    <g clip-path="url(#vh-frameClip)">
+      <ellipse cx="600" cy="320" rx="330" ry="170" fill="url(#vh-moon)"/>
+
+      <!-- Angkor silhouette (kept low and faint so the center stays clean) -->
+      <g transform="translate(600 400) scale(0.82) translate(-600 -400)" fill="url(#vh-temple)">
+        <rect x="360" y="368" width="480" height="32"/>
+        <rect x="380" y="356" width="440" height="16"/>
+        <use href="#vh-towerMain"/>
+        <use href="#vh-towerSide"/>
+        <use href="#vh-towerSide" transform="translate(1200 0) scale(-1 1)"/>
+        <use href="#vh-towerOuter"/>
+        <use href="#vh-towerOuter" transform="translate(1200 0) scale(-1 1)"/>
+        <rect x="598.5" y="190" width="3" height="20"/>
+      </g>
+
+      <!-- Inner edge purple glow -->
+      <rect x="-6" y="-6" width="1212" height="412" rx="40" stroke="#7c3aed" stroke-width="26" opacity="0.38" filter="url(#vh-blur10)"/>
+
+      <!-- Glossy top sheen -->
+      <rect width="1200" height="400" rx="36" fill="url(#vh-sheen)"/>
+    </g>
+
+    <!-- Metallic gold borders with bevel -->
+    <rect x="1" y="1" width="1198" height="398" rx="35" stroke="url(#vh-gold)" stroke-width="2.4"/>
+    <rect x="1" y="1" width="1198" height="398" rx="35" stroke="url(#vh-bevelLight)" stroke-width="2.4" opacity="0.55"/>
+    <rect x="12" y="12" width="1176" height="376" rx="26" stroke="url(#vh-gold)" stroke-width="0.9" opacity="0.7"/>
+
+    <!-- Corner ornaments -->
+    <use href="#vh-corner"/>
+    <use href="#vh-corner" transform="translate(1200 0) scale(-1 1)"/>
+    <use href="#vh-corner" transform="translate(0 400) scale(1 -1)"/>
+    <use href="#vh-corner" transform="translate(1200 400) scale(-1 -1)"/>
+
+    <!-- Tiny center-edge accents -->
+    <g fill="url(#vh-goldSoft)">
+      <path d="M600 6 L607 12 L600 18 L593 12 Z"/>
+      <path d="M600 382 L607 388 L600 394 L593 388 Z"/>
+    </g>
+    <g fill="#f6e2a0" opacity="0.8">
+      <circle cx="578" cy="12" r="1.4"/><circle cx="622" cy="12" r="1.4"/>
+      <circle cx="578" cy="388" r="1.4"/><circle cx="622" cy="388" r="1.4"/>
+    </g>
+
+    <!-- Sparkles -->
+    <g fill="#fff1c2">
+      <use href="#vh-star" transform="translate(150 60) scale(0.9)"><animate attributeName="opacity" values="1;0.25;1" dur="3.4s" repeatCount="indefinite"/></use>
+      <use href="#vh-star" transform="translate(1048 340) scale(0.8)"><animate attributeName="opacity" values="0.3;1;0.3" dur="4s" repeatCount="indefinite"/></use>
+      <use href="#vh-star" transform="translate(1090 70) scale(0.6)"><animate attributeName="opacity" values="1;0.3;1" dur="2.8s" repeatCount="indefinite"/></use>
+      <use href="#vh-star" transform="translate(110 330) scale(0.65)"><animate attributeName="opacity" values="0.4;1;0.4" dur="3.7s" repeatCount="indefinite"/></use>
+      <use href="#vh-star" transform="translate(330 24) scale(0.5)" opacity="0.8"/>
+      <use href="#vh-star" transform="translate(880 378) scale(0.5)" opacity="0.8"/>
+    </g>
+    <g fill="#fbeab0">
+      <circle cx="210" cy="30" r="1.1" opacity="0.8"/>
+      <circle cx="420" cy="372" r="1" opacity="0.6"/>
+      <circle cx="760" cy="28" r="1.2" opacity="0.7"/>
+      <circle cx="970" cy="372" r="1.1" opacity="0.8"/>
+      <circle cx="60" cy="210" r="1.2" opacity="0.7"/>
+      <circle cx="1142" cy="190" r="1.2" opacity="0.7"/>
+      <circle cx="260" cy="350" r="0.9" opacity="0.5"/>
+      <circle cx="940" cy="52" r="0.9" opacity="0.5"/>
+      <circle cx="505" cy="46" r="0.8" opacity="0.45"/>
+      <circle cx="700" cy="352" r="0.8" opacity="0.45"/>
+      <circle cx="1120" cy="300" r="1" opacity="0.6"/>
+      <circle cx="80" cy="120" r="1" opacity="0.6"/>
+    </g>
+    <g fill="#c4a8ff" opacity="0.5" filter="url(#vh-blur2)">
+      <circle cx="160" cy="62" r="3"/><circle cx="1048" cy="340" r="3"/>
+    </g>
+  </g>
+</svg>`;
         const KH_PAIR = { bronze:['lion', 'lion'], silver:['naga', 'naga'], gold:['garuda', 'garuda'], diamond:['hanuman', 'hanuman'], vip:['naga', 'garuda'] };
         const KH_BG = { bronze:['lion'], silver:['naga'], gold:['garuda'], diamond:['hanuman'], vip:['lion', 'naga', 'garuda', 'hanuman'] };
         function tierTheme(k) {
@@ -4286,9 +4344,10 @@ body.dark-mode #acctModal [data-tier="vip"] .au-hero .au-out {
                 const leaf = (a) => '<path transform="rotate(' + a + ')" d="M0 0C5 3.5 13 3.5 22 0C13 -3.5 5 -3.5 0 0Z"/>';
                 const corner = (pos) => '<svg class="kh-orn kh-c ' + pos + '" viewBox="0 0 30 30" aria-hidden="true"><g transform="translate(3 3)" fill="currentColor">' + leaf(8) + leaf(40) + leaf(72) + '<circle r="2.3"/><path d="M13 1A12 12 0 0 1 1 13" fill="none" stroke="currentColor" stroke-width="1"/></g></svg>';
                 const pr = KH_PAIR[k];
-                if (k === 'diamond' || k === 'vip') hero.insertAdjacentHTML('afterbegin', '<div class="kh-orn hero-naga" aria-hidden="true"></div>');
+                if (k === 'diamond') hero.insertAdjacentHTML('afterbegin', '<div class="kh-orn hero-naga" aria-hidden="true"></div>');
+                if (k === 'vip') hero.insertAdjacentHTML('afterbegin', '<div class="kh-orn vip-art" aria-hidden="true">' + VIP_HERO_SVG + '</div>');
                 hero.insertAdjacentHTML('beforeend', khSvg(pr[0], 'kh-orn kh-pet l') + khSvg(pr[1], 'kh-orn kh-pet r') + '<div class="kh-orn kh-band" aria-hidden="true"></div>');
-                if (k === 'diamond' || k === 'vip') {
+                if (k === 'diamond') {
                     const kc = (pos) => '<svg class="kh-orn kh-k ' + pos + '" viewBox="0 0 48 48" aria-hidden="true">' +
                         '<path class="kc-line" pathLength="100" d="M3 40V12Q3 3 12 3H40"/>' +
                         '<path class="kc-line kc-in" pathLength="100" d="M9 31V15Q9 9 15 9H31"/>' +
