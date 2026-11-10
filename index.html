@@ -4155,7 +4155,7 @@
                 const corner = (pos) => '<svg class="kh-orn kh-c ' + pos + '" viewBox="0 0 30 30" aria-hidden="true"><g transform="translate(3 3)" fill="currentColor">' + leaf(8) + leaf(40) + leaf(72) + '<circle r="2.3"/><path d="M13 1A12 12 0 0 1 1 13" fill="none" stroke="currentColor" stroke-width="1"/></g></svg>';
                 const pr = KH_PAIR[k];
                 if (k === 'diamond' || k === 'vip') hero.insertAdjacentHTML('afterbegin', '<div class="kh-orn hero-naga" aria-hidden="true"></div>');
-                hero.insertAdjacentHTML('beforeend', khSvg(pr[0], 'kh-orn kh-pet l') + khSvg(pr[1], 'kh-orn kh-pet r') + corner('tl') + corner('tr') + corner('bl') + corner('br') + '<div class="kh-orn kh-band" aria-hidden="true"></div>');
+                hero.insertAdjacentHTML('beforeend', khSvg(pr[0], 'kh-orn kh-pet l') + khSvg(pr[1], 'kh-orn kh-pet r') + '<div class="kh-orn kh-band" aria-hidden="true"></div>');
             }
         }
         function tierRender() {
@@ -4163,7 +4163,10 @@
             if (!d || !card) return;
             const cur = d.tiers.find(t => t.key === d.tier);
             tierTheme(d.tier);
-            if (chip) { const g = TIER_GRAD[d.tier]; chip.innerHTML = tierSvg(d.tier) + '<span style="background-image:linear-gradient(90deg,' + g[0] + ',' + g[1] + ',' + g[0] + ')">' + TIER_NAME[d.tier] + '</span>'; chip.classList.add('on'); }
+            if (chip) { const g = TIER_GRAD[d.tier]; chip.innerHTML = tierSvg(d.tier); chip.classList.add('on'); }
+            /* tier box removed for all ranks */
+            card.style.display = 'none'; card.innerHTML = '';
+            return;
             if (!d.next) {
                 // top rank: no progress line, a clean gold/purple card (SVG only)
                 const sp = (dl) => '<svg class="tspark" viewBox="0 0 24 24" aria-hidden="true"><path class="tb-tw" style="animation-delay:' + dl + 's" d="M12 1Q12 12 23 12Q12 12 12 23Q12 12 1 12Q12 12 12 1Z" fill="#f0c24a"/></svg>';
