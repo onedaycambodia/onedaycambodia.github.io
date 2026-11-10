@@ -1487,6 +1487,78 @@
         .od-item span:last-child { color:var(--text-muted); white-space:nowrap; }
         .od-total { display:flex; justify-content:space-between; border-top:1px dashed var(--border-color); margin-top:8px; padding-top:8px; font-weight:800; }
         .od-empty { text-align:center; color:var(--text-muted); padding:36px 10px; } .od-empty .ico { width:40px; height:40px; display:block; margin:0 auto 10px; opacity:.6; }
+
+        /* ===== Rank 5 VIP: restrained Khmer royal frame ===== */
+        #acctModal .modal-content[data-tier="vip"] {
+            border:1px solid rgba(214,177,92,.82) !important;
+            background:linear-gradient(var(--modal-bg),var(--modal-bg)) padding-box,
+                       linear-gradient(135deg,#d8b66b,#8062c9 48%,#e6ca83) border-box !important;
+            animation:none !important;
+            box-shadow:0 12px 34px rgba(0,0,0,.24),0 0 18px rgba(122,77,240,.16) !important;
+        }
+        #acctModal [data-tier="vip"] .au-hero {
+            position:relative;
+            min-height:118px;
+            border:1px solid rgba(224,190,112,.88);
+            border-radius:15px;
+            background:linear-gradient(118deg,#211b36 0%,#29213f 52%,#20283a 100%) !important;
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 0 13px rgba(122,77,240,.17) !important;
+            animation:vip-frame-enter .55s ease-out both !important;
+            overflow:hidden;
+        }
+        #acctModal [data-tier="vip"] .au-hero::before {
+            width:44px; left:-72px; opacity:.6;
+            background:linear-gradient(100deg,transparent,rgba(255,230,170,.32),transparent);
+            animation:vip-frame-sheen 6.5s ease-in-out infinite !important;
+        }
+        #acctModal [data-tier="vip"] .au-hero::after {
+            display:block !important; opacity:.5;
+            background:radial-gradient(circle at 16% 22%,rgba(245,211,133,.8) 0 1px,transparent 2px),
+                       radial-gradient(circle at 82% 72%,rgba(196,164,255,.8) 0 1px,transparent 2px),
+                       radial-gradient(circle at 92% 24%,rgba(245,211,133,.65) 0 1px,transparent 2px);
+            animation:vip-frame-twinkle 3.8s ease-in-out infinite !important;
+        }
+        #acctModal [data-tier="vip"] .au-hero b { color:#fff2cf !important; }
+        #acctModal [data-tier="vip"] .au-hero > .kh-k {
+            width:29px; height:29px; opacity:.88;
+            filter:drop-shadow(0 0 3px rgba(196,164,255,.24));
+        }
+        #acctModal [data-tier="vip"] .au-hero .kh-k .kc-line { stroke:#d9b96f; stroke-width:1.55; }
+        #acctModal [data-tier="vip"] .au-hero .kh-k .kc-in { stroke:#bda5f2; stroke-width:1.05; }
+        #acctModal [data-tier="vip"] .au-hero .kh-k .kc-flame path { fill:#d9b96f; }
+        #acctModal [data-tier="vip"] .au-hero .kh-k .kc-flame path + path { fill:#a98ae8; }
+        #acctModal [data-tier="vip"] .au-hero .kh-k .kc-tip { fill:#e8cc8c; }
+        #acctModal [data-tier="vip"] .au-hero .kh-k .kc-gem { fill:#7256b5; stroke:#f1d38d; }
+        #acctModal [data-tier="vip"] .au-hero > .hero-naga,
+        #acctModal [data-tier="vip"] .au-hero > .kh-pet,
+        #acctModal [data-tier="vip"] .au-hero > .kh-band { display:none !important; }
+        #acctModal [data-tier="vip"] .au-ava {
+            box-shadow:0 0 0 2px #29213f,0 0 0 4px #d9b96f,0 0 12px rgba(122,77,240,.28) !important;
+            animation:vip-avatar-breathe 3.2s ease-in-out infinite !important;
+        }
+        #acctModal [data-tier="vip"] .au-ava::before {
+            background:conic-gradient(from 0deg,#d9b96f,#8062c9,#f0d99b,#8062c9,#d9b96f) !important;
+            animation-duration:12s !important;
+        }
+        #acctModal [data-tier="vip"] .au-ava::after { animation-duration:3.2s !important; }
+        body.dark-mode #acctModal [data-tier="vip"] .au-hero { background:linear-gradient(118deg,#211b36 0%,#29213f 52%,#20283a 100%) !important; }
+        body.dark-mode #acctModal [data-tier="vip"] .au-hero > div span:not(.tier-chip),
+        body.dark-mode #acctModal [data-tier="vip"] .au-hero .au-pen { color:#d7cce9 !important; }
+        body.dark-mode #acctModal [data-tier="vip"] .au-hero .au-out { background:rgba(255,255,255,.94) !important; }
+        @keyframes vip-frame-enter { from { opacity:0; transform:translateY(5px) } to { opacity:1; transform:none } }
+        @keyframes vip-frame-sheen { 0%,65% { left:-72px } 100% { left:115% } }
+        @keyframes vip-frame-twinkle { 0%,100% { opacity:.22 } 50% { opacity:.62 } }
+        @keyframes vip-avatar-breathe { 0%,100% { filter:drop-shadow(0 0 1px rgba(217,185,111,.15)) } 50% { filter:drop-shadow(0 0 5px rgba(122,77,240,.35)) } }
+        @media (prefers-reduced-motion: reduce) {
+            #acctModal .modal-content[data-tier="vip"],
+            #acctModal [data-tier="vip"] .au-hero,
+            #acctModal [data-tier="vip"] .au-hero::before,
+            #acctModal [data-tier="vip"] .au-hero::after,
+            #acctModal [data-tier="vip"] .au-ava,
+            #acctModal [data-tier="vip"] .au-ava::before,
+            #acctModal [data-tier="vip"] .au-ava::after { animation:none !important; }
+        }
+
     </style>
 </head>
 <body>
