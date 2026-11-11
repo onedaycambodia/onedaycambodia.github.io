@@ -145,3 +145,31 @@
     </g>
   </g>
 </svg>`;
+
+        /* VIP avatar frame: gold ring + crown + jewels + sparkles. The vf-* classes are animated in css/12-bigger-ui.css */
+        const VIP_FRAME_SVG = (() => {
+            const gold = 'url(#vf-gold)', gem = 'url(#vf-gemg)';
+            const orn = (x, y, rot, d) => '<g transform="translate(' + x + ' ' + y + ') rotate(' + rot + ')">' +
+                '<path d="M-11,3L-19,-2L-10,-7Z" fill="' + gold + '"/><path d="M11,3L19,-2L10,-7Z" fill="' + gold + '"/>' +
+                '<path d="M0,-18L8,-6L11,6L0,16L-11,6L-8,-6Z" fill="' + gold + '" stroke="#7a4f08" stroke-width=".9"/>' +
+                '<path class="vf-gem" style="animation-delay:' + d + 's" d="M0,-9L5,0L0,9L-5,0Z" fill="' + gem + '" stroke="#fff" stroke-width=".7"/></g>';
+            const star = (x, y, s, d) => '<g transform="translate(' + x + ' ' + y + ')"><path class="vf-star" style="animation-delay:' + d + 's" d="M0,-' + s + 'Q1,-1 ' + s + ',0Q1,1 0,' + s + 'Q-1,1 -' + s + ',0Q-1,-1 0,-' + s + 'Z"/></g>';
+            return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" fill="none" aria-hidden="true"><defs>' +
+                '<linearGradient id="vf-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".35" stop-color="#f6c945"/><stop offset=".7" stop-color="#b8821a"/><stop offset="1" stop-color="#f9dc78"/></linearGradient>' +
+                '<linearGradient id="vf-navy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d3a8c"/><stop offset="1" stop-color="#04123a"/></linearGradient>' +
+                '<radialGradient id="vf-gemg" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#d9f8ff"/><stop offset=".45" stop-color="#3ec3f0"/><stop offset="1" stop-color="#1565c0"/></radialGradient>' +
+                '<filter id="vf-blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter></defs>' +
+                '<circle class="vf-glow" cx="100" cy="118" r="85" stroke="#47b4ff" stroke-width="9" filter="url(#vf-blur)"/>' +
+                '<circle cx="100" cy="118" r="75" stroke="' + gold + '" stroke-width="11"/>' +
+                '<circle cx="100" cy="118" r="79.4" stroke="#fff3b0" stroke-width="1.2" opacity=".75"/>' +
+                '<circle cx="100" cy="118" r="70.4" stroke="#7a4f08" stroke-width="1" opacity=".8"/>' +
+                '<circle cx="100" cy="118" r="67" stroke="url(#vf-navy)" stroke-width="5"/>' +
+                '<g class="vf-shine"><circle cx="100" cy="118" r="75" stroke="#fffbe0" stroke-width="5" stroke-linecap="round" stroke-dasharray="26 445" opacity=".85"/></g>' +
+                orn(47, 65, -45, 0) + orn(153, 65, 45, .5) + orn(47, 171, -135, 1) +
+                '<g class="vf-crown"><path d="M72,38L66,16L77,27L83,13L92,25L100,8L108,25L117,13L123,27L134,16L128,38Z" fill="' + gold + '" stroke="#7a4f08" stroke-width="1" stroke-linejoin="round"/>' +
+                '<g fill="#fff3b0" stroke="#b8821a" stroke-width=".8"><circle cx="66" cy="14" r="3.2"/><circle cx="83" cy="11" r="3.2"/><circle cx="100" cy="5.6" r="3.4"/><circle cx="117" cy="11" r="3.2"/><circle cx="134" cy="14" r="3.2"/></g>' +
+                '<rect x="69" y="34" width="62" height="11" rx="3" fill="' + gold + '" stroke="#7a4f08" stroke-width="1"/>' +
+                '<path class="vf-gem" d="M100,34.5L105,39.5L100,44.5L95,39.5Z" fill="' + gem + '" stroke="#fff" stroke-width=".7"/>' +
+                '<path d="M100,19L103.5,24.5L100,30L96.5,24.5Z" fill="' + gem + '" stroke="#fff" stroke-width=".6"/></g>' +
+                '<g fill="#cfeeff">' + star(58, 22, 7, .2) + star(144, 20, 7, 1.1) + star(11, 98, 6, .7) + star(190, 112, 6, 1.6) + star(72, 208, 6, .4) + star(138, 210, 5, 1.3) + '</g></svg>';
+        })();

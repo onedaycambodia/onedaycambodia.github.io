@@ -6,6 +6,7 @@
             if (k) box.setAttribute('data-tier', k); else box.removeAttribute('data-tier');
             box.querySelectorAll('.kh-orn').forEach(n => n.remove());
             if (!k) return;
+            if (k === 'vip') { const ava = box.querySelector('.au-ava'); if (ava) ava.insertAdjacentHTML('afterbegin', '<span class="kh-orn vip-frame" aria-hidden="true">' + VIP_FRAME_SVG + '</span>'); }
             const top = document.createElement('div'); top.className = 'kh-top kh-orn'; top.setAttribute('aria-hidden', 'true'); box.insertBefore(top, box.firstChild);
             const bgs = KH_BG[k], bg = document.createElement('div'); bg.className = 'kh-bg kh-orn'; bg.setAttribute('aria-hidden', 'true');
             const KH_IMG = { diamond: 'naga', vip: 'hanuman' };
