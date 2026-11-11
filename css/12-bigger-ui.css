@@ -84,3 +84,52 @@
 .kq-btn-ghost { padding: 15px; font-size: 15px; border-radius: 16px; }
 .wl-add { font-size: 14px; }
 .au-btn2 { padding: 16px; font-size: 15px; }
+
+/* =====================================================================
+   v2 additions (same file, later rules win)
+   - ALWAYS 3 product columns (phone, tablet, PC); no pagination, scroll down for everything
+   - buttons and popups a little bigger than before (change the numbers to taste)
+   ===================================================================== */
+.container { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (min-width: 600px) { .container { gap: 14px; } }
+@media (min-width: 768px) { .container { grid-template-columns: repeat(3, 1fr); max-width: 1000px; gap: 16px; } }
+#paginationContainer { display: none !important; }
+
+/* category + sub buttons */
+.cat-btn { padding: 17px 0; font-size: 19px; }
+.cat-btn svg, .cat-btn img { width: 26px; height: 26px; }
+.sub-btn { padding: 13px 24px; font-size: 16px; }
+
+/* product card buttons */
+.size-btn { min-height: 40px; font-size: 14px; border-radius: 10px; }
+.btn-add { min-height: 50px; font-size: 14px; border-radius: 13px; }
+@media (min-width: 600px) {
+    .size-btn { min-height: 44px; font-size: 15px; }
+    .btn-add { min-height: 54px; font-size: 15px; }
+}
+
+/* bottom bar */
+.total-price { font-size: 21px; }
+.total-label { font-size: 12px; }
+.btn-cart-view, .btn-telegram { min-height: 56px; padding: 12px 14px; font-size: 14px; border-radius: 15px; }
+@media (min-width: 480px) {
+    .total-price { font-size: 23px; }
+    .btn-cart-view, .btn-telegram { padding: 14px 20px; font-size: 15px; }
+}
+
+/* popups */
+.modal-content { max-width: 600px; padding: 30px 26px; border-radius: 24px; }
+.modal-title { font-size: 22px; }
+.btn-close { width: 44px; height: 44px; font-size: 19px; }
+.item-info { font-size: 16px; }
+.item-sub { font-size: 14px; }
+.btn-qty, .btn-delete-item { width: 42px; height: 42px; font-size: 19px; border-radius: 11px; }
+.summary-row { font-size: 16px; }
+.guide-step { font-size: 16px; }
+.form-label { font-size: 15px; }
+.form-input { padding: 17px 18px; font-size: 17px; border-radius: 15px; }
+.pay-opt { padding: 17px 18px; font-size: 16px; }
+.btn-modal-telegram { padding: 19px; font-size: 17px; border-radius: 17px; }
+.kq-btn-ghost { padding: 17px; font-size: 16px; border-radius: 17px; }
+.wl-add { font-size: 15px; }
+.au-btn2 { padding: 18px; font-size: 16px; }
