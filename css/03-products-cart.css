@@ -85,21 +85,21 @@
             box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25); 
         }
 
-        /* 3 columns on phone, tablet and PC (compact phone sizes are in 12-bigger-ui.css) */
+        /* PC / Laptop: 4 Columns | Mobile: 2 Columns */
         .container { 
             max-width: 1200px; 
             margin: 0 auto; 
             padding: 0 16px; 
             display: grid; 
-            grid-template-columns: repeat(3, 1fr); /* 3 products per row on every device */
-            gap: 8px; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; 
             min-height: 300px; 
         }
-        @media (min-width: 600px) {
-            .container { gap: 14px; }
-        }
-        @media (min-width: 1000px) {
-            .container { max-width: 1000px; gap: 18px; }
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 16px;
+            }
         }
 
         .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 12px; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); }
