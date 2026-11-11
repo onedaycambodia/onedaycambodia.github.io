@@ -318,22 +318,10 @@
                 }
             });
 
-            const perPage = getProductsPerPage();
-            let totalPages = Math.ceil(matchedCards.length / perPage) || 1;
-            if (currentPage > totalPages) currentPage = totalPages;
+            // No pages: show every matching product, the customer just scrolls down
+            matchedCards.forEach(card => { card.style.display = 'flex'; });
 
-            let startIndex = (currentPage - 1) * perPage;
-            let endIndex = startIndex + perPage;
-
-            matchedCards.forEach((card, index) => {
-                if (index >= startIndex && index < endIndex) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            renderPaginationControls(totalPages);
+            renderPaginationControls(1);
         }
 
         function renderPaginationControls(totalPages) {
