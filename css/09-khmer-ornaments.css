@@ -1,0 +1,54 @@
+        /* Khmer guardians (lion / naga / garuda / hanuman) */
+        #acctModal .modal-content[data-tier] { isolation:isolate; }
+        .kh-bg { position:sticky; top:0; height:0; z-index:-1; pointer-events:none; }
+        /* Khmer line-art backgrounds (rank 4 = Naga, rank 5 = Hanuman) */
+        .kh-bgimg { position:absolute; left:50%; margin-left:-170px; top:70px; width:340px; height:440px; color:var(--tc); opacity:.7;
+            background:linear-gradient(135deg,var(--tc),var(--tc2,var(--tc)),var(--tc));
+            -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-size:contain; mask-size:contain; -webkit-mask-position:center; mask-position:center;
+            animation:kh-float2 9s ease-in-out infinite; }
+        body.dark-mode .kh-bgimg { opacity:.2; animation-name:kh-float2d; }
+        @keyframes kh-float2d { 0%,100% { translate:0 0; opacity:.15 } 50% { translate:0 -8px; opacity:.25 } }
+        @keyframes kh-float2 { 0%,100% { translate:0 0; opacity:.6 } 50% { translate:0 -8px; opacity:.8 } }
+                        .kh-bgimg.naga, .tier-art.naga, .hero-naga { --kh-img:url(../images/khmer-naga.png); }
+        .kh-bgimg.hanuman { --kh-img:url(../images/khmer-hanuman.png); }
+        .kh-bgimg { -webkit-mask-image:var(--kh-img); mask-image:var(--kh-img); }
+        #acctModal [data-tier="diamond"] .au-hero > .kh-pet, #acctModal [data-tier="vip"] .au-hero > .kh-pet { display:none; }
+        @media (prefers-reduced-motion: reduce) { .kh-bgimg { animation:none !important; } }
+        .kh-bgart { position:absolute; right:-46px; top:130px; width:320px; height:320px; color:var(--tc); opacity:.16; animation:kh-float 9s ease-in-out infinite; }
+        #acctModal .au-hero > .kh-pet { position:absolute; width:96px; height:96px; top:50%; margin-top:-48px; z-index:0; color:var(--tc); opacity:.42; pointer-events:none; animation:kh-bob 4s ease-in-out infinite; }
+        #acctModal .au-hero > .kh-pet.l { left:-8px; transform:scaleX(-1); } #acctModal .au-hero > .kh-pet.r { right:-6px; animation-delay:-2s; }
+        @keyframes kh-float { 0%,100% { translate:0 0; opacity:.12 } 50% { translate:0 -10px; opacity:.2 } }
+        @keyframes kh-bob { 0%,100% { translate:0 0 } 50% { translate:0 -4px } }
+        @media (prefers-reduced-motion: reduce) { .kh-bgart, #acctModal .au-hero > .kh-pet { animation:none !important; } }
+        /* ===== rank 4 (diamond) + rank 5 (vip): animated name + Khmer corners, day & night ===== */
+        #acctModal [data-tier="diamond"] { --nm1:#1d5f9c; --nm2:#2f8fe0; --nm3:#0a3a6b; --kc1:#2f82c4; --kc2:#7fd0ff; --kc3:#1d5f9c; }
+        #acctModal [data-tier="vip"] { --nm1:#5b35d0; --nm2:#b3820a; --nm3:#3a1f9e; --kc1:#7a4df0; --kc2:#e0a920; --kc3:#5b35d0; }
+        body.dark-mode #acctModal [data-tier="diamond"] { --nm1:#0f4a80; --nm2:#1f78c8; --nm3:#06294a; --kc1:#1f6fb4; --kc2:#3aa6ee; --kc3:#0f4a80; }
+        body.dark-mode #acctModal [data-tier="vip"] { --nm1:#4a27c0; --nm2:#9a6a00; --nm3:#2d1585; --kc1:#6a3fe0; --kc2:#c28a0c; --kc3:#4a27c0; }
+        #acctModal [data-tier="diamond"] .au-hero #acName, #acctModal [data-tier="vip"] .au-hero #acName {
+            background-image:linear-gradient(100deg,var(--nm1) 0%,var(--nm2) 22%,var(--nm3) 46%,var(--nm2) 72%,var(--nm1) 100%);
+            background-size:200% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+            animation:kh-name 3.4s linear infinite, kh-name-glow 2.8s ease-in-out infinite; letter-spacing:.3px; }
+        #acctModal [data-tier="diamond"] .au-hero #acNameRow::after, #acctModal [data-tier="vip"] .au-hero #acNameRow::after {
+            content:''; flex:none; width:12px; height:12px; margin-left:2px; background:var(--kc2);
+            clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%); animation:kh-twinkle 2.2s ease-in-out infinite; }
+        @keyframes kh-name { to { background-position:200% 50% } }
+        @keyframes kh-name-glow { 0%,100% { filter:drop-shadow(0 0 0 transparent) } 50% { filter:drop-shadow(0 0 5px var(--kc2)) } }
+        @keyframes kh-twinkle { 0%,100% { transform:scale(.45) rotate(0); opacity:.4 } 50% { transform:scale(1.15) rotate(90deg); opacity:1 } }
+        #acctModal .au-hero > .kh-k { position:absolute; width:36px; height:36px; z-index:0; pointer-events:none; overflow:visible; }
+        .kh-k.tl { top:2px; left:2px; } .kh-k.tr { top:2px; right:2px; transform:scaleX(-1); }
+        .kh-k.bl { bottom:2px; left:2px; transform:scaleY(-1); } .kh-k.br { bottom:2px; right:2px; transform:scale(-1,-1); }
+        .kh-k .kc-line { fill:none; stroke:var(--kc1); stroke-width:1.8; stroke-linecap:round; stroke-dasharray:100; animation:kc-draw 4.5s ease-in-out infinite; }
+        .kh-k .kc-in { stroke:var(--kc2); stroke-width:1.2; animation-delay:.35s; }
+        .kh-k .kc-flame path { fill:var(--kc1); }
+        .kh-k .kc-flame path + path { fill:var(--kc2); }
+        .kh-k .kc-flame { transform-box:fill-box; transform-origin:0 0; animation:kc-flick 2.4s ease-in-out infinite; }
+        .kh-k .kc-tip { fill:var(--kc2); transform-box:fill-box; transform-origin:0 100%; animation:kc-flick 2.4s .4s ease-in-out infinite; }
+        .kh-k .kc-tip + .kc-tip { transform-origin:100% 0; animation-delay:.8s; }
+        .kh-k .kc-gem { fill:var(--kc3); stroke:var(--kc2); stroke-width:1; animation:kc-gem 2.4s ease-in-out infinite; }
+        .kh-k.tr .kc-flame, .kh-k.br .kc-flame, .kh-k.tr .kc-line, .kh-k.br .kc-line { animation-delay:.6s; }
+        .kh-k.bl .kc-flame, .kh-k.bl .kc-line { animation-delay:1.2s; }
+        @keyframes kc-draw { 0% { stroke-dashoffset:100 } 35%,80% { stroke-dashoffset:0 } 100% { stroke-dashoffset:-100 } }
+        @keyframes kc-flick { 0%,100% { transform:scale(.9); opacity:.7 } 50% { transform:scale(1.12); opacity:1 } }
+        @keyframes kc-gem { 0%,100% { opacity:.65; r:2.2px } 50% { opacity:1; r:3.2px } }
+        @media (prefers-reduced-motion: reduce) { #acctModal .au-hero #acName, #acctModal .au-hero #acNameRow::after, .kh-k *, .kh-k { animation:none !important; } }

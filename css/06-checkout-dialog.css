@@ -1,0 +1,124 @@
+        /* ===== CHECKOUT FORM UI ===== */
+        .toast-notification { z-index: 3000; }
+        #checkoutModal .modal-header { border-bottom: none; padding-bottom: 10px; margin-bottom: 4px; position: relative; }
+        #checkoutModal .modal-header::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), transparent 85%); }
+        #checkoutModal .checkout-form { border-top: none; padding-top: 6px; margin-top: 0; gap: 14px; }
+
+        .field { position: relative; }
+        .field-ico { position: absolute; left: 14px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); color: var(--text-muted);
+                     fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none;
+                     transition: color .25s ease, transform .35s var(--spring); }
+        .field:focus-within .field-ico { color: var(--accent); transform: translateY(-50%) scale(1.15); }
+        .field .form-input { padding-left: 42px !important; }
+        .field:has(.form-input.error) .field-ico { color: #ef4444; }
+        .form-input.error { background: rgba(239, 68, 68, .08); }
+
+        @keyframes field-shake { 0%, 100% { transform: none; } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(2px); } }
+        .field.shake { animation: field-shake .42s ease; }
+
+        /* Map location row */
+        .map-row { display: flex; gap: 8px; align-items: stretch; }
+        .map-row .field { flex: 1; min-width: 0; }
+        #custMapUrl { cursor: pointer; text-overflow: ellipsis; padding-right: 40px !important; }
+        .field.has-loc .form-input { border-color: #16a34a; background: rgba(22, 163, 74, .08); font-weight: 700; }
+        .field.has-loc .field-ico { color: #16a34a; }
+        .map-clear { position: absolute; right: 8px; top: 50%; width: 26px; height: 26px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
+                     background: rgba(100, 116, 139, .2); color: var(--text-muted); opacity: 0; pointer-events: none; transform: translateY(-50%) scale(.5);
+                     transition: opacity .2s ease, transform .35s var(--spring); }
+        .map-clear .ico { width: 14px; height: 14px; }
+        .field.has-loc .map-clear { opacity: 1; pointer-events: auto; transform: translateY(-50%) scale(1); }
+        .map-btn { flex: none; padding: 0 14px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--accent-light); color: var(--accent);
+                   font-weight: 800; font-size: 12px; display: flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer; font-family: inherit; }
+        .map-btn svg { width: 18px; height: 18px; flex: none; }
+        @keyframes loc-set { 0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, .55); } 100% { box-shadow: 0 0 0 14px rgba(22, 163, 74, 0); } }
+        .field.loc-set .form-input { animation: loc-set .9s ease-out; }
+
+        /* Payment choices */
+        .pay-opt { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1.5px solid var(--border-color); border-radius: 14px; margin-top: 8px; cursor: pointer;
+                   font-size: 13px; font-weight: 700; color: var(--primary); background: var(--card-bg);
+                   transition: border-color .25s ease, background-color .25s ease, box-shadow .3s ease, transform .3s var(--spring); }
+        .pay-opt:active { transform: scale(.98); transition-duration: .08s; }
+        .pay-opt input { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; flex: none; margin: 0; border: 2px solid var(--border-color); border-radius: 50%;
+                         display: grid; place-content: center; background: transparent; transition: border-color .2s ease, background-color .2s ease; }
+        .pay-opt input::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff; transform: scale(0); transition: transform .35s var(--spring); }
+        .pay-opt input:checked { border-color: var(--accent); background: var(--accent); }
+        .pay-opt input:checked::before { transform: scale(1); }
+        .pay-opt:has(input:checked) { border-color: var(--accent); background: var(--accent-light); box-shadow: 0 4px 14px rgba(2, 132, 199, .16); }
+
+        /* Order button: shine + busy spinner */
+        #btnOrderNow { position: relative; overflow: hidden; }
+        #btnOrderNow::before { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; transform: skewX(-20deg); pointer-events: none;
+                               background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .3), transparent); animation: btn-shine 3.2s ease-in-out infinite; }
+        #btnOrderNow.busy { pointer-events: none; }
+        #btnOrderNow.busy > * { opacity: 0; }
+        #btnOrderNow.busy::before { display: none; }
+        #btnOrderNow.busy::after { content: ''; position: absolute; left: 50%; top: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%;
+                                   border: 3px solid rgba(255, 255, 255, .35); border-top-color: #fff; animation: locate-spin .7s linear infinite; }
+
+        /* Fields rise in one after another when the checkout opens */
+        @keyframes field-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+        #checkoutModal.active .checkout-form .form-group,
+        #checkoutModal.active #paymentMethodBox,
+        #checkoutModal.active .modal-footer { animation: field-in .5s var(--ease-out) backwards; }
+        #checkoutModal.active .checkout-form .form-group:nth-child(1) { animation-delay: .08s; }
+        #checkoutModal.active .checkout-form .form-group:nth-child(2) { animation-delay: .14s; }
+        #checkoutModal.active .checkout-form .form-group:nth-child(3) { animation-delay: .20s; }
+        #checkoutModal.active .checkout-form .form-group:nth-child(4) { animation-delay: .26s; }
+        #checkoutModal.active #paymentMethodBox { animation-delay: .32s; }
+        #checkoutModal.active .modal-footer { animation-delay: .38s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .field.shake, .field.loc-set .form-input, #btnOrderNow::before, #btnOrderNow.busy::after,
+            #checkoutModal.active .checkout-form .form-group, #checkoutModal.active #paymentMethodBox, #checkoutModal.active .modal-footer { animation: none !important; }
+        }
+
+        /* ===== APP DIALOG (replaces the browser's plain alert box) ===== */
+        .ui-dialog { position: fixed; inset: 0; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 24px;
+                     background: rgba(15, 23, 42, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+                     opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .25s ease, visibility 0s linear .25s;
+                     --dlg: #0284c7; --dlg-soft: rgba(2, 132, 199, .14); }
+        .ui-dialog.open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .25s ease, visibility 0s; }
+        .ui-dialog.t-stock, .ui-dialog.t-location { --dlg: #0ea5e9; --dlg-soft: rgba(14, 165, 233, .16); }
+        body.dark-mode .ui-dialog.t-stock, body.dark-mode .ui-dialog.t-location { --dlg: #38bdf8; --dlg-soft: rgba(56, 189, 248, .16); }
+        .ui-dialog.t-error, .ui-dialog.t-network { --dlg: #ef4444; --dlg-soft: rgba(239, 68, 68, .14); }
+        .ui-dialog.t-cart, .ui-dialog.t-info { --dlg: #0284c7; --dlg-soft: rgba(2, 132, 199, .14); }
+        .ui-dialog.t-logout { --dlg: #ef4444; --dlg-soft: rgba(239, 68, 68, .14); }
+        .ui-dialog-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .ui-dialog-actions .ui-dialog-btn { margin-top: 0; flex: 1; }
+        .ui-dialog-btn.ghost { background: transparent; color: var(--primary); border: 1px solid var(--border-color); }
+        .ui-dialog-btn.ghost:hover { border-color: var(--dlg); color: var(--dlg); }
+
+        .ui-dialog-card { position: relative; overflow: hidden; width: 100%; max-width: 340px; padding: 28px 22px 18px; text-align: center;
+                          background: var(--card-bg); color: var(--primary); border: 1px solid var(--border-color); border-radius: 26px;
+                          box-shadow: 0 24px 60px rgba(0, 0, 0, .35); opacity: 0; transform: translateY(44px) scale(.9);
+                          transition: transform .5s var(--spring), opacity .25s ease; }
+        .ui-dialog.open .ui-dialog-card { opacity: 1; transform: none; }
+        .ui-dialog-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--dlg); transform: scaleX(0); transform-origin: left; transition: transform .6s var(--ease-out) .15s; }
+        .ui-dialog.open .ui-dialog-card::before { transform: scaleX(1); }
+
+        .ui-dialog-icon { position: relative; width: 68px; height: 68px; margin: 0 auto 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--dlg-soft); color: var(--dlg); }
+        .ui-dialog-icon svg { width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .ui-dialog-icon::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--dlg); opacity: 0; }
+        .ui-dialog.open .ui-dialog-icon { animation: dlg-pop .6s var(--spring) .12s backwards; }
+        .ui-dialog.open .ui-dialog-icon::after { animation: dlg-ring 1.5s ease-out .55s 2; }
+        .ui-dialog.open.t-stock .ui-dialog-icon svg, .ui-dialog.open.t-error .ui-dialog-icon svg, .ui-dialog.open.t-network .ui-dialog-icon svg,
+        .ui-dialog.open.t-location .ui-dialog-icon svg { animation: dlg-wobble .7s ease .5s; }
+        @keyframes dlg-pop { from { transform: scale(.3) rotate(-25deg); opacity: 0; } to { transform: none; opacity: 1; } }
+        @keyframes dlg-ring { 0% { transform: scale(.85); opacity: .65; } 100% { transform: scale(1.55); opacity: 0; } }
+        @keyframes dlg-wobble { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-14deg); } 40% { transform: rotate(11deg); } 60% { transform: rotate(-7deg); } 80% { transform: rotate(3deg); } }
+
+        .ui-dialog-title { font-size: 17px; font-weight: 900; margin-bottom: 8px; }
+        .ui-dialog-msg { font-size: 14px; font-weight: 600; line-height: 1.75; color: var(--text-muted); white-space: pre-line; overflow-wrap: anywhere; }
+        .ui-dialog-btn { margin-top: 20px; width: 100%; padding: 13px; border: none; border-radius: 14px; background: var(--dlg); color: #fff; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer;
+                         box-shadow: 0 6px 16px rgba(0, 0, 0, .2); -webkit-tap-highlight-color: transparent; transition: transform .3s var(--spring); }
+        .ui-dialog-btn:active { transform: scale(.95); transition-duration: .08s; }
+        .ui-dialog.open .ui-dialog-title, .ui-dialog.open .ui-dialog-msg, .ui-dialog.open .ui-dialog-btn { animation: field-in .5s var(--ease-out) backwards; }
+        .ui-dialog.open .ui-dialog-title { animation-delay: .18s; }
+        .ui-dialog.open .ui-dialog-msg { animation-delay: .24s; }
+        .ui-dialog.open .ui-dialog-btn { animation-delay: .3s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .ui-dialog-card { transition-duration: .01s; transform: none; }
+            .ui-dialog.open .ui-dialog-icon, .ui-dialog.open .ui-dialog-icon::after, .ui-dialog.open .ui-dialog-icon svg,
+            .ui-dialog.open .ui-dialog-title, .ui-dialog.open .ui-dialog-msg, .ui-dialog.open .ui-dialog-btn { animation: none !important; }
+        }

@@ -1,0 +1,10 @@
+        /* ===== VIP hero: new artwork as the hero background (dark royal scene, light text) ===== */
+        #acctModal .au-hero > .vip-art { position:absolute; inset:0; z-index:0; pointer-events:none; border-radius:inherit; overflow:hidden; }
+        #acctModal .au-hero > .vip-art svg { display:block; width:100%; height:100%; }
+        #acctModal [data-tier="vip"] .au-hero, body.dark-mode #acctModal [data-tier="vip"] .au-hero {
+            --nm1:#fff3c4; --nm2:#e8c768; --nm3:#fbeab0; --kc2:#f6e2a0;
+            background:#0a1030 !important; background-image:none !important; border-radius:14px; min-height:124px; padding:20px 30px 20px 32px;
+            box-shadow:0 0 0 1px rgba(167,139,250,.35),0 0 24px rgba(124,58,237,.45); }
+        #acctModal [data-tier="vip"] .au-hero > div span:not(.tier-chip), #acctModal [data-tier="vip"] .au-hero .au-pen { color:#d9cdf6 !important; }
+        #acctModal [data-tier="vip"] .au-hero .au-out, body.dark-mode #acctModal [data-tier="vip"] .au-hero .au-out { background:rgba(255,255,255,.1) !important; border-color:rgba(240,194,74,.55) !important; color:#fbeab0 !important; }
+        #acctModal [data-tier="vip"] .au-hero .au-out span, body.dark-mode #acctModal [data-tier="vip"] .au-hero .au-out span { color:#fbeab0 !important; }
