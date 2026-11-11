@@ -5,8 +5,7 @@ can open, search and edit just the part that matters.
 
 ## css/  (loaded in this order from index.html - order matters, later rules override earlier ones)
 01-base, 02-header-cover, 03-products-cart, 04-modals-media, 05-khqr-motion, 06-checkout-dialog,
-07-account-wallet, 08-tier-themes (bronze..vip), 09-khmer-ornaments, 10-vip-hero, 11-account-ui,
-12-bigger-ui (LAST: sizes of buttons/popups + compact 3-per-row product cards; change numbers here to resize)
+07-account-wallet, 08-tier-themes (bronze..vip), 09-khmer-ornaments, 10-vip-hero, 11-account-ui
 
 ## js/  (plain scripts, loaded in this order - they share one global scope, same as before)
 01-config-state      API url, global state, helpers (esc, jsq)
@@ -15,7 +14,7 @@ can open, search and edit just the part that matters.
 04-theme-language    dark mode, language switch
 05-cover-modals-toast modal open/close, toast, prepareOrder
 06-map-picker        Leaflet map + GPS
-07-products          product list, stock, categories, pagination (6 per page = 3 columns x 2 rows, see getProductsPerPage in 01)
+07-products          product list, stock, categories, pagination
 08-cart              add to cart, cart render
 09-khqr-payment-order KHQR / Bakong payment + sending the order
 10-ui-helpers-dialogs checkout helpers, alert/confirm dialogs
