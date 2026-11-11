@@ -53,7 +53,11 @@ app.get('/admin', (req, res) => {
 // ភ្ជាប់ Database ស្វ័យប្រវត្តិពី Railway
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+    max: 10,                        // keep well under Neon's connection limit
+    idleTimeoutMillis: 30000,       // drop idle connections before Neon closes them
+    connectionTimeoutMillis: 10000, // fail fast instead of hanging if the DB is asleep
+    keepAlive: true
 });
 
 // 🔒 Telegram Bot Setup
