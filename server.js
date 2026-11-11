@@ -21,6 +21,8 @@ app.use('/api', (req, res, next) => {
 });
 
 // Only the picture/video folders are public. (Before, express.static('.') also served server.js and every other source file.)
+app.use('/css', express.static(path.join(__dirname, 'css')));
+app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/videos', express.static(path.join(__dirname, 'videos')));
 
