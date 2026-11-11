@@ -133,3 +133,7 @@
 .kq-btn-ghost { padding: 17px; font-size: 16px; border-radius: 17px; }
 .wl-add { font-size: 15px; }
 .au-btn2 { padding: 18px; font-size: 16px; }
+
+/* ---------- product image/video popup: no black bars, the popup wraps the picture ---------- */
+.model-3d-container { background: transparent !important; width: auto !important; max-width: min(450px, 100%) !important; align-items: center; box-shadow: none; }
+.model-3d-container img, .model-3d-container video { width: auto !important; max-width: 100% !important; height: auto !important; max-height: 85vh !important; object-fit: contain; border-radius: 20px; }
