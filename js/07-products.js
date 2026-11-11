@@ -162,7 +162,7 @@
 
                 if (isImageUrl(mediaUrl)) {
                     imgBoxClickAction = `onclick="openProductVideoPopup(${jsq(mediaUrl)})"`;
-                    mediaHtml = `<img src="${esc(optimizeMediaUrl(mediaUrl, false))}" alt="${esc(displayTitle)}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover;">`;
+                    mediaHtml = `<img src="${esc(optimizeMediaUrl(mediaUrl, false))}" alt="${esc(displayTitle)}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:contain;">`;
                 } else if (mediaUrl) {
                     imgBoxClickAction = `onclick="openProductVideoPopup(${jsq(mediaUrl)})"`;
                     mediaHtml = `
