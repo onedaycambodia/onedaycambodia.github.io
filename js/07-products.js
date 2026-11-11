@@ -318,11 +318,12 @@
                 }
             });
 
-            let totalPages = Math.ceil(matchedCards.length / productsPerPage) || 1;
+            const perPage = getProductsPerPage();
+            let totalPages = Math.ceil(matchedCards.length / perPage) || 1;
             if (currentPage > totalPages) currentPage = totalPages;
 
-            let startIndex = (currentPage - 1) * productsPerPage;
-            let endIndex = startIndex + productsPerPage;
+            let startIndex = (currentPage - 1) * perPage;
+            let endIndex = startIndex + perPage;
 
             matchedCards.forEach((card, index) => {
                 if (index >= startIndex && index < endIndex) {
