@@ -58,6 +58,7 @@
             wlHideOpener();
             openModal('walletModal');
             await wlLoad();
+            wlHist();
         }
         async function wlOpenHist() {
             if (!authToken) { openAuth(); return; }
@@ -80,7 +81,6 @@
         }
         function wlHist(target) {
             const el = document.getElementById(target || 'wlHist');
-            if (!el) return;
             const loc = currentLang === 'km' ? 'km-KH' : currentLang === 'zh' ? 'zh-CN' : 'en-GB';
             el.innerHTML = (wlState.tx || []).length ? wlState.tx.map(t => `<div class="wl-tx"><div>${esc(at(t.type === 'topup' ? 'wl_t_topup' : t.type === 'refund' ? 'wl_t_refund' : 'wl_t_order'))}<small>${esc(new Date(t.created_at).toLocaleString(loc, { dateStyle: 'medium', timeStyle: 'short' }))} · ${esc(at('wl_bal'))} ${wlMoney(t.balance_after)}</small></div><b class="${t.amount >= 0 ? 'pos' : 'neg'}">${t.amount >= 0 ? '+' : '-'}$${Math.abs(t.amount).toFixed(2)}</b></div>`).join('') : `<div class="wl-sub">${esc(at('wl_none'))}</div>`;
         }

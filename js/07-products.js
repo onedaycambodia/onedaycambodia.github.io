@@ -1,11 +1,10 @@
-        function showProductsError(reason) {
+        function showProductsError() {
             let container = document.getElementById('productContainer');
             if (!container) return;
             let t = translations[currentLang];
-            let why = reason ? `<div style="font-size:11px;opacity:.6;margin-top:6px;">(${esc(reason)})</div>` : '';
             container.innerHTML = `
                 <div class="load-error-box">
-                    <div>${ico('alert')} ${t.load_error}</div>${why}
+                    <div>${ico('alert')} ${t.load_error}</div>
                     <button onclick="retryLoadProducts()">${t.retry}</button>
                 </div>`;
         }
@@ -22,59 +21,14 @@
             loadDynamicProducts();
         }
 
-        const PRODUCTS_CACHE_KEY = 'oneday_products_cache_v1';
-        let productsAutoRetryTimer = null;
-        let productsAutoRetryCount = 0;
-
-        function saveProductsCache(list) {
-            try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(list)); } catch (e) {}
-        }
-        function readProductsCache() {
-            try {
-                let c = JSON.parse(localStorage.getItem(PRODUCTS_CACHE_KEY) || 'null');
-                return Array.isArray(c) && c.length ? c : null;
-            } catch (e) { return null; }
-        }
-        function scheduleProductsAutoRetry() {
-            clearTimeout(productsAutoRetryTimer);
-            if (productsAutoRetryCount >= 12) return; // stop after ~1 minute of trying
-            productsAutoRetryCount++;
-            productsAutoRetryTimer = setTimeout(loadDynamicProducts, 5000);
-        }
-
         async function loadDynamicProducts() {
-            clearTimeout(productsAutoRetryTimer);
-            let data;
-            // Step 1: fetch from the server
             try {
                 let response = await fetchRetry(`${RAILWAY_API_URL}/api/products`);
-                data = await response.json();
-                if (!Array.isArray(data)) throw new Error('Bad data');
-            } catch (error) {
-                console.error("Error loading products (network/server):", error);
-                let msg = String(error && error.message || error);
-                let reason = /HTTP \d+/.test(msg) ? 'Server: ' + msg.match(/HTTP \d+/)[0]
-                           : (msg === 'Bad data' ? 'Server: bad data' : 'Network');
-                // Fall back to the last good product list so the shop is never empty
-                let cached = readProductsCache();
-                if (cached) {
-                    productsList = cached;
-                    try { renderProducts(); } catch (e) { console.error("Render (cache) error:", e); }
-                } else {
-                    showProductsError(reason);
-                }
-                scheduleProductsAutoRetry();
-                return;
-            }
-            // Step 2: show them (a display bug is reported separately from a server problem)
-            productsAutoRetryCount = 0;
-            productsList = data;
-            saveProductsCache(data);
-            try {
+                productsList = await response.json();
                 renderProducts();
             } catch (error) {
-                console.error("Error rendering products:", error);
-                showProductsError('Display error');
+                console.error("Error loading dynamic products:", error);
+                showProductsError();
             }
         }
 
@@ -162,7 +116,7 @@
 
                 if (isImageUrl(mediaUrl)) {
                     imgBoxClickAction = `onclick="openProductVideoPopup(${jsq(mediaUrl)})"`;
-                    mediaHtml = `<img src="${esc(optimizeMediaUrl(mediaUrl, false))}" alt="${esc(displayTitle)}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:contain;">`;
+                    mediaHtml = `<img src="${esc(optimizeMediaUrl(mediaUrl, false))}" alt="${esc(displayTitle)}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover;">`;
                 } else if (mediaUrl) {
                     imgBoxClickAction = `onclick="openProductVideoPopup(${jsq(mediaUrl)})"`;
                     mediaHtml = `
@@ -318,10 +272,21 @@
                 }
             });
 
-            // No pages: show every matching product, the customer just scrolls down
-            matchedCards.forEach(card => { card.style.display = 'flex'; });
+            let totalPages = Math.ceil(matchedCards.length / productsPerPage) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
 
-            renderPaginationControls(1);
+            let startIndex = (currentPage - 1) * productsPerPage;
+            let endIndex = startIndex + productsPerPage;
+
+            matchedCards.forEach((card, index) => {
+                if (index >= startIndex && index < endIndex) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            renderPaginationControls(totalPages);
         }
 
         function renderPaginationControls(totalPages) {
@@ -356,7 +321,7 @@
             loadDynamicCovers();
             loadDynamicProducts();
 
-            setInterval(backgroundSyncStock, 30000); 
+            setInterval(backgroundSyncStock, 10000); 
             setInterval(loadWebsiteSettings, 60000);  
         });
 
