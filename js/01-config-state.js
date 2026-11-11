@@ -21,8 +21,8 @@
         let isOrderPlaced = false;
 
         let currentPage = 1;
-        // 3 columns x 2 rows = 6 products at a time, so the customer doesn't have to scroll a lot
-        const getProductsPerPage = () => 6;
+        // few products at a time so the customer doesn't have to scroll a lot: phone 2 columns x 2 rows, PC 4 columns x 2 rows
+        const getProductsPerPage = () => (window.innerWidth >= 768 ? 8 : 4);
 
         let freeMapObj = null;
         let freeMarker = null;
