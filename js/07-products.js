@@ -103,14 +103,11 @@
                 let defaultStockColor = defaultStock > 0 ? "var(--accent)" : "#ef4444";
 
                 let displayTitle = prod.title_km;
-                let displayDesc = prod.desc_km || '';
 
                 if (currentLang === 'en') {
                     displayTitle = prod.title_en || prod.title_km;
-                    displayDesc = prod.desc_en || prod.desc_km || '';
                 } else if (currentLang === 'zh') {
                     displayTitle = prod.title_zh || prod.title_km;
-                    displayDesc = prod.desc_zh || prod.desc_km || '';
                 }
 
                 let mediaUrl = prod.video_url || '';
@@ -146,7 +143,6 @@
                         </div>
                         <div>
                             <div class="prod-title">${esc(displayTitle)}</div>
-                            <div class="prod-desc">${esc(displayDesc)}</div>
                             <div class="price-box">
                                 <img src="images/IMG_5837.png" alt="Price Icon" class="price-icon" loading="lazy">
                                 <div class="price">$${parseFloat(prod.price).toFixed(2)}</div>
