@@ -136,7 +136,9 @@
 
     // Draws a KHQR-style card: red header + folded corner, merchant name, amount, dashed line, QR.
     function drawCard(qrCanvas, name, amt) {
-        const cv = $('khqrCard'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+        const cv = $('khqrCard'); cv.height = amt > 0 ? 860 : 780; // shorter card when there is no amount line
+        const ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+        const divY = amt > 0 ? 322 : 242, qrY = divY + 50;
         ctx.clearRect(0, 0, W, H);
         ctx.save(); rr(ctx, 0, 0, W, H, 40); ctx.clip();
         ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
@@ -163,9 +165,9 @@
         }
         // dashed divider
         ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 3; ctx.setLineDash([12, 10]);
-        ctx.beginPath(); ctx.moveTo(40, 322); ctx.lineTo(W - 40, 322); ctx.stroke(); ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(40, divY); ctx.lineTo(W - 40, divY); ctx.stroke(); ctx.setLineDash([]);
         // QR
-        const size = 440, x = (W - size) / 2, y = 372;
+        const size = 440, x = (W - size) / 2, y = qrY;
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(qrCanvas, x, y, size, size);
         ctx.restore();
