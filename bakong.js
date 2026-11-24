@@ -147,7 +147,7 @@ function createStandaloneKhqr({ amount, note, days, minutes }) {
         const why = result && result.status ? `${result.status.code} ${result.status.message}` : 'unknown';
         throw new Error('KHQR generation failed: ' + why);
     }
-    return { qr: result.data.qr, dynamic: hasAmount, expires_at: opts.expirationTimestamp || null };
+    return { qr: result.data.qr, dynamic: hasAmount, expires_at: opts.expirationTimestamp || null, merchant_name: process.env.BAKONG_MERCHANT_NAME };
 }
 
 /**
