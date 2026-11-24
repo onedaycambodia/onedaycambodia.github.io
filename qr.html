@@ -31,7 +31,8 @@
     #result.show { display:block; animation:rise .45s cubic-bezier(.2,.9,.25,1); }
     @keyframes rise { from { opacity:0; transform:translateY(18px) scale(.96); } to { opacity:1; transform:none; } }
     #result { background:transparent; border:none; padding:0; }
-    #khqrCard { display:block; width:100%; max-width:340px; height:auto; margin:0 auto; border-radius:22px; box-shadow:0 10px 30px rgba(15,23,42,.18); }
+    #khqrImg { -webkit-touch-callout:default; -webkit-user-select:auto; user-select:auto; }
+    #khqrImg, #khqrCard { display:block; width:100%; max-width:340px; height:auto; margin:0 auto; border-radius:22px; box-shadow:0 10px 30px rgba(15,23,42,.18); }
     #qrbox { position:absolute; left:-9999px; top:0; }
     .meta { margin-top:14px; }
     .meta { font-size:12px; color:var(--muted); font-weight:700; line-height:1.6; }
@@ -76,7 +77,8 @@
     </div>
 
     <div class="card" id="result">
-        <canvas id="khqrCard" width="600" height="860"></canvas>
+        <canvas id="khqrCard" width="600" height="860" style="display:none"></canvas>
+        <img id="khqrImg" alt="KHQR" width="340">
         <div id="qrbox" aria-hidden="true"></div>
         <div class="meta" id="rMeta"></div>
         <div class="row">
@@ -142,7 +144,7 @@
         ctx.fillStyle = RED; ctx.fillRect(0, 0, W, 120);
         ctx.beginPath(); ctx.moveTo(W - 70, 120); ctx.lineTo(W, 120); ctx.lineTo(W, 190); ctx.closePath(); ctx.fill();
         ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.font = '800 62px "Kantumruy Pro", system-ui, sans-serif';
+        ctx.font = '800 48px "Kantumruy Pro", system-ui, sans-serif';
         if ('letterSpacing' in ctx) ctx.letterSpacing = '4px';
         ctx.fillText('KHQR', W / 2, 62);
         if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
@@ -158,10 +160,6 @@
             const w = ctx.measureText(num).width;
             ctx.font = '700 30px "Kantumruy Pro", system-ui, sans-serif';
             ctx.fillText('USD', 64 + w + 14, 280);
-        } else {
-            ctx.font = '700 28px "Kantumruy Pro", system-ui, sans-serif';
-            ctx.fillStyle = '#64748b';
-            ctx.fillText('បញ្ចូលចំនួនទឹកប្រាក់ខ្លួនឯង', 64, 272);
         }
         // dashed divider
         ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 3; ctx.setLineDash([12, 10]);
@@ -187,6 +185,7 @@
             qc = img;
         }
         drawCard(qc, d.merchant_name || 'Oneday', a);
+        $('khqrImg').src = $('khqrCard').toDataURL('image/png');
         $('rMeta').textContent = d.dynamic
             ? 'ផុតកំណត់ ' + new Date(d.expires_at).toLocaleString('km-KH', { dateStyle: 'medium', timeStyle: 'short' })
             : 'QR ថេរ មិនផុតកំណត់';
@@ -196,10 +195,21 @@
     }
 
     $('save').addEventListener('click', () => {
-        const a = document.createElement('a');
-        a.href = $('khqrCard').toDataURL('image/png');
-        a.download = 'oneday-khqr' + (lastAmt > 0 ? '-' + lastAmt.toFixed(2) : '') + '.png';
-        a.click();
+        const name = 'oneday-khqr' + (lastAmt > 0 ? '-' + lastAmt.toFixed(2) : '') + '.png';
+        $('khqrCard').toBlob(async blob => {
+            if (!blob) return;
+            const file = new File([blob], name, { type: 'image/png' });
+            // iPhone/iPad Safari ignores the download attribute: use the share sheet ("Save Image")
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try { await navigator.share({ files: [file] }); return; }
+                catch (e) { if (e && e.name === 'AbortError') return; }
+            }
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+            if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) err.textContent = 'បើមិនទាន់រក្សាទុក សូមចុចរូបឱ្យយូរ រួចជ្រើស "Add to Photos"';
+        }, 'image/png');
     });
 
     $('again').addEventListener('click', () => {
