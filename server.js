@@ -653,11 +653,13 @@ app.post('/api/qr/generate', (req, res) => {
         standaloneQrRate.set(ip, recent);
 
         const { amount, note, days, minutes } = req.body || {};
+        const currency = String((req.body && req.body.currency) || 'USD').toUpperCase() === 'KHR' ? 'KHR' : 'USD';
+        const maxAmount = currency === 'KHR' ? 40000000 : 10000; // ~US$10,000
         const a = Number(amount);
-        if (amount !== undefined && amount !== null && amount !== '' && (!Number.isFinite(a) || a < 0 || a > 10000)) {
+        if (amount !== undefined && amount !== null && amount !== '' && (!Number.isFinite(a) || a < 0 || a > maxAmount)) {
             return res.status(400).json({ ok: false, message: 'Invalid amount' });
         }
-        res.json({ ok: true, ...bakong.createStandaloneKhqr({ amount: a || 0, note, days, minutes }) });
+        res.json({ ok: true, ...bakong.createStandaloneKhqr({ amount: a || 0, note, days, minutes, currency }) });
     } catch (err) {
         console.error('standalone qr error:', err.message);
         res.status(500).json({ ok: false, message: 'Could not generate QR' });

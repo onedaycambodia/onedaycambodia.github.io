@@ -123,15 +123,18 @@ function createKhqr({ amount, billNumber, expiresAt }) {
  *  - with amount -> dynamic QR that expires after `days` days (Bakong requires an expiry for QRs with an amount)
  * Nothing is tracked afterwards: the owner confirms the payment in the banking app.
  */
-function createStandaloneKhqr({ amount, note, days, minutes }) {
+function createStandaloneKhqr({ amount, note, days, minutes, currency }) {
     const { BakongKHQR, khqrData, IndividualInfo } = require('bakong-khqr');
     const amt = Number(amount);
     const hasAmount = Number.isFinite(amt) && amt > 0;
-    const opts = { currency: khqrData.currency.usd };
+    // USD is the default; KHR (riel) is whole riel only, no decimals.
+    const isKhr = String(currency || 'USD').toUpperCase() === 'KHR';
+    const cur = isKhr ? 'KHR' : 'USD';
+    const opts = { currency: isKhr ? khqrData.currency.khr : khqrData.currency.usd };
     const bill = String(note || '').replace(/[^A-Za-z0-9 _-]/g, '').trim().slice(0, 25);
     if (bill) opts.billNumber = bill;
     if (hasAmount) {
-        opts.amount = Number(amt.toFixed(2));
+        opts.amount = isKhr ? Math.round(amt) : Number(amt.toFixed(2));
         // `minutes` (5 min ... 30 days) wins; the old `days` field still works. Clamped to 1 minute .. 30 days.
         const mins = Math.min(30 * 1440, Math.max(1, Math.floor(Number(minutes) || (Number(days) || 1) * 1440)));
         opts.expirationTimestamp = Date.now() + mins * 60 * 1000;
@@ -147,7 +150,7 @@ function createStandaloneKhqr({ amount, note, days, minutes }) {
         const why = result && result.status ? `${result.status.code} ${result.status.message}` : 'unknown';
         throw new Error('KHQR generation failed: ' + why);
     }
-    return { qr: result.data.qr, dynamic: hasAmount, expires_at: opts.expirationTimestamp || null, merchant_name: process.env.BAKONG_MERCHANT_NAME };
+    return { qr: result.data.qr, currency: cur, dynamic: hasAmount, expires_at: opts.expirationTimestamp || null, merchant_name: process.env.BAKONG_MERCHANT_NAME };
 }
 
 /**

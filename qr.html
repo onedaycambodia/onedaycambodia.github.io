@@ -49,7 +49,13 @@
     <p class="sub">បង្កើត KHQR ដោយឡែក មិនពាក់ព័ន្ធនឹង order ឬស្តុកហាងទេ</p>
 
     <div class="card">
-        <label for="amount">ចំនួនទឹកប្រាក់ (USD)</label>
+        <label for="currency">រូបិយប័ណ្ណ</label>
+        <select id="currency">
+            <option value="USD" selected>USD · ដុល្លារ ($)</option>
+            <option value="KHR">KHR · រៀល (៛)</option>
+        </select>
+
+        <label for="amount" id="amountLabel">ចំនួនទឹកប្រាក់ (USD)</label>
         <input id="amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="ទុកទទេ = អតិថិជនបញ្ចូលខ្លួនឯង">
         <div class="hint">ទុកទទេ៖ QR ថេរ មិនផុតកំណត់ ហើយបង់បានច្រើនដង</div>
 
@@ -93,8 +99,16 @@
 <script>
 (function () {
     const $ = id => document.getElementById(id);
-    const amount = $('amount'), days = $('days'), note = $('note'), go = $('go'), err = $('err');
-    let qrObj = null, lastAmt = 0;
+    const currency = $('currency'), amount = $('amount'), days = $('days'), note = $('note'), go = $('go'), err = $('err');
+    let qrObj = null, lastAmt = 0, lastCur = 'USD';
+
+    currency.addEventListener('change', () => {
+        const khr = currency.value === 'KHR';
+        $('amountLabel').textContent = 'ចំនួនទឹកប្រាក់ (' + currency.value + ')';
+        amount.step = khr ? '100' : '0.01';
+        amount.value = '';
+        $('daysWrap').style.display = 'none';
+    });
 
     amount.addEventListener('input', () => {
         $('daysWrap').style.display = Number(amount.value) > 0 ? 'block' : 'none';
@@ -103,18 +117,20 @@
     go.addEventListener('click', async () => {
         err.textContent = '';
         const a = amount.value.trim();
-        if (a !== '' && (!(Number(a) >= 0) || Number(a) > 10000)) { err.textContent = 'ចំនួនទឹកប្រាក់មិនត្រឹមត្រូវ'; return; }
+        const cur = currency.value;
+        const maxAmt = cur === 'KHR' ? 40000000 : 10000;
+        if (a !== '' && (!(Number(a) >= 0) || Number(a) > maxAmt)) { err.textContent = 'ចំនួនទឹកប្រាក់មិនត្រឹមត្រូវ'; return; }
         go.disabled = true;
         try {
             // On GitHub Pages there is no server, so call the Railway API; on Railway itself keep the same-origin path.
             const API = /github\.io$/.test(location.hostname) ? 'https://onedaycambodiagithubio-production.up.railway.app' : '';
             const r = await fetch(API + '/api/qr/generate', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: a === '' ? 0 : Number(a), minutes: Number(days.value), days: Math.max(1, Math.ceil(Number(days.value) / 1440)), note: note.value })
+                body: JSON.stringify({ currency: cur, amount: a === '' ? 0 : Number(a), minutes: Number(days.value), days: Math.max(1, Math.ceil(Number(days.value) / 1440)), note: note.value })
             });
             const d = await r.json();
             if (!d.ok) throw new Error(d.message || 'error');
-            show(d, Number(a) || 0);
+            show(d, cur === 'KHR' ? Math.round(Number(a) || 0) : (Number(a) || 0), cur);
         } catch (e) {
             err.textContent = 'មិនអាចបង្កើត QR បានទេ: ' + e.message;
         }
@@ -135,7 +151,7 @@
     }
 
     // Draws a KHQR-style card: red header + folded corner, merchant name, amount, dashed line, QR.
-    function drawCard(qrCanvas, name, amt) {
+    function drawCard(qrCanvas, name, amt, cur) {
         const cv = $('khqrCard'); cv.height = amt > 0 ? 860 : 780; // shorter card when there is no amount line
         const ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
         const divY = amt > 0 ? 322 : 242, qrY = divY + 50;
@@ -156,12 +172,14 @@
         fitText(ctx, name, W - 150, 40, '600');
         ctx.fillText(name, 64, 200);
         if (amt > 0) {
-            const num = amt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const num = cur === 'KHR'
+                ? Math.round(amt).toLocaleString('en-US', { maximumFractionDigits: 0 })
+                : amt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             ctx.font = '800 64px "Kantumruy Pro", system-ui, sans-serif';
             ctx.fillText(num, 64, 280);
             const w = ctx.measureText(num).width;
             ctx.font = '700 30px "Kantumruy Pro", system-ui, sans-serif';
-            ctx.fillText('USD', 64 + w + 14, 280);
+            ctx.fillText(cur === 'KHR' ? 'KHR' : 'USD', 64 + w + 14, 280);
         }
         // dashed divider
         ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 3; ctx.setLineDash([12, 10]);
@@ -173,8 +191,8 @@
         ctx.restore();
     }
 
-    async function show(d, a) {
-        lastAmt = a;
+    async function show(d, a, cur) {
+        lastAmt = a; lastCur = cur || 'USD';
         const box = $('qrbox');
         box.innerHTML = '';
         qrObj = new QRCode(box, { text: d.qr, width: 880, height: 880, correctLevel: QRCode.CorrectLevel.M });
@@ -186,7 +204,7 @@
             await new Promise(r => { if (img.complete) r(); else img.onload = r; });
             qc = img;
         }
-        drawCard(qc, d.merchant_name || 'Oneday', a);
+        drawCard(qc, d.merchant_name || 'Oneday', a, lastCur);
         $('khqrImg').src = $('khqrCard').toDataURL('image/png');
         $('rMeta').textContent = d.dynamic
             ? 'ផុតកំណត់ ' + new Date(d.expires_at).toLocaleString('km-KH', { dateStyle: 'medium', timeStyle: 'short' })
@@ -197,7 +215,7 @@
     }
 
     $('save').addEventListener('click', () => {
-        const name = 'oneday-khqr' + (lastAmt > 0 ? '-' + lastAmt.toFixed(2) : '') + '.png';
+        const name = 'oneday-khqr' + (lastAmt > 0 ? '-' + (lastCur === 'KHR' ? Math.round(lastAmt) + 'khr' : lastAmt.toFixed(2)) : '') + '.png';
         $('khqrCard').toBlob(async blob => {
             if (!blob) return;
             const file = new File([blob], name, { type: 'image/png' });
@@ -216,7 +234,7 @@
 
     $('again').addEventListener('click', () => {
         $('result').classList.remove('show');
-        amount.value = ''; note.value = ''; $('daysWrap').style.display = 'none';
+        amount.value = ''; note.value = ''; currency.value = 'USD'; currency.dispatchEvent(new Event('change')); $('daysWrap').style.display = 'none';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 })();
